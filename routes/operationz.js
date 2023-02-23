@@ -96,7 +96,7 @@ router.get('/vatyearlybysector/:sector', operationzController.getVatYearlyBySect
 
 router.get('/yearlymarketsegmentbysector/:sector', operationzController.getMarketSegmentYearly);
 
-router.get('/monthlyvatsegmentbysector/:mm/year/:yyyy/sector/:sector', operationzController.getVatMonthlyBySector);
+router.get('/monthlyvatsegmentbysector/:yyyy/sector/:sector', operationzController.getVatMonthlyBySectorAllSubsector);
 
 router.get('/yearlyvatsegmentbysector/:sector', operationzController.getVatSegmentYearlyBySector);
 
