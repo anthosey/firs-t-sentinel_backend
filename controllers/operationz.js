@@ -244,8 +244,8 @@ exports.getVatHourly = (req, res, next) => {
     lastDate.setHours(firstDate.getHours() + 1);
     // lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
 
-    console.log('firstDate:' + firstDate);
-    console.log('lastDate: '+ lastDate);
+    // console.log('firstDate:' + firstDate);
+    // console.log('lastDate: '+ lastDate);
     
      var sumValue = 0;
      var dadas = '';
@@ -271,8 +271,8 @@ exports.getVatHourly = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-    console.log('firstDate1:' + firstDate);
-    console.log('lastDate1: '+ lastDate);
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
     
       Transactionz.aggregate([
         {
@@ -296,8 +296,8 @@ exports.getVatHourly = (req, res, next) => {
                 firstDate.setHours(firstDate.getHours() + 1);
                 lastDate.setHours(lastDate.getHours() + 1);
         
-            console.log('firstDate1:' + firstDate);
-            console.log('lastDate1: '+ lastDate);
+            // console.log('firstDate1:' + firstDate);
+            // console.log('lastDate1: '+ lastDate);
             
              var sumValue = 0;
              var dadas = '';
@@ -845,8 +845,8 @@ exports.getVatToday = (req, res, next) => {
     lastDate = new Date(Date.UTC(yyyy, mm, dd, 23, 00, 00));
     // console.log('Sector:' + sector);
 
-    console.log('firstDate:' + firstDate);
-    console.log('lastDate: '+ lastDate);
+    // console.log('firstDate:' + firstDate);
+    // console.log('lastDate: '+ lastDate);
     
      var sumValue = 0;
      var dadas = '';
@@ -871,8 +871,8 @@ exports.getVatToday = (req, res, next) => {
         firstDate.setDate(firstDate.getDate() - 1);
         lastDate.setDate(lastDate.getDate() - 1);
 
-        console.log('sDate :' + firstDate);
-        console.log('eDate :' + lastDate);
+        // console.log('sDate :' + firstDate);
+        // console.log('eDate :' + lastDate);
 
         const previous = await Transactionz.aggregate([
             {
@@ -932,8 +932,8 @@ exports.getVatMonthly = (req, res, next) => {
     var lastDate = lastDayOfMonth;
     // console.log('Sector:' + sector);
 
-    console.log('firstDate:' + firstDayOfMonth);
-    console.log('lastDate: '+ lastDayOfMonth);
+    // console.log('firstDate:' + firstDayOfMonth);
+    // console.log('lastDate: '+ lastDayOfMonth);
     
       Transactionz.aggregate([
         {
