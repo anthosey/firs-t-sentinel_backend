@@ -1,0 +1,35 @@
+{
+  "name": "firs-t-sentinel",
+  "version": "1.0.0",
+  "description": "FinTech solution",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthosey/firs-t-sentinel.git"
+  },
+  "author": "Anthony Ojewale",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anthosey/firs-t-sentinel/issues"
+  },
+  "homepage": "https://github.com/anthosey/firs-t-sentinel#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "express-validator": "^6.4.0",
+    "jsonwebtoken": "^9.0.0",
+    "moment": "^2.29.4",
+    "mongoose": "^6.9.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
