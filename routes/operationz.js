@@ -114,7 +114,7 @@ router.get('/vatquarterlybysubsector/:subsector', operationzController.getVatQua
 
 router.get('/vatyearlybysubsector/:subsector', operationzController.getVatYearlyBySubSector);
 
-router.get('/vathourbysubsector/:hr/hrback/:hrback/subsector/:subsector', operationzController.getVatHourlyBySubSector);
+router.get('/vathourbysubsector/:dd/mm/:mm/year/:yyyy/subsector/:subsector', operationzController.getVatHourlyBySubSector);
 
 router.get('/subsectortransactionwithpages/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getSubSectorTransactionzWithPages);
 

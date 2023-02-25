@@ -222,6 +222,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat => {
+        if (!dat[0]) dat[0] = 0;
 
 
         // 2AM
@@ -247,7 +248,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat1 => {
-
+        if (!dat1[0]) dat1[0] = 0;
        
                 // 3AM
                 firstDate.setHours(firstDate.getHours() + 1);
@@ -274,6 +275,7 @@ exports.getVatHourly = (req, res, next) => {
                 }
               ]
               ).then (dat2 => {
+                if (!dat2[0]) dat2[0] = 0;
 
 
                 // 4AM
@@ -298,6 +300,7 @@ exports.getVatHourly = (req, res, next) => {
                 }
               ]
               ).then (dat3 => {
+                if (!dat3[0]) dat3[0] = 0;
 
         // 5AM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -321,6 +324,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat4 => {
+        if (!dat4[0]) dat4[0] = 0;
 
 
         // 6AM
@@ -345,6 +349,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat5 => {
+        if (!dat5[0]) dat5[0] = 0;
         
         // 7AM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -366,6 +371,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat6 => {
+        if (!dat6[0]) dat6[0] = 0;
 
 
         // 8AM
@@ -388,6 +394,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat7 => {
+        if (!dat7[0]) dat7[0] = 0;
 
         // 9AM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -409,6 +416,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat8 => {
+        if (!dat8[0]) dat8[0] = 0;
 
         // 10AM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -430,6 +438,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat9 => {
+        if (!dat9[0]) dat9[0] = 0;
 
 
         // 11AM
@@ -453,6 +462,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat10 => {
+        if (!dat10[0]) dat10[0] = 0;
 
 
         
@@ -477,6 +487,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat11 => {
+        if (!dat11[0]) dat11[0] = 0;
 
 
         // 1PM
@@ -500,12 +511,14 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat12 => {
+        if (!dat12[0]) dat12[0] = 0;
 
         // 2PM
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-
+        console.log('firstD::' + firstDate);
+        console.log('lastD::' + lastDate);
       Transactionz.aggregate([
         {
             $match: {'createdAt': {
@@ -522,6 +535,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat13 => {
+        if (!dat13[0]) dat13[0] = 0;
 
         // 3PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -544,6 +558,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat14 => {
+        if (!dat14[0]) dat14[0] = 0;
 
         // 4PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -566,6 +581,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat15 => {
+        if (!dat15[0]) dat15[0] = 0;
 
         // 5PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -588,6 +604,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat16 => {
+        if (!dat16[0]) dat16[0] = 0;
 
         // 6PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -610,6 +627,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat17 => {
+        if (!dat17[0]) dat17[0] = 0;
 
         // 7PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -632,6 +650,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat18 => {
+        if (!dat18[0]) dat18[0] = 0;
 
         // 8PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -655,6 +674,7 @@ exports.getVatHourly = (req, res, next) => {
       ]
       ).then (dat19 => {
 
+        if (!dat19[0]) dat19[0] = 0;
         // 9PM
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
@@ -676,6 +696,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat20 => {
+        if (!dat20[0]) dat20[0] = 0;
 
         // 10PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -698,6 +719,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat21 => {
+        if (!dat21[0]) dat21[0] = 0;
 
         // 11PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -720,6 +742,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat22 => {
+        if (!dat22[0]) dat22[0] = 0;
 
         // 12AM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -742,6 +765,7 @@ exports.getVatHourly = (req, res, next) => {
         }
       ]
       ).then (dat23 => {
+        if (!dat23[0]) dat23[0] = 0;
 
 
         // let obj = 
@@ -789,7 +813,8 @@ exports.getVatToday = (req, res, next) => {
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
 
-    
+    console.log('dd: ' + dd + ' mm: ' + mm + ', yyyy: ' + yyyy);
+
     if (!dd || !mm || !yyyy) {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -797,13 +822,16 @@ exports.getVatToday = (req, res, next) => {
         const dd = today.getDate();
     }
     
+    console.log('After dd: ' + dd + ' mm: ' + mm + ', yyyy: ' + yyyy);
 
     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
-    lastDate = new Date(Date.UTC(yyyy, mm, dd, 23, 00, 00));
+    lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+    firstDate.setHours(00, 00);
+    lastDate.setHours(23, 59);
     // console.log('Sector:' + sector);
 
-    // console.log('firstDate:' + firstDate);
-    // console.log('lastDate: '+ lastDate);
+    console.log('firstDate:' + firstDate);
+    console.log('lastDate: '+ lastDate);
     
      var sumValue = 0;
      var dadas = '';
@@ -827,9 +855,11 @@ exports.getVatToday = (req, res, next) => {
         // Check Previous day's  transaction
         firstDate.setDate(firstDate.getDate() - 1);
         lastDate.setDate(lastDate.getDate() - 1);
+        firstDate.setHours(00, 00);
+        lastDate.setHours(23, 59);
 
-        // console.log('sDate :' + firstDate);
-        // console.log('eDate :' + lastDate);
+        console.log('sDate :' + firstDate);
+        console.log('eDate :' + lastDate);
 
         const previous = await Transactionz.aggregate([
             {
@@ -1421,19 +1451,19 @@ function recursionGetByMonth(mm, yyyy) {
     
 }
 
-exports.getTrxMonthlyAllSectors_old = (req, res, next) => { 
-  var mm = +req.params.mm;
-    var yyyy = +req.params.yyyy;
+// exports.getTrxMonthlyAllSectors_old = (req, res, next) => { 
+//   var mm = +req.params.mm;
+//     var yyyy = +req.params.yyyy;
 
-    // Get current month
-    const today = new Date();
+//     // Get current month
+//     const today = new Date();
    
-     recursionGetByMonth(mm, yyyy);
-     console.log('X:' + months[0]);
-         res.status(200).json({message: 'success', data: months});  
+//      recursionGetByMonth(mm, yyyy);
+//      console.log('X:' + months[0]);
+//          res.status(200).json({message: 'success', data: months});  
      
        
-}
+// }
 
 
 exports.getTrxMonthlyAllSectors = (req, res, next) => { 
@@ -1464,6 +1494,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat => {
+        if (!dat[0]) dat[0] = 0;
 
 
         // February
@@ -1491,6 +1522,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat1 => {
+        if (!dat1[0]) dat1[0] = 0;
 
        
                 // March
@@ -1518,7 +1550,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
                 }
               ]
               ).then (dat2 => {
-
+                if (!dat2[0]) dat2[0] = 0;
 
                 // April
                 firstDate.setMonth(firstDate.getMonth() + 1);
@@ -1545,6 +1577,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
                 }
               ]
               ).then (dat3 => {
+                if (!dat3[0]) dat3[0] = 0;
 
         // May
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -1571,6 +1604,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat4 => {
+        if (!dat4[0]) dat4[0] = 0;
 
 
         // June
@@ -1598,6 +1632,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat5 => {
+        if (!dat5[0]) dat5[0] = 0;
         
         // July
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -1624,6 +1659,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat6 => {
+        if (!dat6[0]) dat6[0] = 0;
 
 
         // August
@@ -1651,6 +1687,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat7 => {
+        if (!dat7[0]) dat7[0] = 0;
 
         // September
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -1677,6 +1714,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat8 => {
+        if (!dat8[0]) dat8[0] = 0;
 
         // October
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -1703,6 +1741,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat9 => {
+        if (!dat9[0]) dat9[0] = 0;
 
 
         // November
@@ -1731,6 +1770,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
       ]
       ).then (dat10 => {
 
+        if (!dat10[0]) dat10[0] = 0;
 
         // December
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -1757,6 +1797,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         }
       ]
       ).then (dat11 => {
+        if (!dat11[0]) dat11[0] = 0;
 
         // let obj = 
         let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
@@ -2477,6 +2518,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
       ]
       ).then (dat => {
 
+        if (!dat[0]) dat[0] = 0;
 
         // February
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2503,8 +2545,8 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat1 => {
+        if (!dat1[0]) dat1[0] = 0;
 
-       
                 // March
                 firstDate.setMonth(firstDate.getMonth() + 1);
                 lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
@@ -2530,7 +2572,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
                 }
               ]
               ).then (dat2 => {
-
+                if (!dat2[0]) dat2[0] = 0;
 
                 // April
                 firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2557,6 +2599,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
                 }
               ]
               ).then (dat3 => {
+                if (!dat3[0]) dat3[0] = 0;
 
         // May
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2583,6 +2626,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat4 => {
+        if (!dat4[0]) dat4[0] = 0;
 
 
         // June
@@ -2610,7 +2654,8 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat5 => {
-        
+        if (!dat5[0]) dat5[0] = 0;
+
         // July
         firstDate.setMonth(firstDate.getMonth() + 1);
         lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
@@ -2636,6 +2681,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat6 => {
+        if (!dat6[0]) dat6[0] = 0;
 
 
         // August
@@ -2663,6 +2709,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat7 => {
+        if (!dat7[0]) dat7[0] = 0;
 
         // September
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2689,6 +2736,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat8 => {
+        if (!dat8[0]) dat8[0] = 0;
 
         // October
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2716,6 +2764,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
       ]
       ).then (dat9 => {
 
+        if (!dat9[0]) dat9[0] = 0;
 
         // November
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2742,7 +2791,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         }
       ]
       ).then (dat10 => {
-
+        if (!dat10[0]) dat10[0] = 0;
 
         // December
         firstDate.setMonth(firstDate.getMonth() + 1);
@@ -2770,6 +2819,8 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
       ]
       ).then (dat11 => {
 
+        if (!dat11[0]) dat11[0] = 0;
+
         // let obj = 
         let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
     "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
@@ -2796,67 +2847,67 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
 }) //End of October
 }
 
-exports.getVatMonthlyBySectorAllSubsector_old = (req, res, next) => { 
+// exports.getVatMonthlyBySectorAllSubsector_old = (req, res, next) => { 
   
-    // var mm = +req.params.mm;
-    var yyyy = +req.params.yyyy;
-    var sector = req.params.sector;
+//     // var mm = +req.params.mm;
+//     var yyyy = +req.params.yyyy;
+//     var sector = req.params.sector;
 
-    firstDate = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
-    testDate = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
-    lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
+//     firstDate = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
+//     testDate = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
+//     lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
 
-    console.log('firstDate:' + firstDate);
-    console.log('lastDate: '+ lastDate);
+//     console.log('firstDate:' + firstDate);
+//     console.log('lastDate: '+ lastDate);
     
-     var sumValue = 0;
-     var dadas = '';
-      Transactionz.aggregate([
-        {
-            $match: {'createdAt': {
-                $gte: firstDate,
-                $lte: lastDate}, 'sector': sector}
-        },
-        {
-            $group: {
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}, 'sector': sector}
+//         },
+//         {
+//             $group: {
 
-                _id: "$sub_sector",
-                totalSum: { $sum: "$vat"},
-                count: { $sum: 1 }
-            }
-        }
-      ]
-      ).then (dat => {
+//                 _id: "$sub_sector",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat => {
 
-        // calculate percentage
-        if (dat) {
+//         // calculate percentage
+//         if (dat) {
 
-            for (i = 0; i < dat.length; i++){
-                sumValue += dat[i].totalSum;
-            }
+//             for (i = 0; i < dat.length; i++){
+//                 sumValue += dat[i].totalSum;
+//             }
 
-            for (i = 0; i < dat.length; i++) {
-                var ans = (dat[i].totalSum * 100)/sumValue;
-                var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
-                dadas = dadas + tempview;
-            }
+//             for (i = 0; i < dat.length; i++) {
+//                 var ans = (dat[i].totalSum * 100)/sumValue;
+//                 var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
+//                 dadas = dadas + tempview;
+//             }
 
-            dadas = dadas.substring(0, dadas.length - 1);
-            dadas = "{" + dadas + "}" ;
-            console.log(dadas);
-            var perc = JSON.parse(dadas);
+//             dadas = dadas.substring(0, dadas.length - 1);
+//             dadas = "{" + dadas + "}" ;
+//             console.log(dadas);
+//             var perc = JSON.parse(dadas);
 
-        }
+//         }
 
-        res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
-      })  .catch(err => {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err); // pass the error to the next error handling function
-    })        
+//         res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
        
-}
+// }
 
 
 exports.getVatSegmentYearlyBySector = (req, res, next) => { 
@@ -3332,7 +3383,7 @@ exports.getVatYearlyBySubSector = (req, res, next) => {
        
 }
 
-exports.getVatHourlyBySubSector = (req, res, next) => { 
+exports.getVatHourlyBySubSector_old = (req, res, next) => { 
     var hr = req.params.hr;
     var intervalBack = req.params.hrback;
     var subsector = req.params.subsector;
@@ -3376,6 +3427,622 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
 
 }
 
+exports.getVatHourlyBySubSector = (req, res, next) => { 
+    var dd = +req.params.dd;
+    var mm = +req.params.mm;
+    var yyyy = +req.params.yyyy;
+    var subsector = req.params.subsector;
+
+    firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+    lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+    lastDate.setHours(firstDate.getHours() + 1);
+    // lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
+
+    // console.log('firstDate:' + firstDate);
+    // console.log('lastDate: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat => {
+        if (!dat[0]) dat[0] = 0;
+
+
+        // 2AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat1 => {
+        if (!dat1[0]) dat1[0] = 0;
+       
+                // 3AM
+                firstDate.setHours(firstDate.getHours() + 1);
+                lastDate.setHours(lastDate.getHours() + 1);
+        
+            // console.log('firstDate1:' + firstDate);
+            // console.log('lastDate1: '+ lastDate);
+            
+             var sumValue = 0;
+             var dadas = '';
+              Transactionz.aggregate([
+                {
+                    $match: {'createdAt': {
+                        $gte: firstDate,
+                        $lte: lastDate}, 'sub_sector': subsector}
+                },
+                {
+                    $group: {
+        
+                        _id: "$_v",
+                        totalSum: { $sum: "$vat"},
+                        count: { $sum: 1 }
+                    }
+                }
+              ]
+              ).then (dat2 => {
+                if (!dat2[0]) dat2[0] = 0;
+
+
+                // 4AM
+                firstDate.setHours(firstDate.getHours() + 1);
+                lastDate.setHours(lastDate.getHours() + 1);
+         
+             var sumValue = 0;
+             var dadas = '';
+              Transactionz.aggregate([
+                {
+                    $match: {'createdAt': {
+                        $gte: firstDate,
+                        $lte: lastDate}, 'sub_sector': subsector}
+                },
+                {
+                    $group: {
+        
+                        _id: "$_v",
+                        totalSum: { $sum: "$vat"},
+                        count: { $sum: 1 }
+                    }
+                }
+              ]
+              ).then (dat3 => {
+                if (!dat3[0]) dat3[0] = 0;
+
+        // 5AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat4 => {
+        if (!dat4[0]) dat4[0] = 0;
+
+
+        // 6AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat5 => {
+        if (!dat5[0]) dat5[0] = 0;
+        
+        // 7AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat6 => {
+        if (!dat6[0]) dat6[0] = 0;
+
+
+        // 8AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat7 => {
+        if (!dat7[0]) dat7[0] = 0;
+
+        // 9AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat8 => {
+        if (!dat8[0]) dat8[0] = 0;
+
+        // 10AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat9 => {
+        if (!dat9[0]) dat9[0] = 0;
+
+
+        // 11AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat10 => {
+        if (!dat10[0]) dat10[0] = 0;
+
+
+        
+        // 12PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat11 => {
+        if (!dat11[0]) dat11[0] = 0;
+
+
+        // 1PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat12 => {
+        if (!dat12[0]) dat12[0] = 0;
+
+        // 2PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+        console.log('firstD::' + firstDate);
+        console.log('lastD::' + lastDate);
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat13 => {
+        if (!dat13[0]) dat13[0] = 0;
+
+        // 3PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat14 => {
+        if (!dat14[0]) dat14[0] = 0;
+
+        // 4PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat15 => {
+        if (!dat15[0]) dat15[0] = 0;
+
+        // 5PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat16 => {
+        if (!dat16[0]) dat16[0] = 0;
+
+        // 6PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat17 => {
+        if (!dat17[0]) dat17[0] = 0;
+
+        // 7PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat18 => {
+        if (!dat18[0]) dat18[0] = 0;
+
+        // 8PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat19 => {
+
+        if (!dat19[0]) dat19[0] = 0;
+        // 9PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat20 => {
+        if (!dat20[0]) dat20[0] = 0;
+
+        // 10PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat21 => {
+        if (!dat21[0]) dat21[0] = 0;
+
+        // 11PM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat22 => {
+        if (!dat22[0]) dat22[0] = 0;
+
+        // 12AM
+        firstDate.setHours(firstDate.getHours() + 1);
+        lastDate.setHours(lastDate.getHours() + 1);
+
+
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sub_sector': subsector}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat23 => {
+        if (!dat23[0]) dat23[0] = 0;
+
+
+        // let obj = 
+        let arrData = [{"1AM": dat, "2AM": dat1, "3AM": dat2, "4AM": dat3, "5AM": dat4, "6AM": dat5, "7AM": dat6,
+    "8AM": dat7, "9AM": dat8, "10AM": dat9, "11AM": dat10, "12PM": dat11, "1PM": dat12, "2PM": dat13, "3PM": dat14, 
+    "4PM": dat15, "5PM": dat16, "6PM": dat17, "7PM": dat18, "8PM": dat19, "9PM": dat20, "10PM": dat21, "11PM": dat22, "12AM": dat23}];
+       
+        // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
+        res.status(200).json({message: 'success', data: arrData});        
+      })  .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })        
+       
+});
+}); 
+}); 
+}); 
+}); 
+}); 
+}); 
+}); 
+}); 
+});
+});
+});
+}); 
+}); 
+}); 
+}); 
+});
+});
+});
+});
+});
+});
+});
+}
 
 exports.getSubSectorTransactionzWithPages = (req, res, next) => { 
     var page = +req.params.pagenumber;
@@ -3454,6 +4121,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
             }
         }
       ]).then (async dat => {
+        if (!dat[0]) dat[0] = 0;
 
         // Check 2nd Qtr's transaction
 
@@ -3482,6 +4150,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
                 }
             }
           ])
+          if (!secondQtr[0]) secondQtr[0] = 0;
 
         //   Get the third qtr data
             let qtrObject3 = getQuarter(6, yyyy);
@@ -3508,6 +4177,8 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
             }
           ])
 
+          if (!thirdQtr[0]) thirdQtr[0] = 0;
+
         //   Get the 4th qtr data
         let qtrObject4 = getQuarter(9, yyyy);
         var firstDate4 = qtrObject4.firstDate;
@@ -3532,6 +4203,8 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
                 }
             }
           ])
+
+          if (!fourthQtr[0]) fourthQtr[0] = 0;
         
         res.status(200).json({message: 'success', firstQuarter: dat, secondQuarter: secondQtr, thirdQuarter: thirdQtr, fourthQuarter: fourthQtr});        
       })  .catch(err => {
