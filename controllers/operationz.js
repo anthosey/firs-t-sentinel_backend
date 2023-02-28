@@ -4311,19 +4311,8 @@ exports.getTopPerfomersByYear = (req, res, next) => {
                         arrData.push(newDat)
             
             }
-
-           
         
-        //   // calculate percentage change 
-        //   //   Formula
-        //   //   ((newPrice - oldPrice)/oldPrice) * 100
-        //   var percentChange = 0;
-        //   if (dat[0] && previous[0]) {
-        //     percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
-        //     percentChange = percentChange.toFixed(1);
-        //   }
-        
-        res.status(200).json({message: 'success', topPerformer: arrData});        
+        res.status(200).json({message: 'success', totalVatForAll:totalVat[0].totalVat.toFixed(1), topPerformer: arrData});        
       })  .catch(err => {
         if (!err.statusCode) {
             err.statusCode = 500;
