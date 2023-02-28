@@ -119,60 +119,22 @@ router.post('/deletecompany', [
 
 ], profileController.deleteCompany);
 
-// router.post('/deletecompany', [
-//         body('cac_id')
-//         .trim()
-//         .not()
-//         .isEmpty()
-//         .withMessage('CAC registration ID can not be empty'),
-
-            
-//     ], profileController.deleteCompany);
-
-
 // ****PERSONAL RECORDS*******
 router.post('/addindividual', [
-    body('user_id')
-    .trim()
-        .not()
-        .isEmpty()
-        .withMessage('CAC registration ID can not be empty')
-        .custom((value, { req }) => {
-            return Company.findOne({cac_id: value}).then(foundDoc =>{
-                if (foundDoc) {
-                    console.log('Yes cac id found' + foundDoc);
-                    return Promise.reject('This CAC registration ID already exists');
-                }
-            });
-        }),
-
-        body('firs_id')
-        .trim()
-            .not()
-            .isEmpty()
-            .withMessage('CAC FIRS ID can not be empty')
-            .custom((value, { req }) => {
-                return Company.findOne({firs_id: value}).then(foundDoc =>{
-                    if (foundDoc) {
-                        console.log('Yes firs id found' + foundDoc);
-                        return Promise.reject('This FIRS ID already exists');
-                    }
-                });
-            }),
-
-            body('company_name')
+  
+            body('name')
                 .trim()
                 .not()
                 .isEmpty()
-                .withMessage('Company\'s name can not be empty'),
+                .withMessage('Name can not be empty'),
 
-            body('sector')
+            body('mobile')
                 .trim()
                 .not()
                 .isEmpty()
-                .withMessage('Sector of operation is compulsory'),
-
-                body('email')
+                .withMessage('Mobile can not be empty'),
+            
+            body('email')
                 .isEmail()
                 .withMessage('Please enter a valid email.')
                 .custom((value, { req }) => {
@@ -185,7 +147,46 @@ router.post('/addindividual', [
                 })
         .normalizeEmail()
 
-], profileController.addCompany);
+], profileController.addIndividual);
 
+router.post('/updateindividual', [
+    body('name')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Name can not be empty'),
+
+            body('mobile')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Mobile can not be empty'),
+            
+            body('email')
+                .isEmail()
+                .withMessage('Please enter a valid email.')
+                .custom((value, { req }) => {
+                    return Company.findOne({email: value}).then(foundDoc => {
+                        if (foundDoc) {
+                            console.log('Yes it is Em' + foundDoc);
+                            return Promise.reject('E-mail address already exists');
+                        }
+                    });
+                })
+        .normalizeEmail()
+
+], profileController.updateIndividual);
+
+router.post('/deleteindividual', [
+    body('email')
+        .trim()
+        .not()
+        .isEmpty()
+        .withMessage('Email is required')
+
+], profileController.deleteIndividual);
+
+router.get('/individuals', profileController.getIndividuals);
+router.get('/oneindividual/:email', profileController.getOneIndividual);
 
 module.exports = router;

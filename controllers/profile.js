@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Company = require('../models/company');
+const Individual = require('../models/personal');
 
 exports.getCompanies = (req, res, next) => { 
     // console.log('Filter:: ' + tempFilter);
@@ -204,6 +205,199 @@ exports.deleteCompany = (req, res, next) => {
     
         console.log('Deleted: ' + JSON.stringify(coys));
         res.status(200).json({message: 'Company deleted successfully!'});
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })
+    
+}
+
+
+// INDIVIDUAL STARTS HERE
+
+exports.addIndividual = (req, res, next) => {
+    
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed!');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+    
+ 
+    // const cac_id = req.body.cac_id;
+    const user_id = req.body.email;
+    const name = req.body.name;
+    const mobile = req.body.mobile;
+    const email = req.body.email;
+    const company = req.body.company;
+    const position = req.body.position;
+    const office_Address = req.body.office_address;
+    const brief_history = req.body.brief_history;
+    const extra_note = req.body.extra_note;
+    // const image_url = req.body.image_url;
+    // const incorporation_date = req.body.incorporation_date;
+    // const established_date = req.body.established_date;
+    // const brief_history = req.body.brief_history;
+    // const extra_note = req.body.extra_note;
+    
+    
+            const individual = new Individual({
+                user_id: user_id,
+                name: name,
+                mobile: mobile,
+                email: email,
+                company: company,
+                position: position,
+                office_address: office_Address,
+                brief_history: brief_history,
+                extra_note: extra_note
+                
+            });
+            
+            individual.save()
+            
+            .then (record =>{
+                console.log('record::' + record);
+                res.status(201).json({
+                    message: 'account created successfully',
+                    data: {name: name,
+                        mobile: mobile,
+                        email: email,
+                        company: company,
+                        position: position,
+                        office_address: office_Address,
+                        brief_history: brief_history,
+                        extra_note: extra_note     }
+                })
+        
+            })
+            .catch(err => {
+                if (!err.statusCode) {
+                    err.statusCode = 500;
+                }
+                next(err); // pass the error to the next error handling function
+            });
+           
+        
+}
+
+
+exports.updateIndividual = (req, res, next) => {
+    
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed!');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+
+    // token = generateToken(6);
+    const user_id = req.body.email;
+    const name = req.body.name;
+    const mobile = req.body.mobile;
+    const email = req.body.email;
+    const company = req.body.company;
+    const position = req.body.position;
+    const office_Address = req.body.office_address;
+    const brief_history = req.body.brief_history;
+    const extra_note = req.body.extra_note;
+    
+    Individual.findOne({user_id: user_id})
+    .then(userFound =>{
+        if (!userFound) res.status(202).json({message: 'Data ID not found!'});
+        
+        userFound.user_id = user_id,
+        userFound.name = name,
+        userFound.mobile = mobile,
+        // userFound.email = email,
+        userFound.company = company,
+        userFound.position = position,
+        userFound.office_address = office_Address,
+        userFound.brief_history = brief_history,
+        userFound.extra_note = extra_note
+
+        return userFound.save();
+    })
+    .then(usr => {
+        res.status(201).json({message: 'Individual data updated successfully', data: usr});
+
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    });
+
+}
+
+exports.deleteIndividual = (req, res, next) => {
+
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed!');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+
+    const email = req.body.email;
+    console.log('email: ' + email);
+
+    Individual.findOneAndDelete({user_id: email})
+    .then(pers => {
+    
+        console.log('Deleted: ' + JSON.stringify(pers));
+        res.status(200).json({message: 'Individual record deleted successfully!'});
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })
+    
+}
+
+exports.getIndividuals = (req, res, next) => { 
+    // console.log('Filter:: ' + tempFilter);
+        Individual.find()
+        .then(usrs => {
+            res.status(200).json({message: 'success', data: usrs});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+             
+}
+
+exports.getOneIndividual = (req, res, next) => {
+    const email = req.params.email;
+    console.log('Email: ' + email);
+
+    Individual.findOne({email: email})
+    .then(usrs => {
+        if (!usrs) 
+            res.status(202).json({message: 'No record found!'});
+        else res.status(200).json(usrs);
     })
     .catch(err => {
         if (!err.statusCode) {
