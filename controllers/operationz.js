@@ -4289,22 +4289,24 @@ exports.getTopPerfomersByYear = (req, res, next) => {
             // Get other records
             for (let i = 0; i < dat.length; i++) {
                 cac_id = dat[i]._id;
-                console.log('cadID '+ i + ': ' +cac_id);
+                console.log('cadID '+ i + ': ' + cac_id);
                 
-                records = await Company.find(
-                    {
-                        $match: {'cac_id': cac_id}
-                    }, 'company_name sector cac_id'
+                records = await Company.findOne(
+                    {'cac_id': cac_id}, 'company_name sector cac_id'
                 );
                 // arrOthers.push(records);
+
+                // Get percentage of vat contributed
+                 var percentContributed = (dat[i].totalVat * 100)/totalVat[0].totalVat;
 
                 console.log('Records:' + records);
                 var newDat =  { "totalVat": dat[i].totalVat ,
                                 "totalTrxn" : dat[i].totalTrxn,
                                 "count": dat[i].count,
-                                "company": records[i].company_name,
-                                "sector": records[i].sector,
-                                "cac_id": records[i].cac_id
+                                "company": records.company_name,
+                                "sector": records.sector,
+                                "cac_id": records.cac_id,
+                                "vatPercentContributed": percentContributed.toFixed(1)
                             }
                         arrData.push(newDat)
             
@@ -4321,7 +4323,7 @@ exports.getTopPerfomersByYear = (req, res, next) => {
         //     percentChange = percentChange.toFixed(1);
         //   }
         
-        res.status(200).json({message: 'success', topPerformerThisYear: dat, newData: arrData});        
+        res.status(200).json({message: 'success', topPerformer: arrData});        
       })  .catch(err => {
         if (!err.statusCode) {
             err.statusCode = 500;
