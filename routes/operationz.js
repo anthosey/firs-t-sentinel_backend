@@ -131,6 +131,24 @@ router.get('/summaryofalltimes', operationzController.getSummaryOfAllTimes);
 
 router.get('/topperformers/:total/year/:yyyy', operationzController.getTopPerfomersByYear);
 
+// Transaction ID Only
+router.get('/transactionswithtransactionid/:trxid', operationzController.getTransactionsByTrxIdOnly);
+
+// Sub Sector Only
+router.get('/transactionswithsubsectoronly/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getTransactionsBySubSectorOnly);
+
+// Sector Only
+router.get('/transactionswithsectoronly/:pagenumber/limitdata/:limit/sector/:sector', operationzController.getTransactionsBySectorOnly);
+
+// Dates Only
+router.get('/transactionswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getTransactionsWith2Dates);
+
+// Dates and sector
+router.get('/transactionswith2datesandsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/sector/:sector', operationzController.getTransactionsWith2DatesandSector);
+
+// Dates and Subsector
+router.get('/transactionswith2datesandsubsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getTransactionsWith2DatesandSubSector);
+
 // ******REPORTS ENDS *****
 
 // 

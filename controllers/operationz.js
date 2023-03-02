@@ -4216,6 +4216,11 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
        
 }
 
+// *****SUB SECTORS END******
+
+
+// ****** REPORTS STARTS *********
+
 exports.getTopPerfomersByYear = (req, res, next) => { 
     var total = +req.params.total;
     var yyyy = +req.params.yyyy;
@@ -4322,8 +4327,6 @@ exports.getTopPerfomersByYear = (req, res, next) => {
        
 }
 
-
-
 exports.getNumberOfVatsAllTimes = async (req, res, next) => { 
             const count = await Transactionz.count();
 
@@ -4362,4 +4365,250 @@ exports.getSummaryOfAllTimes = async (req, res, next) => {
 
 }
 
-// *****SUB SECTORS END******
+
+exports.getTransactionsByTrxIdOnly = (req, res, next) => { 
+    var trx_id = req.params.trxid;
+    
+        Transactionz.find({trx_id: trx_id},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        
+        .then(trxs => {
+
+            res.status(200).json({message: 'success', data: trxs});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+exports.getTransactionsBySubSectorOnly = (req, res, next) => { 
+    var sub_sector = req.params.subsector;
+    // const today = new Date();
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    // console.log('Page: ' + page);
+    // console.log('Limit: ' + limit);
+
+        Transactionz.find({sub_sector: sub_sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Transactionz.count({sub_sector: sub_sector});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+
+exports.getTransactionsBySectorOnly = (req, res, next) => { 
+    var sector = req.params.sector;
+    // const today = new Date();
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    // console.log('Page: ' + page);
+    // console.log('Limit: ' + limit);
+
+        Transactionz.find({sector: sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Transactionz.count({sector: sector});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+
+exports.getTransactionsWith2Dates = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    // const today = new Date();
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Transactionz.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Transactionz.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+exports.getTransactionsWith2DatesandSector = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    
+    var sector = req.params.sector;
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Transactionz.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Transactionz.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }, 'sector': sector});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+exports.getTransactionsWith2DatesandSubSector = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    
+    var sub_sector = req.params.subsector;
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Transactionz.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Transactionz.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+// *****REPORTS END******
