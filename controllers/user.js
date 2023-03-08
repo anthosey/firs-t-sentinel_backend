@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Tlogs = require ('../models/tlogs');
 // const Client = require('../models/client');
 // const Driver = require('../models/driver');
 
@@ -287,7 +288,19 @@ exports.createUser = (req, res, next) => {
         })
 
     })
-    .then(user => {
+    .then(async user => {
+
+        // Trail log action
+        // const tlogs = new Tlogs({
+        //     email: email,
+        //     name: user.firstname,
+        //     action: 'New user created, user name:' + user.firstname + ', lastName: ' + user.lastname + ', Email: ' + user.email
+            
+        // });
+        
+        // await tlogs.save();
+        // console.log('Log  created successfully!');
+
         // Send SMS
         // msg = `Your alaaru account activation Code is: ${token}`;
         // sendSMS('Alaaru', msg, mobile)
@@ -360,6 +373,7 @@ exports.userLogin = (req, res, next) => {
             const error = new Error('Account deactivated')
             error.statusCode = 406;
             throw error;
+
         }
 
         // return user;
@@ -367,12 +381,24 @@ exports.userLogin = (req, res, next) => {
         return bcrypt.compare(password, user.password)
     })
         
-        .then(passEqual => {
+        .then(async passEqual => {
             if (!passEqual) {
                 const error = new Error('Incorrect password or username')
                 error.statusCode = 401;
                 throw error;
             }
+
+                // Trail log action
+                const tlogs = new Tlogs({
+                    email: email,
+                    name: loadedUser.firstname,
+                    action: 'Logged in successfully'
+                    
+                });
+                
+                await tlogs.save();
+                console.log('Log  created successfully!');
+
     
             const token = jwt.sign(
                 {
@@ -381,14 +407,15 @@ exports.userLogin = (req, res, next) => {
                 }, 
                 'tonetechnologiesfirssentinel@nthos.p@ss'//,
                 // {expiresIn: '1h'}
-    
+                
             );
             return res.status(200).json({token: token, 
                                         userId: loadedUser._id.toString(), 
                                         email: loadedUser.email, 
                                         expiryHours: 1, 
                                         mobile: loadedUser.mobile,
-                                        firstname: loadedUser.firstname
+                                        firstname: loadedUser.firstname,
+                                        userType: loadedUser.usertype
                                         // contactAddress: loadedUser.contactAddress,
                                      });
         })
