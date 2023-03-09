@@ -369,8 +369,9 @@ exports.userLogin = (req, res, next) => {
             throw error;
         }
 
+
         if (user.status === 'Deactivated') {
-            const error = new Error('Account deactivated')
+            const error = new Error('Account deactivated, please contact your administrator.')
             error.statusCode = 406;
             throw error;
 
@@ -675,7 +676,6 @@ exports.confirmToken = (req, res, next) => {
 }
         
         
-        
 exports.resetPassword = (req, res, next) => {
     const email = req.body.username;
     const mobile = req.body.username;
@@ -975,6 +975,37 @@ exports.changePassword = (req, res, next) => {
     if (!err.statusCode) {
         err.statusCode = 500;
     }
+next(err); // pass the error to the next error handling function
+});
+}
+
+exports.lockunlock = (req, res, next) => {
+    const email = req.body.email;
+    const newStatus = req.body.newstatus;
+    let loadedUser;
+    User.findOne({email: email})
+    .then(user => {
+        
+        
+        if (!user) {
+            const error = new Error('Incorrect username or password!')
+            error.statusCode = 401;
+            throw error;
+        }
+        loadedUser = user;
+
+            loadedUser.status = newStatus;
+            return loadedUser.save()
+            
+        })
+        .then(updatedUser => {
+        return res.status(200).json({message: 'User status updated successfully', user: updatedUser});
+
+    })
+.catch(err => {
+if (!err.statusCode) {
+    err.statusCode = 500;
+}
 next(err); // pass the error to the next error handling function
 });
 }

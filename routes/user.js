@@ -59,6 +59,8 @@ router.post('/confirmemailtoken', userController.confirmEmailToken);
 router.post('/sendtokentoemail', userController.generateTokenToEmail);
 router.post('/changepassword', userController.changePassword);
 
+router.post('/lockunlockuser', userController.lockunlock);
+
 router.post('/uploadpassport', userController.uploadPassport);
 
 module.exports = router;
