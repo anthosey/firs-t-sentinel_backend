@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const Company = require('../models/company');
 const Personal = require('../models/personal');
 const Transactionz = require('../models/transactionz');
+const Tlogs = require('../models/tlogs');
 // const { parseTwoDigitYear } = require('moment');
 // const moment = require('moment');
 
@@ -4592,6 +4593,55 @@ exports.getTransactionsWith2DatesandSubSector = (req, res, next) => {
 
             const count = await Transactionz.count({'createdAt': {
                 $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+exports.getAuditTrailWith2Dates = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    // const today = new Date();
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Tlogs.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }},'email name action createdAt')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Tlogs.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }});
             
             if(trxs) {
                 console.log('Count:' + count);

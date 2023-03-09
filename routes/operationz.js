@@ -149,6 +149,8 @@ router.get('/transactionswith2datesandsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2
 // Dates and Subsector
 router.get('/transactionswith2datesandsubsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getTransactionsWith2DatesandSubSector);
 
+// Dates Only
+router.get('/logswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getAuditTrailWith2Dates);
 // ******REPORTS ENDS *****
 
 // 
