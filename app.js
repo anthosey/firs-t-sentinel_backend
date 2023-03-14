@@ -33,7 +33,8 @@ const fileStorage = multer.diskStorage({
           ext = '.jpeg';
       }
 
-      cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname + ext);
+    //   cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname + ext);
+      cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname);
       // cb(null, file.originalname + ext);
   }
 });

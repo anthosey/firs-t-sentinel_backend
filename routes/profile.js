@@ -119,6 +119,17 @@ router.post('/deletecompany', [
 
 ], profileController.deleteCompany);
 
+router.post('/forcedeletecompany', [
+    body('cac_id')
+        .trim()
+        .not()
+        .isEmpty()
+        .withMessage('CAC registration ID is required')
+
+], profileController.deleteCompanyWithTransactions);
+
+
+
 // ****PERSONAL RECORDS*******
 router.post('/addindividual', [
   

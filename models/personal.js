@@ -34,6 +34,9 @@ const personalSchema = new mongoose.Schema({
     },
     extra_note: {
         type: String
+    },
+    image_url: {
+        type: String
     }
     
 }, { timestamps: true }

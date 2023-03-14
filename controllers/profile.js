@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Company = require('../models/company');
 const Individual = require('../models/personal');
+const Transactionz = require('../models/transactionz');
 
 exports.getCompanies = (req, res, next) => { 
     // console.log('Filter:: ' + tempFilter);
@@ -199,12 +200,20 @@ exports.deleteCompany = (req, res, next) => {
 
     const cac_id = req.body.cac_id;
     console.log('CAC ID: ' + cac_id);
-
-    Company.findOneAndDelete({cac_id: cac_id})
-    .then(coys => {
-    
-        console.log('Deleted: ' + JSON.stringify(coys));
+    Transactionz.findOne({cac_id: cac_id})
+        .then (data => {
+                if (data) {
+                    // Send a response and avoid a delete
+                    res.status(401).json({message: 'Some transactions are linked to this company and cannot be deleted, use force delete!'});
+                } else {
+                    // Delete
+                    Company.findOneAndDelete({cac_id: cac_id})
+        .then(coys => {
         res.status(200).json({message: 'Company deleted successfully!'});
+        })
+    
+        }
+        
     })
     .catch(err => {
         if (!err.statusCode) {
@@ -216,6 +225,42 @@ exports.deleteCompany = (req, res, next) => {
 }
 
 
+exports.deleteCompanyWithTransactions = (req, res, next) => {
+
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed!');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+
+    const cac_id = req.body.cac_id;
+    console.log('CAC ID: ' + cac_id);
+
+    Company.findOneAndDelete({cac_id: cac_id})
+    .then(coys => {
+
+        Transactionz.deleteMany({cac_id: cac_id})
+        .then (data => {
+
+            console.log('Deleted: ' + JSON.stringify(coys));
+        res.status(200).json({message: 'Company deleted successfully!'});
+        })
+    
+        
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })
+    
+}
 // INDIVIDUAL STARTS HERE
 
 exports.addIndividual = (req, res, next) => {

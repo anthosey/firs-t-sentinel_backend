@@ -2,6 +2,8 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Company = require('../models/company');
+const Personal = require('../models/personal');
 const Tlogs = require ('../models/tlogs');
 // const Client = require('../models/client');
 // const Driver = require('../models/driver');
@@ -1013,6 +1015,7 @@ next(err); // pass the error to the next error handling function
 exports.uploadPassport = (req, res, next) => {
     const email = req.body.username;
     const mobile = req.body.username;
+    // const userCateg = req.body.userCateg;
     
     
     // Validate picture
@@ -1026,10 +1029,10 @@ exports.uploadPassport = (req, res, next) => {
 
     // End picture validation
     let loadedUser;
-    User.findOne({email: email})
+    Company.findOne({email: email})
     .then(user => {
         if (!user) {
-            return User.findOne({mobile: mobile});
+            return Personal.findOne({email: email});
         }
         return user;
     })
@@ -1041,7 +1044,7 @@ exports.uploadPassport = (req, res, next) => {
         }
 
         loadedUser = user;
-        user.imageUrl = imageUrl
+        user.image_url = imageUrl
         return user.save()
     })
     .then(updatedUser => {
