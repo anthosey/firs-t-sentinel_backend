@@ -3016,9 +3016,7 @@ exports.getSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('Sector:' + sector);
 // sector = 'Insurance';
-        Transactionz.find({
-            $match: {'sector': sector}
-        },'trx_id company_name sector trx_type trx_value vat remarks')
+        Transactionz.find({},'trx_id company_name sector trx_type trx_value vat remarks').where({'sector': sector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -4053,11 +4051,11 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
 
     console.log('Page: ' + page);
     console.log('Limit: ' + limit);
-    // console.log('Sector:' + sector);
+    console.log('subSector:' + subsector);
 // sector = 'Insurance';
         Transactionz.find({
-            $match: {'sub_sector': subsector}
-        },'trx_id company_name sector trx_type trx_value vat remarks')
+            
+        },'trx_id company_name sector sub_sector trx_type trx_value vat remarks').where ({'sub_sector': subsector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
