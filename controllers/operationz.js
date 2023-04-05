@@ -537,6 +537,7 @@ exports.getVatHourly = (req, res, next) => {
       ]
       ).then (dat13 => {
         if (!dat13[0]) dat13[0] = 0;
+        // console.log('my DAt13: ' + dat13[0].totalSum);
 
         // 3PM
         firstDate.setHours(firstDate.getHours() + 1);
@@ -770,10 +771,17 @@ exports.getVatHourly = (req, res, next) => {
 
 
         // let obj = 
-        let arrData = [{"1AM": dat, "2AM": dat1, "3AM": dat2, "4AM": dat3, "5AM": dat4, "6AM": dat5, "7AM": dat6,
-    "8AM": dat7, "9AM": dat8, "10AM": dat9, "11AM": dat10, "12PM": dat11, "1PM": dat12, "2PM": dat13, "3PM": dat14, 
-    "4PM": dat15, "5PM": dat16, "6PM": dat17, "7PM": dat18, "8PM": dat19, "9PM": dat20, "10PM": dat21, "11PM": dat22, "12AM": dat23}];
+    //     let arrData = [{"1AM": dat, "2AM": dat1, "3AM": dat2, "4AM": dat3, "5AM": dat4, "6AM": dat5, "7AM": dat6,
+    // "8AM": dat7, "9AM": dat8, "10AM": dat9, "11AM": dat10, "12PM": dat11, "1PM": dat12, "2PM": dat13, "3PM": dat14, 
+    // "4PM": dat15, "5PM": dat16, "6PM": dat17, "7PM": dat18, "8PM": dat19, "9PM": dat20, "10PM": dat21, "11PM": dat22, "12AM": dat23}];
        
+    
+    let arrData = [{'hour': '01', 'transactions': dat[0].totalSum || 0} , {'hour': '02', 'transactions': dat1[0].totalSum || 0}, {'hour': '03', 'transactions': dat2[0].totalSum || 0} , {'hour': '04', 'transactions': dat3[0].totalSum || 0} , {'hour': '05', 'transactions': dat4[0].totalSum || 0} , {'hour': '06', 'transactions': dat5[0].totalSum || 0}, 
+    {'hour': '07', 'transactions': dat6[0].totalSum || 0}, {'hour': '08', 'transactions': dat7[0].totalSum || 0}, {'hour': '09', 'transactions': dat8[0].totalSum || 0}, {'hour': '10', 'transactions': dat9[0].totalSum || 0}, {'hour': '11', 'transactions': dat10[0].totalSum || 0}, {'hour': '12', 'transactions': dat11[0].totalSum || 0}, 
+    {'hour': '13', 'transactions': dat12[0].totalSum || 0}, {'hour': '14', 'transactions': dat13[0].totalSum || 0}, {'hour': '15', 'transactions': dat14[0].totalSum || 0}, {'hour': '16', 'transactions': dat15[0].totalSum || 0}, {'hour': '17', 'transactions': dat16[0].totalSum || 0}, {'hour': '18', 'transactions': dat17[0].totalSum || 0}, 
+    {'hour': '19', 'transactions': dat18[0].totalSum || 0}, {'hour': '20', 'transactions': dat19[0].totalSum || 0}, {'hour': '21', 'transactions': dat20[0].totalSum || 0}, {'hour': '22', 'transactions': dat21[0].totalSum || 0}, {'hour': '23', 'transactions': dat22[0].totalSum || 0}, {'hour': '24', 'transactions': dat23[0].totalSum || 0}];
+       
+
         // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
         res.status(200).json({message: 'success', data: arrData});        
       })  .catch(err => {
@@ -4005,9 +4013,15 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
 
 
         // let obj = 
-        let arrData = [{"1AM": dat, "2AM": dat1, "3AM": dat2, "4AM": dat3, "5AM": dat4, "6AM": dat5, "7AM": dat6,
-    "8AM": dat7, "9AM": dat8, "10AM": dat9, "11AM": dat10, "12PM": dat11, "1PM": dat12, "2PM": dat13, "3PM": dat14, 
-    "4PM": dat15, "5PM": dat16, "6PM": dat17, "7PM": dat18, "8PM": dat19, "9PM": dat20, "10PM": dat21, "11PM": dat22, "12AM": dat23}];
+    //     let arrData = [{"1AM": dat, "2AM": dat1, "3AM": dat2, "4AM": dat3, "5AM": dat4, "6AM": dat5, "7AM": dat6,
+    // "8AM": dat7, "9AM": dat8, "10AM": dat9, "11AM": dat10, "12PM": dat11, "1PM": dat12, "2PM": dat13, "3PM": dat14, 
+    // "4PM": dat15, "5PM": dat16, "6PM": dat17, "7PM": dat18, "8PM": dat19, "9PM": dat20, "10PM": dat21, "11PM": dat22, "12AM": dat23}];
+
+    let arrData = [{'hour': '01', 'transactions': dat[0].totalSum || 0} , {'hour': '02', 'transactions': dat1[0].totalSum || 0}, {'hour': '03', 'transactions': dat2[0].totalSum || 0} , {'hour': '04', 'transactions': dat3[0].totalSum || 0} , {'hour': '05', 'transactions': dat4[0].totalSum || 0} , {'hour': '06', 'transactions': dat5[0].totalSum || 0}, 
+    {'hour': '07', 'transactions': dat6[0].totalSum || 0}, {'hour': '08', 'transactions': dat7[0].totalSum || 0}, {'hour': '09', 'transactions': dat8[0].totalSum || 0}, {'hour': '10', 'transactions': dat9[0].totalSum || 0}, {'hour': '11', 'transactions': dat10[0].totalSum || 0}, {'hour': '12', 'transactions': dat11[0].totalSum || 0}, 
+    {'hour': '13', 'transactions': dat12[0].totalSum || 0}, {'hour': '14', 'transactions': dat13[0].totalSum || 0}, {'hour': '15', 'transactions': dat14[0].totalSum || 0}, {'hour': '16', 'transactions': dat15[0].totalSum || 0}, {'hour': '17', 'transactions': dat16[0].totalSum || 0}, {'hour': '18', 'transactions': dat17[0].totalSum || 0}, 
+    {'hour': '19', 'transactions': dat18[0].totalSum || 0}, {'hour': '20', 'transactions': dat19[0].totalSum || 0}, {'hour': '21', 'transactions': dat20[0].totalSum || 0}, {'hour': '22', 'transactions': dat21[0].totalSum || 0}, {'hour': '23', 'transactions': dat22[0].totalSum || 0}, {'hour': '24', 'transactions': dat23[0].totalSum || 0}];
+       
        
         // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
         res.status(200).json({message: 'success', data: arrData});        
