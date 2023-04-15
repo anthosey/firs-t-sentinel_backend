@@ -1809,9 +1809,14 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
         if (!dat11[0]) dat11[0] = 0;
 
         // let obj = 
-        let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
-    "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
+    //     let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
+    // "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
        
+    let arrData = [{'month': 'January', 'transactions': dat[0].totalSum || 0} , {'month': 'February', 'transactions': dat1[0].totalSum || 0}, {'month': 'March', 'transactions': dat2[0].totalSum || 0} , {'month': 'April', 'transactions': dat3[0].totalSum || 0} , {'month': 'May', 'transactions': dat4[0].totalSum || 0} , {'month': 'June', 'transactions': dat5[0].totalSum || 0}, 
+    {'month': 'July', 'transactions': dat6[0].totalSum || 0}, {'month': 'August', 'transactions': dat7[0].totalSum || 0}, {'month': 'September', 'transactions': dat8[0].totalSum || 0}, {'month': 'October', 'transactions': dat9[0].totalSum || 0}, {'month': 'November', 'transactions': dat10[0].totalSum || 0}, {'month': 'December'}];
+       
+
+
         // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
         res.status(200).json({message: 'success', data: arrData});        
       })  .catch(err => {
@@ -2831,9 +2836,13 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
         if (!dat11[0]) dat11[0] = 0;
 
         // let obj = 
-        let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
-    "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
+    //     let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
+    // "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
+
+    let arrData = [{'month': 'January', 'transactions': dat[0].totalSum || 0} , {'month': 'February', 'transactions': dat1[0].totalSum || 0}, {'month': 'March', 'transactions': dat2[0].totalSum || 0} , {'month': 'April', 'transactions': dat3[0].totalSum || 0} , {'month': 'May', 'transactions': dat4[0].totalSum || 0} , {'month': 'June', 'transactions': dat5[0].totalSum || 0}, 
+    {'month': 'July', 'transactions': dat6[0].totalSum || 0}, {'month': 'August', 'transactions': dat7[0].totalSum || 0}, {'month': 'September', 'transactions': dat8[0].totalSum || 0}, {'month': 'October', 'transactions': dat9[0].totalSum || 0}, {'month': 'November', 'transactions': dat10[0].totalSum || 0}, {'month': 'December'}];
        
+
         // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
         res.status(200).json({message: 'success', data: arrData});        
       })  .catch(err => {
