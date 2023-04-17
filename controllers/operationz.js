@@ -2839,8 +2839,94 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     //     let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
     // "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
 
-    let arrData = [{'month': 'January', 'transactions': dat[0].totalSum || 0} , {'month': 'February', 'transactions': dat1[0].totalSum || 0}, {'month': 'March', 'transactions': dat2[0].totalSum || 0} , {'month': 'April', 'transactions': dat3[0].totalSum || 0} , {'month': 'May', 'transactions': dat4[0].totalSum || 0} , {'month': 'June', 'transactions': dat5[0].totalSum || 0}, 
-    {'month': 'July', 'transactions': dat6[0].totalSum || 0}, {'month': 'August', 'transactions': dat7[0].totalSum || 0}, {'month': 'September', 'transactions': dat8[0].totalSum || 0}, {'month': 'October', 'transactions': dat9[0].totalSum || 0}, {'month': 'November', 'transactions': dat10[0].totalSum || 0}, {'month': 'December'}];
+    // console.log('WriteOut 1 :: ' + dat3[2].totalSum);
+    
+
+    let arrData = [
+    {'month': 'January', 
+    'subSector1': checkUndefinedId(dat[0]), 'val1': checkUndefinedVal(dat[0]),
+    'subSector2': checkUndefinedId(dat[1]), 'val2': checkUndefinedVal(dat[1]),
+    'subSector3': checkUndefinedId(dat[2]), 'val3': checkUndefinedVal(dat[2]),
+    'subSector4': checkUndefinedId(dat[3]), 'val4': checkUndefinedVal(dat[3])
+    },
+    {'month': 'February', 
+    'subSector1': checkUndefinedId(dat1[0]), 'val1': checkUndefinedVal(dat1[0]),
+    'subSector2': checkUndefinedId(dat1[1]), 'val2': checkUndefinedVal(dat1[1]),
+    'subSector3': checkUndefinedId(dat1[2]), 'val3': checkUndefinedVal(dat1[2]),
+    'subSector4': checkUndefinedId(dat1[3]), 'val4': checkUndefinedVal(dat1[3])
+    },
+        
+    {'month': 'March', 
+    'subSector1': checkUndefinedId(dat2[0]), 'val1': checkUndefinedVal(dat2[0]),
+    'subSector2': checkUndefinedId(dat2[1]), 'val2': checkUndefinedVal(dat2[1]),
+    'subSector3': checkUndefinedId(dat2[2]), 'val3': checkUndefinedVal(dat2[2]),
+    'subSector4': checkUndefinedId(dat2[3]), 'val4': checkUndefinedVal(dat2[3])
+    },
+    
+    {'month': 'April', 
+    'subSector1': checkUndefinedId(dat3[0]), 'val1': checkUndefinedVal(dat3[0]),
+    'subSector2': checkUndefinedId(dat3[1]), 'val2': checkUndefinedVal(dat3[1]),
+    'subSector3': checkUndefinedId(dat3[2]), 'val3': checkUndefinedVal(dat3[2]),
+    'subSector4': checkUndefinedId(dat3[3]), 'val4': checkUndefinedVal(dat3[3])
+    },
+
+    {'month': 'May', 
+    'subSector1': checkUndefinedId(dat4[0]), 'val1': checkUndefinedVal(dat4[0]),
+    'subSector2': checkUndefinedId(dat4[1]), 'val2': checkUndefinedVal(dat4[1]),
+    'subSector3': checkUndefinedId(dat4[2]), 'val3': checkUndefinedVal(dat4[2]),
+    'subSector4': checkUndefinedId(dat4[3]), 'val4': checkUndefinedVal(dat4[3])
+    },
+
+
+    {'month': 'June', 
+    'subSector1': checkUndefinedId(dat5[0]), 'val1': checkUndefinedVal(dat5[0]),
+    'subSector2': checkUndefinedId(dat5[1]), 'val2': checkUndefinedVal(dat5[1]),
+    'subSector3': checkUndefinedId(dat5[2]), 'val3': checkUndefinedVal(dat5[2]),
+    'subSector4': checkUndefinedId(dat5[3]), 'val4': checkUndefinedVal(dat5[3])
+    },
+
+
+    {'month': 'July', 
+    'subSector1': checkUndefinedId(dat6[0]), 'val1': checkUndefinedVal(dat6[0]),
+    'subSector2': checkUndefinedId(dat6[1]), 'val2': checkUndefinedVal(dat6[1]),
+    'subSector3': checkUndefinedId(dat6[2]), 'val3': checkUndefinedVal(dat6[2]),
+    'subSector4': checkUndefinedId(dat6[3]), 'val4': checkUndefinedVal(dat6[3])
+    },
+
+    {'month': 'August', 
+    'subSector1': checkUndefinedId(dat7[0]), 'val1': checkUndefinedVal(dat7[0]),
+    'subSector2': checkUndefinedId(dat7[1]), 'val2': checkUndefinedVal(dat7[1]),
+    'subSector3': checkUndefinedId(dat7[2]), 'val3': checkUndefinedVal(dat7[2]),
+    'subSector4': checkUndefinedId(dat7[3]), 'val4': checkUndefinedVal(dat7[3])
+    },
+
+    {'month': 'September', 
+    'subSector1': checkUndefinedId(dat8[0]), 'val1': checkUndefinedVal(dat8[0]),
+    'subSector2': checkUndefinedId(dat8[1]), 'val2': checkUndefinedVal(dat8[1]),
+    'subSector3': checkUndefinedId(dat8[2]), 'val3': checkUndefinedVal(dat8[2]),
+    'subSector4': checkUndefinedId(dat8[3]), 'val4': checkUndefinedVal(dat8[3])
+    },
+
+    {'month': 'October', 
+    'subSector1': checkUndefinedId(dat9[0]), 'val1': checkUndefinedVal(dat9[0]),
+    'subSector2': checkUndefinedId(dat9[1]), 'val2': checkUndefinedVal(dat9[1]),
+    'subSector3': checkUndefinedId(dat9[2]), 'val3': checkUndefinedVal(dat9[2]),
+    'subSector4': checkUndefinedId(dat9[3]), 'val4': checkUndefinedVal(dat9[3])
+    },
+
+    {'month': 'November', 
+    'subSector1': checkUndefinedId(dat10[0]), 'val1': checkUndefinedVal(dat10[0]),
+    'subSector2': checkUndefinedId(dat10[1]), 'val2': checkUndefinedVal(dat10[1]),
+    'subSector3': checkUndefinedId(dat10[2]), 'val3': checkUndefinedVal(dat10[2]),
+    'subSector4': checkUndefinedId(dat10[3]), 'val4': checkUndefinedVal(dat10[3])
+    },
+
+    {'month': 'December', 
+    'subSector1': checkUndefinedId(dat11[0]), 'val1': checkUndefinedVal(dat11[0]),
+    'subSector2': checkUndefinedId(dat11[1]), 'val2': checkUndefinedVal(dat11[1]),
+    'subSector3': checkUndefinedId(dat11[2]), 'val3': checkUndefinedVal(dat11[2]),
+    'subSector4': checkUndefinedId(dat11[3]), 'val4': checkUndefinedVal(dat11[3])
+    }];
        
 
         // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
@@ -2863,6 +2949,20 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
 }) //End of August
 }) //End of September
 }) //End of October
+}
+
+function checkUndefinedId (x) {
+    let ans;
+if (x == undefined) { ans = 'none'} else 
+ans = x._id;
+return ans;
+}
+
+function checkUndefinedVal (x) {
+    let ans;
+if (x == undefined) { ans = 0} else 
+ans = x._totalSum;
+return ans;
 }
 
 // exports.getVatMonthlyBySectorAllSubsector_old = (req, res, next) => { 
