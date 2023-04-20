@@ -98,6 +98,9 @@ router.get('/yearlymarketsegmentbysector/:sector', operationzController.getMarke
 
 router.get('/monthlyvatsegmentbysector/:yyyy/sector/:sector', operationzController.getVatMonthlyBySectorAllSubsector);
 
+
+router.get('/monthlyvatsegmentbysectorInsurance/:yyyy/sector/:sector', operationzController.getVatMonthlyBySectorInsurance);
+
 router.get('/yearlyvatsegmentbysector/:sector', operationzController.getVatSegmentYearlyBySector);
 
 router.get('/sectortransactionwithpages/:pagenumber/limitdata/:limit/sector/:sector', operationzController.getSectorTransactionzWithPages);

@@ -3081,69 +3081,458 @@ return ansObj;
 }
 
 
+exports.getVatMonthlyBySectorInsurance = (req, res, next) => { 
+    var yyyy = +req.params.yyyy;
+    var sector = req.params.sector;
+    console.log('Sector: ' + sector + 'Year: ' + yyyy);
+   
+    firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+    testDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+    lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
 
-// exports.getVatMonthlyBySectorAllSubsector_old = (req, res, next) => { 
-  
-//     // var mm = +req.params.mm;
-//     var yyyy = +req.params.yyyy;
-//     var sector = req.params.sector;
-
-//     firstDate = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
-//     testDate = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
-//     lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
-
-//     console.log('firstDate:' + firstDate);
-//     console.log('lastDate: '+ lastDate);
+    // console.log('firstDate:' + firstDate);
+    // console.log('lastDate: '+ lastDate);
     
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}, 'sector': sector}
-//         },
-//         {
-//             $group: {
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
 
-//                 _id: "$sub_sector",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat => {
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat => {
+        let resDat = findData2(dat);
 
-//         // calculate percentage
-//         if (dat) {
+        if (!dat[0]) dat[0] = 0;
 
-//             for (i = 0; i < dat.length; i++){
-//                 sumValue += dat[i].totalSum;
-//             }
+        // February
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
 
-//             for (i = 0; i < dat.length; i++) {
-//                 var ans = (dat[i].totalSum * 100)/sumValue;
-//                 var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
-//                 dadas = dadas + tempview;
-//             }
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
 
-//             dadas = dadas.substring(0, dadas.length - 1);
-//             dadas = "{" + dadas + "}" ;
-//             console.log(dadas);
-//             var perc = JSON.parse(dadas);
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat1 => {
+        let resDat1 = findData2(dat1);
+        if (!dat1[0]) dat1[0] = 0;
 
-//         }
+                // March
+                firstDate.setMonth(firstDate.getMonth() + 1);
+                lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+        
+            // console.log('firstDate1:' + firstDate);
+            // console.log('lastDate1: '+ lastDate);
+            
+             var sumValue = 0;
+             var dadas = '';
+              Transactionz.aggregate([
+                {
+                    $match: {'createdAt': {
+                        $gte: firstDate,
+                        $lte: lastDate}, 'sector': sector}
+                },
+                {
+                    $group: {
+        
+                        _id: "$sub_sector",
+                        totalSum: { $sum: "$vat"},
+                        count: { $sum: 1 }
+                    }
+                }
+              ]
+              ).then (dat2 => {
+                let resDat2 = findData2(dat2);
+                if (!dat2[0]) dat2[0] = 0;
 
-//         res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
+                // April
+                firstDate.setMonth(firstDate.getMonth() + 1);
+                lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+        
+            // console.log('firstDate1:' + firstDate);
+            // console.log('lastDate1: '+ lastDate);
+            
+             var sumValue = 0;
+             var dadas = '';
+              Transactionz.aggregate([
+                {
+                    $match: {'createdAt': {
+                        $gte: firstDate,
+                        $lte: lastDate}, 'sector': sector}
+                },
+                {
+                    $group: {
+        
+                        _id: "$sub_sector",
+                        totalSum: { $sum: "$vat"},
+                        count: { $sum: 1 }
+                    }
+                }
+              ]
+              ).then (dat3 => {
+                let resDat3 = findData2(dat3);
+                if (!dat3[0]) dat3[0] = 0;
+
+        // May
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat4 => {
+        let resDat4 = findData2(dat4);
+        if (!dat4[0]) dat4[0] = 0;
+
+
+        // June
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat5 => {
+        let resDat5 = findData2(dat5);
+        if (!dat5[0]) dat5[0] = 0;
+
+        // July
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat6 => {
+        let resDat6 = findData2(dat6);
+        if (!dat6[0]) dat6[0] = 0;
+
+
+        // August
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat7 => {
+        let resDat7 = findData2(dat7);
+        if (!dat7[0]) dat7[0] = 0;
+
+        // September
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat8 => {
+        let resDat8 = findData2(dat8);
+        if (!dat8[0]) dat8[0] = 0;
+
+        // October
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat9 => {
+        let resDat9 = findData2(dat9);
+        if (!dat9[0]) dat9[0] = 0;
+
+        // November
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat10 => {
+        let resDat10 = findData2(dat10);
+        if (!dat10[0]) dat10[0] = 0;
+
+        // December
+        firstDate.setMonth(firstDate.getMonth() + 1);
+        lastDate = new Date(firstDate.getFullYear(), firstDate.getMonth()+1, 0);
+
+    // console.log('firstDate1:' + firstDate);
+    // console.log('lastDate1: '+ lastDate);
+    
+     var sumValue = 0;
+     var dadas = '';
+      Transactionz.aggregate([
+        {
+            $match: {'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate}, 'sector': sector}
+        },
+        {
+            $group: {
+
+                _id: "$sub_sector",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat11 => {
+        let resDat11 = findData2(dat11);
+        if (!dat11[0]) dat11[0] = 0;
+
+        // let obj = 
+    //     let arrData = [{"January": dat, "February": dat1, "March": dat2, "April": dat3, "May": dat4, "June": dat5, "July": dat6,
+    // "August": dat7, "September": dat8, "October": dat9, "November": dat10, "December": dat11}];
+
+    
+   
+
+    let arrData = [
+    {'month': 'January', 
+    'NAICOM': resDat.naicom,
+    'PENSION': resDat.pension
+    },
+    {'month': 'February', 
+    'NAICOM': resDat1.naicom,
+    'PENSION': resDat1.pension
+    },
+        
+    {'month': 'March', 
+    'NAICOM': resDat2.naicom,
+    'PENSION': resDat2.pension
+    },
+    
+    {'month': 'April', 
+    'NAICOM': resDat3.naicom,
+    'PENSION': resDat3.pension
+    },
+
+    {'month': 'May', 
+    'NAICOM': resDat4.naicom,
+    'PENSION': resDat4.pension
+    },
+
+    {'month': 'June', 
+    'NAICOM': resDat5.naicom,
+    'PENSION': resDat5.pension
+    },
+
+
+    {'month': 'July', 
+    'NAICOM': resDat6.naicom,
+    'PENSION': resDat6.pension
+    },
+
+    {'month': 'August', 
+    'NAICOM': resDat7.naicom,
+    'PENSION': resDat7.pension
+    },
+
+    {'month': 'September', 
+    'NAICOM': resDat8.naicom,
+    'PENSION': resDat8.pension
+    },
+
+    {'month': 'October', 
+    'NAICOM': resDat9.naicom,
+    'PENSION': resDat9.pension
+    },
+
+    {'month': 'November', 
+    'NAICOM': resDat10.naicom,
+    'PENSION': resDat10.pension
+    },
+
+    {'month': 'December', 
+    'NAICOM': resDat11.naicom,
+    'PENSION': resDat11.pension
+    }];
        
-// }
 
+        // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
+        res.status(200).json({message: 'success', data: arrData});        
+      })  .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })        
+       
+});
+});  //End of February
+}); // End of January
+}); // End of March
+}) //End of April
+}) //End of May
+}) //End of June
+}) //End of July
+}) //End of August
+}) //End of September
+}) //End of October
+}
+
+function findData2 (x) {
+    let ans;
+    let naicom = 0;
+    let pension = 0;
+    
+
+    for (var i = 0; i < x.length; i++){
+
+        if (x[i]._id === 'NAICOM') naicom = x[i].totalSum;
+        if (x[i]._id === 'PENSION') pension = x[i].totalSum;
+        
+
+    }
+
+    let ansObj = {naicom: naicom, pension: pension}
+return ansObj;
+}
 
 exports.getVatSegmentYearlyBySector = (req, res, next) => { 
     const today = new Date();
