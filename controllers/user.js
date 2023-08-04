@@ -408,8 +408,8 @@ exports.userLogin = (req, res, next) => {
                     email: loadedUser.email,
                     userId: loadedUser._id.toString()
                 }, 
-                'tonetechnologiesfirssentinel@nthos.p@ss'//,
-                // {expiresIn: '1h'}
+                'tonetechnologiesfirssentinel@nthos.p@ss',
+                {expiresIn: '1h'}
                 
             );
             return res.status(200).json({token: token, 
