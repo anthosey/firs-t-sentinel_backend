@@ -13,7 +13,7 @@ const companySchema = new mongoose.Schema({
         type: String
         // required: true
     },
-    firs_id: {
+    tin: {
         type: String,
         required: true,
         unique: true
@@ -60,7 +60,35 @@ const companySchema = new mongoose.Schema({
     },
     extra_note: {
         type: String
+    },
+
+    company_code: {
+        type: String
+    },
+
+    postal_address: {
+        type: String
+    },
+
+    corporate_website: {
+        type: String
+    },
+    taxpayer_name: {
+        type: String
+    },
+    taxpayer_address: {
+        type:String
+    },
+    tax_office_id: {
+        type: String
+    },
+    tax_office_address: {
+        type: String
+    },
+    tin_verification: {
+        type: String
     }
+
     
 }, { timestamps: true }
 );

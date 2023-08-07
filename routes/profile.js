@@ -29,16 +29,16 @@ router.post('/addcompany', [
             });
         }),
 
-        body('firs_id')
+        body('tin')
         .trim()
             .not()
             .isEmpty()
-            .withMessage('CAC FIRS ID can not be empty')
+            .withMessage('TIN can not be empty')
             .custom((value, { req }) => {
-                return Company.findOne({firs_id: value}).then(foundDoc =>{
+                return Company.findOne({tin: value}).then(foundDoc =>{
                     if (foundDoc) {
-                        console.log('Yes firs id found' + foundDoc);
-                        return Promise.reject('This FIRS ID already exists');
+                        console.log('Yes TIN found' + foundDoc);
+                        return Promise.reject('This TIN already exists');
                     }
                 });
             }),
@@ -78,11 +78,11 @@ router.post('/updatecompany', [
                     .isEmpty()
                     .withMessage('CAC registration ID can not be empty'),
 
-                    body('firs_id')
+                    body('tin')
                     .trim()
                         .not()
                         .isEmpty()
-                        .withMessage('CAC FIRS ID can not be empty'),
+                        .withMessage('TIN can not be empty'),
     
                 body('company_name')
                     .trim()
@@ -109,6 +109,42 @@ router.post('/updatecompany', [
                     .normalizeEmail()
 
 ], profileController.updateCompany);
+
+
+router.post('/updateverifiedtin', [
+    body('cac_id')
+    .trim()
+        .not()
+        .isEmpty()
+        .withMessage('CAC registration ID can not be empty'),
+
+        body('tin')
+        .trim()
+            .not()
+            .isEmpty()
+            .withMessage('TIN can not be empty'),
+
+    body('taxpayer_name')
+        .trim()
+        .not()
+        .isEmpty()
+        .withMessage('Provide Taxpayer\'s name'),
+
+    body('tax_office_id')
+        .trim()
+        .not()
+        .isEmpty()
+        .withMessage('Tax office id is compulsory'),
+
+    body('tax_office_address')
+        .trim()
+        .not()
+        .isEmpty()
+        .withMessage('Tax office address is compulsory'),
+
+    
+
+], profileController.updateTinVerification);
 
 router.post('/deletecompany', [
     body('cac_id')

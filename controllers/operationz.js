@@ -5,6 +5,7 @@ const Company = require('../models/company');
 const Personal = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 const Tlogs = require('../models/tlogs');
+const Vat = require('../models/vat');
 // const { parseTwoDigitYear } = require('moment');
 // const moment = require('moment');
 
@@ -118,7 +119,7 @@ exports.getOwnerByTransaction = (req, res, next) => {
     
 }
 
-exports.addTransaction = (req, res, next) => {
+exports.addTransaction = async (req, res, next) => {
     
     const errors = validationResult(req);
     var msg;
@@ -129,53 +130,127 @@ exports.addTransaction = (req, res, next) => {
         error.data = errors.array();
         throw error;
     }
+    
     const trxId = generateToken(10);
  
-    const cac_id = req.body.cac_id;
-    var user_id = req.body.user_id
+    var sector;
+    var sub_sector;
+    var trx_value;
+
+
+    const trx_ref_provider = req.body.trx_ref_provider;
+    const user_id = req.body.user_id;
     const personal_id = req.body.personal_id;
-    const company_name = req.body.company_name;
-    const sector = req.body.sector;
-    const sub_sector = req.body.sub_sector;
+    const company_code = req.body.company_code;
     const trx_type = req.body.trx_type;
-    const trx_value = req.body.trx_value;
-    const vat = (+req.body.trx_value * 7.5)/100;
+    const trade_type = req.body.trade_type;
+    const cscs_number = req.body.cscs_number;
+    const beneficiary_name = req.body.beneficiary_name;
+    const stock_symbol = req.body.stock_symbol;
+    const price = req.body.price;
+    const volume = req.body.volume;
+    const counter_party_code = req.body.counter_party_code;
     const remarks = req.body.remarks;
+    const provider_code = req.body.provider_code;
     
-    if (cac_id) user_id = cac_id;
-    if (personal_id) user_id = personal_id;
+    trx_value = (volume * price);
+    
+
+
+    // Identify data provider
+    if (provider_code === 'NGX01') {
+        sector = 'Capital Market';
+    }
+
+    var company_name = req.body.company_name;
+    var counter_party_name = req.body.counter_part_name;
+
+    var main_company = await Company.findOne(
+        {'company_code': company_code}
+    );
+
+    console.log('Main Coy: ' + main_company.company_name);
+    
+    var counterparty_company = await Company.findOne(
+        {'company_code': counter_party_code}
+    );
+
+    console.log('Main Coy: ' + counterparty_company.company_name);
+
+
+    // const vat = (+req.body.trx_value * 7.5)/100;
+    
+    
+    // if (cac_id) user_id = cac_id;
+    // if (personal_id) user_id = personal_id;
 
         const transaction = new Transactionz({
+            trx_ref_provider: trx_ref_provider,
             trx_id: trxId,
-            cac_id: cac_id,
-            user_id: user_id,
-            company_name: company_name,
+            cac_id: main_company.cac_id,
+            user_id: main_company.cac_id,
+            company_name: main_company.company_name,
             sector: sector,
-            sub_sector: sub_sector,
+            // sub_sector: sub_sector,
             trx_type: trx_type,
+            trade_type: trade_type,
+            cscs_number: cscs_number,
+            beneficiary_name: beneficiary_name,
+            stock_symbol: stock_symbol,
+            price: price,
+            volume: volume,
+            counter_party_code: counter_party_code,
+            counter_party_name: counter_party_name,
+            provider_code: provider_code,
             trx_value: trx_value,
-            // vat: (trx_value * 7.5)/100
-            vat: vat,
-
             remarks: remarks
                         
             });
             
             transaction.save()
              
-            .then(dat => {
+            .then(async dat => {
+
+                // DO VAT DEDUCTION
+
+                // transaction initiator
+
+                // const initiatorCompany = new Vat ({
+                //     trx_id: trxId,
+                //     transaction_ref: 
+                //     cac_id
+                //     transaction_type
+                //     trade_type
+                //     tin
+                //     agent_tin
+                //     beneficiary_tin
+                //     currency
+                //     base_amount
+                //     lower_vat
+                //     upper_vat
+                //     total_amount_lower
+                //     total_amount_upper
+                //     other_taxes
+                //     company_name
+                //     company_code
+                //     sector
+                //     sub_sector
+            
+                // })
+                // counter party company
+
+                // cscs
+
+                // ngx
+
+                // sec
+
+
                 console.log('record::' + dat + ', Trx ID::' + trxId);
                 res.status(201).json({
                     message: 'Transaction saved successfully',
                     data: {trx_id: trxId,
-                        cac_id: cac_id,
-                        user_id: user_id,
-                        company_name: company_name,
-                        sector: sector,
-                        sub_sector: sub_sector,
-                        trx_type: trx_type,
-                        trx_value: trx_value,
-                        vat: vat,
+                       
                         remarks: remarks      }
             })
         })

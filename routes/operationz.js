@@ -20,32 +20,23 @@ router.get('/ownerbytransaction/:trx_id', operationzController.getOwnerByTransac
 
 // router.get('/countrycode/:code', userController.getCountryCodes);
 router.post('/addtransaction', [
-    body('cac_id')
+    body('trx_ref_provider')
     .trim()
         .not()
         .isEmpty()
-        .withMessage('No Id found, personal or corporate'),
+        .withMessage('Transaction Reference by provider'),
 
-        // .custom (
-        //     body('user_id').isEmpty()
-        //     .withMessage('No Id found, personal or corporate')),
-        body('company_name')
+        body('company_code')
                 .trim()
                 .not()
                 .isEmpty()
-                .withMessage('Company\'s name can not be empty'),
-
-        body('sector')
+                .withMessage('Company code is compulsory'),
+        
+        body('counter_party_code')
                 .trim()
                 .not()
                 .isEmpty()
-                .withMessage('Sector of operation is compulsory'),
-
-        body('sub_sector')
-                .trim()
-                .not()
-                .isEmpty()
-                .withMessage('Sub-sector of operation is compulsory'),
+                .withMessage('Counter party company code is compulsory'),
 
         body('trx_type')
                 .trim()
@@ -53,11 +44,48 @@ router.post('/addtransaction', [
                 .isEmpty()
                 .withMessage('Type of transaction is compulsory'),
             
-        body('trx_value')
+        body('cscs_number')
                 .trim()
                 .not()
                 .isEmpty()
-                .withMessage('Value of transaction is compulsory')
+                .withMessage('CSCS number of the beneficiary is compulsory'),
+                
+                
+        body('beneficiary_name')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Name of the beneficiary is compulsory'),
+
+        body('trade_type')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Trade type type is compulsory (Buy or Sell)'),
+                
+        body('stock_symbol')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Stock symbol traded is compulsory'),
+
+        body('volume')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Volume or quantity of stock traded is compulsory'),
+
+        body('price')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('The unit price of the stock is compulsory'),
+
+        body('provider_code')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Provider code is compulsory'),
 
 ], operationzController.addTransaction);
 
