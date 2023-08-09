@@ -37,8 +37,18 @@ const vatSchema = new mongoose.Schema({
     currency: {
         type: Number
     },
+    transaction_amount: {
+        type: Number
+    },
+
+    vat: {
+        type: Number
+    },
 
     base_amount: {
+        type: Number
+    },
+    total_amount: {
         type: Number
     },
 

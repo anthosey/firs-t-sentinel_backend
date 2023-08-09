@@ -90,23 +90,23 @@ router.post('/addtransaction', [
 ], operationzController.addTransaction);
 
 //***** DASHBOARD OPERATIONS BEGINS */
-router.get('/vattoday/:dd/mm/:mm/year/:yyyy', operationzController.getVatToday);
+router.get('/vattoday/:dd/mm/:mm/year/:yyyy', operationzController.getVatToday); // Done for new
 
-router.get('/vatbyhour/:dd/mm/:mm/year/:yyyy', operationzController.getVatHourly);
+router.get('/vatbyhour/:dd/mm/:mm/year/:yyyy', operationzController.getVatHourly); // Done
 
-router.get('/vatthismonth/:mm/year/:yyyy', operationzController.getVatMonthly);
+router.get('/vatthismonth/:mm/year/:yyyy', operationzController.getVatMonthly); // Done for new
 
-router.get('/vatthisquarter/:mm/year/:yyyy', operationzController.getVatQuarterly);
+router.get('/vatthisquarter/:mm/year/:yyyy', operationzController.getVatQuarterly); // Done for new
 
-router.get('/vatthisyear/:yyyy', operationzController.getVatYearly);
+router.get('/vatthisyear/:yyyy', operationzController.getVatYearly); // Done for new
 
-router.get('/yearsummaryforallsectors/:yyyy', operationzController.getTrxYearlyAllSectors);
+router.get('/yearsummaryforallsectors/:yyyy', operationzController.getTrxYearlyAllSectors); // Done for new
 
 router.get('/monthsummaryforallsectors/:yyyy', operationzController.getTrxMonthlyAllSectors);
 
-router.get('/yearlyvatsegmentallsectors/:yyyy', operationzController.getVatSegmentYearlyAllSector);
+router.get('/yearlyvatsegmentallsectors/:yyyy', operationzController.getVatSegmentYearlyAllSector); // Done for new
 
-router.get('/alltransactionwithpages/:pagenumber/limitdata/:limit', operationzController.getTransactionzWithPages);
+router.get('/alltransactionwithpages/:pagenumber/limitdata/:limit', operationzController.getTransactionzWithPages); // Done for new
 
 //***** DASHBOARD OPERATIONS ENDS */
 
