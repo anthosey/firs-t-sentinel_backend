@@ -5,6 +5,7 @@ const Company = require('../models/company');
 const Personal = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 const Tlogs = require('../models/tlogs');
+const Vat = require('../models/vat');
 // const { parseTwoDigitYear } = require('moment');
 // const moment = require('moment');
 
@@ -118,7 +119,7 @@ exports.getOwnerByTransaction = (req, res, next) => {
     
 }
 
-exports.addTransaction = (req, res, next) => {
+exports.addTransaction = async (req, res, next) => {
     
     const errors = validationResult(req);
     var msg;
@@ -129,53 +130,315 @@ exports.addTransaction = (req, res, next) => {
         error.data = errors.array();
         throw error;
     }
+    
     const trxId = generateToken(10);
  
-    const cac_id = req.body.cac_id;
-    var user_id = req.body.user_id
+    var sector;
+    var sub_sector;
+    var trx_value;
+
+
+    const trx_ref_provider = req.body.trx_ref_provider;
+    const user_id = req.body.user_id;
     const personal_id = req.body.personal_id;
-    const company_name = req.body.company_name;
-    const sector = req.body.sector;
-    const sub_sector = req.body.sub_sector;
+    const company_code = req.body.company_code;
     const trx_type = req.body.trx_type;
-    const trx_value = req.body.trx_value;
-    const vat = (+req.body.trx_value * 7.5)/100;
+    const trade_type = req.body.trade_type;
+    const cscs_number = req.body.cscs_number;
+    const beneficiary_name = req.body.beneficiary_name;
+    const stock_symbol = req.body.stock_symbol;
+    const price = req.body.price;
+    const volume = req.body.volume;
+    const counter_party_code = req.body.counter_party_code;
     const remarks = req.body.remarks;
+    const provider_code = req.body.provider_code;
     
-    if (cac_id) user_id = cac_id;
-    if (personal_id) user_id = personal_id;
+    trx_value = (volume * price);
+    
+
+
+    // Identify data provider
+    if (provider_code === 'NGX01') {
+        sector = 'Capital Market';
+    }
+
+    var company_name = req.body.company_name;
+    var counter_party_name = req.body.counter_part_name;
+
+    var main_company = await Company.findOne(
+        {'company_code': company_code}
+    );
+
+    // console.log('Main Coy: ' + main_company.company_name);
+    // console.log('Main Coy: ' + counterparty_company.company_name);
+    
+    var counterparty_company = await Company.findOne(
+        {'company_code': counter_party_code}
+    );
+
+    var sec_company = await Company.findOne(
+        {'company_code': 'SEC'}
+    );
+
+    var cscs_company = await Company.findOne(
+        {'company_code': 'CSCS'}
+    );
+
+    var ngx_company = await Company.findOne(
+        {'company_code': 'NGX'}
+    );
+
+    
+
+
+    // const vat = (+req.body.trx_value * 7.5)/100;
+    
+    
+    // if (cac_id) user_id = cac_id;
+    // if (personal_id) user_id = personal_id;
 
         const transaction = new Transactionz({
+            trx_ref_provider: trx_ref_provider,
             trx_id: trxId,
-            cac_id: cac_id,
-            user_id: user_id,
-            company_name: company_name,
+            cac_id: main_company.cac_id,
+            user_id: main_company.cac_id,
+            company_name: main_company.company_name,
             sector: sector,
-            sub_sector: sub_sector,
+            // sub_sector: sub_sector,
             trx_type: trx_type,
+            trade_type: trade_type,
+            cscs_number: cscs_number,
+            beneficiary_name: beneficiary_name,
+            stock_symbol: stock_symbol,
+            price: price,
+            volume: volume,
+            counter_party_code: counter_party_code,
+            counter_party_name: counter_party_name,
+            provider_code: provider_code,
             trx_value: trx_value,
-            // vat: (trx_value * 7.5)/100
-            vat: vat,
-
             remarks: remarks
                         
             });
             
             transaction.save()
              
-            .then(dat => {
+            .then(async dat => {
+
+                // DO VAT DEDUCTION
+
+                // transaction initiator
+
+                var totalAmount = volume * price;
+                var lowerCommission = 0;
+                var upperCommission = 0;
+                var secFee = 0;
+                var cscsFee = 0;
+                var ngxFee = 0;
+
+
+                secFee = (0.3 * totalAmount)/100;
+                cscsFee = (0.3 * totalAmount)/100;
+                ngxFee = (0.3 * totalAmount)/100;
+                lowerCommission = (0.75 * totalAmount)/100 ;
+                upperCommission = (1.35 * totalAmount)/100;
+
+                var lowerVat = (lowerCommission * 7.5)/100;
+                var upperVat = (upperCommission * 7.5)/100;
+                var secVat = (secFee * 7.5)/100;
+                var cscsVat = (cscsFee * 7.5)/100;
+                var ngxVat = (ngxFee * 7.5)/100;
+
+                
+                // Get Vat for Initiator Company
+                const initiatorCompany = new Vat ({
+                    trx_id: trxId,
+                    transaction_ref: trx_ref_provider,
+                    cac_id: main_company.cac_id,
+                    transaction_type: trx_type,
+                    trade_type: trade_type,
+                    tin: main_company.tin,
+                    agent_tin: main_company.tin, 
+                    beneficiary_tin: main_company.tin,
+                    currency: 1,
+                    transaction_amount: totalAmount,
+                    vat: upperVat,
+                    base_amount: upperCommission,
+                    total_amount: upperCommission + upperVat,
+
+                    lower_vat: lowerVat,
+                    upper_vat: upperVat,
+                    total_amount_lower: lowerCommission + lowerVat,
+                    total_amount_upper: upperCommission + upperVat,
+
+                    other_taxes: 0,
+                    company_name: main_company.company_name,
+                    company_code: main_company.company_code,
+                    sector: sector,
+                    sub_sector: 'STOCKBROKER'
+            
+                });
+
+                await initiatorCompany.save();
+
+             // Get Vat for Counterparty Company
+                const counterpartyCompany = new Vat ({
+                        trx_id: trxId,
+                        transaction_ref: trx_ref_provider,
+                        cac_id: counterparty_company.cac_id,
+                        transaction_type: trx_type,
+                        trade_type: trade_type,
+                        tin: counterparty_company.tin,
+                        agent_tin: counterparty_company.tin, 
+                        beneficiary_tin: counterparty_company.tin,
+                        currency: 1,
+                        transaction_amount: totalAmount,
+                        vat: upperVat,
+                        base_amount: upperCommission,
+                        total_amount: upperCommission + upperVat,
+
+                        lower_vat: lowerVat,
+                        upper_vat: upperVat,
+                        total_amount_lower: lowerCommission + lowerVat,
+                        total_amount_upper: upperCommission + upperVat,
+
+                        other_taxes: 0,
+                        company_name: counterparty_company.company_name,
+                        company_code: counterparty_company.company_code,
+                        sector: sector,
+                        sub_sector: 'STOCKBROKER'
+                
+                    });
+    
+                    await counterpartyCompany.save();
+
+
+                if (trade_type == 'Buy') {
+                    // Get Vat for Sec
+                        const sec = new Vat ({
+                            trx_id: trxId,
+                            transaction_ref: trx_ref_provider,
+                            cac_id: sec_company.cac_id,
+                            transaction_type: trx_type,
+                            trade_type: trade_type,
+                            tin: sec_company.tin,
+                            agent_tin: sec_company.tin, 
+                            beneficiary_tin: sec_company.tin,
+                            currency: 1,
+                            transaction_amount: totalAmount,
+                            vat: secVat,
+                            base_amount: secFee,
+                            total_amount: secFee + secVat,
+    
+                            lower_vat: secVat,
+                            upper_vat: secVat,
+                            total_amount_lower: secFee + secVat,
+                            total_amount_upper: secVat + secVat,
+    
+                            other_taxes: 0,
+                            company_name: '', //main_company.company_name,
+                            company_code: '', // counterparty_company.company_code,
+                            sector: sector,
+                            sub_sector: 'SEC'
+                    
+                        });
+        
+                        await sec.save();                    
+
+                }
+
+                 // ********For sell orders*********
+                 if (trade_type == 'Sell') {
+                    // Get Vat for NGX
+                    const ngx = new Vat ({
+                        trx_id: trxId,
+                        transaction_ref: trx_ref_provider,
+                        cac_id: ngx_company.cac_id,
+                        transaction_type: trx_type,
+                        trade_type: trade_type,
+                        tin: ngx_company.tin,
+                        agent_tin: ngx_company.tin, 
+                        beneficiary_tin: ngx_company.tin,
+                        currency: 1,
+                        transaction_amount: totalAmount,
+                        vat: ngxVat,
+                        base_amount: ngxFee,
+                        total_amount: ngxFee + ngxVat,
+
+                        lower_vat: ngxVat,
+                        upper_vat: ngxVat,
+                        total_amount_lower: ngxFee + ngxVat,
+                        total_amount_upper: ngxVat + ngxVat,
+
+                        other_taxes: 0,
+                        company_name: '', //main_company.company_name,
+                        company_code: '', // counterparty_company.company_code,
+                        sector: sector,
+                        sub_sector: 'NGX'
+                
+                    });
+    
+                    await ngx.save();    
+                    
+                    
+                // Get Vat for CSCS
+                const cscs = new Vat ({
+                    trx_id: trxId,
+                    transaction_ref: trx_ref_provider,
+                    cac_id: cscs_company.cac_id,
+                    transaction_type: trx_type,
+                    trade_type: trade_type,
+                    tin: cscs_company.tin,
+                    agent_tin: cscs_company.tin, 
+                    beneficiary_tin: cscs_company.tin,
+                    currency: 1,
+                    transaction_amount: totalAmount,
+                    vat: cscsVat,
+                    base_amount: cscsFee,
+                    total_amount: cscsFee + cscsVat,
+
+                    lower_vat: cscsVat,
+                    upper_vat: cscsVat,
+                    total_amount_lower: cscsFee + cscsVat,
+                    total_amount_upper: cscsVat + cscsVat,
+
+                    other_taxes: 0,
+                    company_name: '', //main_company.company_name,
+                    company_code: '', // counterparty_company.company_code,
+                    sector: sector,
+                    sub_sector: 'CSCS'
+            
+                });
+
+                await cscs.save();               
+
+                }
+
+                
+
+
+
+
+                
+
+                // var counterparty_company = await Company.findOne();
+                // .then(async dat => { 
+
+                // })
+                
+                // counter party company
+
+                // cscs
+
+                // ngx
+
+                // sec
+
+
                 console.log('record::' + dat + ', Trx ID::' + trxId);
                 res.status(201).json({
                     message: 'Transaction saved successfully',
                     data: {trx_id: trxId,
-                        cac_id: cac_id,
-                        user_id: user_id,
-                        company_name: company_name,
-                        sector: sector,
-                        sub_sector: sub_sector,
-                        trx_type: trx_type,
-                        trx_value: trx_value,
-                        vat: vat,
+                       
                         remarks: remarks      }
             })
         })
@@ -192,6 +455,609 @@ exports.addTransaction = (req, res, next) => {
 
 // ***** DASHBOARD  BEGINS ********
 
+// exports.getVatHourly = (req, res, next) => { 
+//     var dd = +req.params.dd;
+//     var mm = +req.params.mm;
+//     var yyyy = +req.params.yyyy;
+
+//     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+//     lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+//     lastDate.setHours(firstDate.getHours() + 1);
+   
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat => {
+//         if (!dat[0]) dat[0] = 0;
+
+
+//         // 2AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat1 => {
+//         if (!dat1[0]) dat1[0] = 0;
+       
+//                 // 3AM
+//                 firstDate.setHours(firstDate.getHours() + 1);
+//                 lastDate.setHours(lastDate.getHours() + 1);
+        
+//              var sumValue = 0;
+//              var dadas = '';
+//               Transactionz.aggregate([
+//                 {
+//                     $match: {'createdAt': {
+//                         $gte: firstDate,
+//                         $lte: lastDate}}
+//                 },
+//                 {
+//                     $group: {
+        
+//                         _id: "$_v",
+//                         totalSum: { $sum: "$vat"},
+//                         count: { $sum: 1 }
+//                     }
+//                 }
+//               ]
+//               ).then (dat2 => {
+//                 if (!dat2[0]) dat2[0] = 0;
+
+
+//                 // 4AM
+//                 firstDate.setHours(firstDate.getHours() + 1);
+//                 lastDate.setHours(lastDate.getHours() + 1);
+         
+//              var sumValue = 0;
+//              var dadas = '';
+//               Transactionz.aggregate([
+//                 {
+//                     $match: {'createdAt': {
+//                         $gte: firstDate,
+//                         $lte: lastDate}}
+//                 },
+//                 {
+//                     $group: {
+        
+//                         _id: "$_v",
+//                         totalSum: { $sum: "$vat"},
+//                         count: { $sum: 1 }
+//                     }
+//                 }
+//               ]
+//               ).then (dat3 => {
+//                 if (!dat3[0]) dat3[0] = 0;
+
+//         // 5AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat4 => {
+//         if (!dat4[0]) dat4[0] = 0;
+
+
+//         // 6AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat5 => {
+//         if (!dat5[0]) dat5[0] = 0;
+        
+//         // 7AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat6 => {
+//         if (!dat6[0]) dat6[0] = 0;
+
+
+//         // 8AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat7 => {
+//         if (!dat7[0]) dat7[0] = 0;
+
+//         // 9AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat8 => {
+//         if (!dat8[0]) dat8[0] = 0;
+
+//         // 10AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat9 => {
+//         if (!dat9[0]) dat9[0] = 0;
+
+
+//         // 11AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat10 => {
+//         if (!dat10[0]) dat10[0] = 0;
+
+
+        
+//         // 12PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat11 => {
+//         if (!dat11[0]) dat11[0] = 0;
+
+
+//         // 1PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat12 => {
+//         if (!dat12[0]) dat12[0] = 0;
+
+//         // 2PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+//         console.log('firstD::' + firstDate);
+//         console.log('lastD::' + lastDate);
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat13 => {
+//         if (!dat13[0]) dat13[0] = 0;
+       
+//         // 3PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat14 => {
+//         if (!dat14[0]) dat14[0] = 0;
+
+//         // 4PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat15 => {
+//         if (!dat15[0]) dat15[0] = 0;
+
+//         // 5PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat16 => {
+//         if (!dat16[0]) dat16[0] = 0;
+
+//         // 6PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat17 => {
+//         if (!dat17[0]) dat17[0] = 0;
+
+//         // 7PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat18 => {
+//         if (!dat18[0]) dat18[0] = 0;
+
+//         // 8PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat19 => {
+
+//         if (!dat19[0]) dat19[0] = 0;
+//         // 9PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat20 => {
+//         if (!dat20[0]) dat20[0] = 0;
+
+//         // 10PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat21 => {
+//         if (!dat21[0]) dat21[0] = 0;
+
+//         // 11PM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat22 => {
+//         if (!dat22[0]) dat22[0] = 0;
+
+//         // 12AM
+//         firstDate.setHours(firstDate.getHours() + 1);
+//         lastDate.setHours(lastDate.getHours() + 1);
+
+
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat23 => {
+//         if (!dat23[0]) dat23[0] = 0;
+    
+//     let arrData = [{'hour': '01', 'transactions': dat[0].totalSum || 0} , {'hour': '02', 'transactions': dat1[0].totalSum || 0}, {'hour': '03', 'transactions': dat2[0].totalSum || 0} , {'hour': '04', 'transactions': dat3[0].totalSum || 0} , {'hour': '05', 'transactions': dat4[0].totalSum || 0} , {'hour': '06', 'transactions': dat5[0].totalSum || 0}, 
+//     {'hour': '07', 'transactions': dat6[0].totalSum || 0}, {'hour': '08', 'transactions': dat7[0].totalSum || 0}, {'hour': '09', 'transactions': dat8[0].totalSum || 0}, {'hour': '10', 'transactions': dat9[0].totalSum || 0}, {'hour': '11', 'transactions': dat10[0].totalSum || 0}, {'hour': '12', 'transactions': dat11[0].totalSum || 0}, 
+//     {'hour': '13', 'transactions': dat12[0].totalSum || 0}, {'hour': '14', 'transactions': dat13[0].totalSum || 0}, {'hour': '15', 'transactions': dat14[0].totalSum || 0}, {'hour': '16', 'transactions': dat15[0].totalSum || 0}, {'hour': '17', 'transactions': dat16[0].totalSum || 0}, {'hour': '18', 'transactions': dat17[0].totalSum || 0}, 
+//     {'hour': '19', 'transactions': dat18[0].totalSum || 0}, {'hour': '20', 'transactions': dat19[0].totalSum || 0}, {'hour': '21', 'transactions': dat20[0].totalSum || 0}, {'hour': '22', 'transactions': dat21[0].totalSum || 0}, {'hour': '23', 'transactions': dat22[0].totalSum || 0}, {'hour': '24', 'transactions': dat23[0].totalSum || 0}];
+       
+//         res.status(200).json({message: 'success', data: arrData});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// });
+// }); 
+// }); 
+// }); 
+// }); 
+// }); 
+// }); 
+// }); 
+// }); 
+// });
+// });
+// });
+// }); 
+// }); 
+// }); 
+// }); 
+// });
+// });
+// });
+// });
+// });
+// });
+// });
+// }
 exports.getVatHourly = (req, res, next) => { 
     var dd = +req.params.dd;
     var mm = +req.params.mm;
@@ -200,14 +1066,10 @@ exports.getVatHourly = (req, res, next) => {
     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
     lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
     lastDate.setHours(firstDate.getHours() + 1);
-    // lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
-
-    // console.log('firstDate:' + firstDate);
-    // console.log('lastDate: '+ lastDate);
-    
+   
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -230,10 +1092,7 @@ exports.getVatHourly = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-    // console.log('firstDate1:' + firstDate);
-    // console.log('lastDate1: '+ lastDate);
-    
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -255,12 +1114,9 @@ exports.getVatHourly = (req, res, next) => {
                 firstDate.setHours(firstDate.getHours() + 1);
                 lastDate.setHours(lastDate.getHours() + 1);
         
-            // console.log('firstDate1:' + firstDate);
-            // console.log('lastDate1: '+ lastDate);
-            
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -285,7 +1141,7 @@ exports.getVatHourly = (req, res, next) => {
          
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -309,7 +1165,7 @@ exports.getVatHourly = (req, res, next) => {
 
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -334,7 +1190,7 @@ exports.getVatHourly = (req, res, next) => {
 
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -356,7 +1212,7 @@ exports.getVatHourly = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -379,7 +1235,7 @@ exports.getVatHourly = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -401,7 +1257,7 @@ exports.getVatHourly = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -423,7 +1279,7 @@ exports.getVatHourly = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -447,7 +1303,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -472,7 +1328,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -496,7 +1352,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -520,7 +1376,7 @@ exports.getVatHourly = (req, res, next) => {
 
         console.log('firstD::' + firstDate);
         console.log('lastD::' + lastDate);
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -537,14 +1393,13 @@ exports.getVatHourly = (req, res, next) => {
       ]
       ).then (dat13 => {
         if (!dat13[0]) dat13[0] = 0;
-        // console.log('my DAt13: ' + dat13[0].totalSum);
-
+       
         // 3PM
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -567,7 +1422,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -590,7 +1445,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -613,7 +1468,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -636,7 +1491,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -659,7 +1514,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -682,7 +1537,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -705,7 +1560,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -728,7 +1583,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -751,7 +1606,7 @@ exports.getVatHourly = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -768,21 +1623,12 @@ exports.getVatHourly = (req, res, next) => {
       ]
       ).then (dat23 => {
         if (!dat23[0]) dat23[0] = 0;
-
-
-        // let obj = 
-    //     let arrData = [{"1AM": dat, "2AM": dat1, "3AM": dat2, "4AM": dat3, "5AM": dat4, "6AM": dat5, "7AM": dat6,
-    // "8AM": dat7, "9AM": dat8, "10AM": dat9, "11AM": dat10, "12PM": dat11, "1PM": dat12, "2PM": dat13, "3PM": dat14, 
-    // "4PM": dat15, "5PM": dat16, "6PM": dat17, "7PM": dat18, "8PM": dat19, "9PM": dat20, "10PM": dat21, "11PM": dat22, "12AM": dat23}];
-       
     
     let arrData = [{'hour': '01', 'transactions': dat[0].totalSum || 0} , {'hour': '02', 'transactions': dat1[0].totalSum || 0}, {'hour': '03', 'transactions': dat2[0].totalSum || 0} , {'hour': '04', 'transactions': dat3[0].totalSum || 0} , {'hour': '05', 'transactions': dat4[0].totalSum || 0} , {'hour': '06', 'transactions': dat5[0].totalSum || 0}, 
     {'hour': '07', 'transactions': dat6[0].totalSum || 0}, {'hour': '08', 'transactions': dat7[0].totalSum || 0}, {'hour': '09', 'transactions': dat8[0].totalSum || 0}, {'hour': '10', 'transactions': dat9[0].totalSum || 0}, {'hour': '11', 'transactions': dat10[0].totalSum || 0}, {'hour': '12', 'transactions': dat11[0].totalSum || 0}, 
     {'hour': '13', 'transactions': dat12[0].totalSum || 0}, {'hour': '14', 'transactions': dat13[0].totalSum || 0}, {'hour': '15', 'transactions': dat14[0].totalSum || 0}, {'hour': '16', 'transactions': dat15[0].totalSum || 0}, {'hour': '17', 'transactions': dat16[0].totalSum || 0}, {'hour': '18', 'transactions': dat17[0].totalSum || 0}, 
     {'hour': '19', 'transactions': dat18[0].totalSum || 0}, {'hour': '20', 'transactions': dat19[0].totalSum || 0}, {'hour': '21', 'transactions': dat20[0].totalSum || 0}, {'hour': '22', 'transactions': dat21[0].totalSum || 0}, {'hour': '23', 'transactions': dat22[0].totalSum || 0}, {'hour': '24', 'transactions': dat23[0].totalSum || 0}];
        
-
-        // res.status(200).json({message: 'success', data: dat, dat1: dat1, dat2: dat2, dat3: dat3, dat4: dat4, dat5: dat5, dat6: dat6, dat7: dat7, dat8: dat8, dat9: dat9, dat10: dat10, dat11: dat11});        
         res.status(200).json({message: 'success', data: arrData});        
       })  .catch(err => {
         if (!err.statusCode) {
@@ -816,6 +1662,91 @@ exports.getVatHourly = (req, res, next) => {
 });
 }
 
+// exports.getVatToday = (req, res, next) => { 
+//     var dd = +req.params.dd;
+//     var mm = +req.params.mm;
+//     var yyyy = +req.params.yyyy;
+
+//     console.log('dd: ' + dd + ' mm: ' + mm + ', yyyy: ' + yyyy);
+
+//     if (!dd || !mm || !yyyy) {
+//         const today = new Date();
+//         const yyyy = today.getFullYear();
+//         const mm = today.getMonth();
+//         const dd = today.getDate();
+//     }
+    
+//     console.log('After dd: ' + dd + ' mm: ' + mm + ', yyyy: ' + yyyy);
+
+//     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+//     lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
+//     firstDate.setHours(00, 00);
+//     lastDate.setHours(23, 59);
+//     // console.log('Sector:' + sector);
+
+//     console.log('firstDate:' + firstDate);
+//     console.log('lastDate: '+ lastDate);
+    
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (async dat => {
+
+//         // Check Previous day's  transaction
+//         firstDate.setDate(firstDate.getDate() - 1);
+//         lastDate.setDate(lastDate.getDate() - 1);
+//         firstDate.setHours(00, 00);
+//         lastDate.setHours(23, 59);
+
+//         console.log('sDate :' + firstDate);
+//         console.log('eDate :' + lastDate);
+
+//         const previous = await Transactionz.aggregate([
+//             {
+//                 $match: {'createdAt': {
+//                     $gte: firstDate,
+//                     $lte: lastDate}}
+//             },
+//             {
+//                 $group: {
+    
+//                     _id: "$_v",
+//                     totalSum: { $sum: "$vat"},
+//                     count: { $sum: 1 }
+//                 }
+//             }
+//           ])
+       
+//           var percentChange = 0;
+//         if (dat[0] && previous[0]) {
+//             percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
+//             percentChange = percentChange.toFixed(1);
+//         }
+
+//         res.status(200).json({message: 'success', today: dat, yesterday: previous, percentChange: percentChange});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// }
+
 
 exports.getVatToday = (req, res, next) => { 
     var dd = +req.params.dd;
@@ -844,7 +1775,7 @@ exports.getVatToday = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -870,7 +1801,7 @@ exports.getVatToday = (req, res, next) => {
         console.log('sDate :' + firstDate);
         console.log('eDate :' + lastDate);
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -885,11 +1816,7 @@ exports.getVatToday = (req, res, next) => {
                 }
             }
           ])
-        
-        
-          // calculate percentage change 
-          //   Formula
-          //   ((newPrice - oldPrice)/oldPrice) * 100
+       
           var percentChange = 0;
         if (dat[0] && previous[0]) {
             percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
@@ -906,6 +1833,79 @@ exports.getVatToday = (req, res, next) => {
        
 }
 
+
+// exports.getVatMonthly = (req, res, next) => { 
+//     var mm = +req.params.mm;
+//     var yyyy = +req.params.yyyy;
+    
+//     if (!mm || !yyyy) {
+//         const today = new Date();
+//         const yyyy = today.getFullYear();
+//         const mm = today.getMonth();
+//     }
+    
+//     var firstDayOfMonth = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
+//     var lastDayOfMonth = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth() + 1, 0);
+
+//     lastDayOfMonth.setHours(23,59);
+//     var firstDate = firstDayOfMonth;
+//     var lastDate = lastDayOfMonth;
+    
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (async dat => {
+//         firstDate.setMonth(firstDate.getMonth() - 1);
+//         lastDate.setMonth(lastDate.getMonth() - 1);
+//         var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
+//         lastDate2.setHours(23,59);
+
+//         console.log('sDate :' + firstDate);
+//         console.log('eDate :' + lastDate2);
+        
+//         const previous = await Transactionz.aggregate([
+//             {
+//                 $match: {'createdAt': {
+//                     $gte: firstDate,
+//                     $lte: lastDate2}}
+//             },
+//             {
+//                 $group: {
+    
+//                     _id: "$_v",
+//                     totalSum: { $sum: "$vat"},
+//                     count: { $sum: 1 }
+//                 }
+//             }
+//           ])
+//           var percentChange = 0;
+//           if (dat[0] && previous[0]) {
+//               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
+//               percentChange = percentChange.toFixed(1);
+//           }        
+          
+//         res.status(200).json({message: 'success', thisMonth: dat, lastMonth: previous, percentChange: percentChange});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// }
+
 exports.getVatMonthly = (req, res, next) => { 
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
@@ -917,21 +1917,13 @@ exports.getVatMonthly = (req, res, next) => {
     }
     
     var firstDayOfMonth = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
-
-    // var lastDayOfMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
     var lastDayOfMonth = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth() + 1, 0);
 
     lastDayOfMonth.setHours(23,59);
-
-  
     var firstDate = firstDayOfMonth;
     var lastDate = lastDayOfMonth;
-    // console.log('Sector:' + sector);
-
-    // console.log('firstDate:' + firstDayOfMonth);
-    // console.log('lastDate: '+ lastDayOfMonth);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -947,21 +1939,15 @@ exports.getVatMonthly = (req, res, next) => {
         }
       ]
       ).then (async dat => {
-
-        // Check Previous month's  transaction
         firstDate.setMonth(firstDate.getMonth() - 1);
         lastDate.setMonth(lastDate.getMonth() - 1);
         var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
-        // lastDate = lastDayOfMonth;
-        // var d = new Date(2023, lastDate.getMonth() + 1, 0);
         lastDate2.setHours(23,59);
 
         console.log('sDate :' + firstDate);
         console.log('eDate :' + lastDate2);
         
-     
-
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -976,19 +1962,12 @@ exports.getVatMonthly = (req, res, next) => {
                 }
             }
           ])
-        
-        
-          // calculate percentage change 
-          //   Formula
-          //   ((newPrice - oldPrice)/oldPrice) * 100
-
           var percentChange = 0;
           if (dat[0] && previous[0]) {
               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
               percentChange = percentChange.toFixed(1);
           }        
           
-
         res.status(200).json({message: 'success', thisMonth: dat, lastMonth: previous, percentChange: percentChange});        
       })  .catch(err => {
         if (!err.statusCode) {
@@ -1134,6 +2113,85 @@ console.log('Month in Fnct: ' + mm);
       }
 }
 
+// exports.getVatQuarterly = (req, res, next) => { 
+
+//     var mm = +req.params.mm;
+//     var yyyy = +req.params.yyyy;
+//     console.log('mm: ' + mm + ', yyyy: ' + yyyy );
+    
+//     if (!mm || !yyyy) {
+//         const today = new Date();
+//         const yyyy = today.getFullYear();
+//         const mm = today.getMonth();
+//     }
+
+//     let qtrObject = getQuarter(mm, yyyy);
+    
+//         var firstDate = qtrObject.firstDate;
+//         var lastDate = qtrObject.lastDate;
+//         console.log(' qtr:' + qtrObject.qtr);
+
+//     console.log('firstDate:' + firstDate);
+//     console.log('lastDate: '+ lastDate);
+    
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (async dat => {
+
+//         let lastQtrObject = getLastQuarter(mm, yyyy);
+//         let qtrObject2 = getQuarter(lastQtrObject.mm, lastQtrObject.yyyy);
+//         var firstDate2 = qtrObject2.firstDate;
+//         var lastDate2 = qtrObject2.lastDate;
+//         console.log('Last qtr:' + qtrObject2.qtr);
+
+//         console.log('sDate :' + firstDate2);
+//         console.log('eDate :' + lastDate2);
+        
+//         const previous = await Transactionz.aggregate([
+//             {
+//                 $match: {'createdAt': {
+//                     $gte: firstDate2,
+//                     $lte: lastDate2}}
+//             },
+//             {
+//                 $group: {
+    
+//                     _id: "$_v",
+//                     totalSum: { $sum: "$vat"},
+//                     count: { $sum: 1 }
+//                 }
+//             }
+//           ])
+        
+//           var percentChange = 0;
+//           if (dat[0] && previous[0]) {
+//               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
+//               percentChange = percentChange.toFixed(1);
+//           }
+        
+//         res.status(200).json({message: 'success', thisQuarter: dat, lastQuarter: previous, percentChange: percentChange});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// }
+
 exports.getVatQuarterly = (req, res, next) => { 
 
     var mm = +req.params.mm;
@@ -1146,20 +2204,16 @@ exports.getVatQuarterly = (req, res, next) => {
         const mm = today.getMonth();
     }
 
-
     let qtrObject = getQuarter(mm, yyyy);
-    
-    // console.time('T1');
     
         var firstDate = qtrObject.firstDate;
         var lastDate = qtrObject.lastDate;
         console.log(' qtr:' + qtrObject.qtr);
-    // console.timeEnd('T1');
 
     console.log('firstDate:' + firstDate);
     console.log('lastDate: '+ lastDate);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -1176,10 +2230,7 @@ exports.getVatQuarterly = (req, res, next) => {
       ]
       ).then (async dat => {
 
-        // Check Last Qtr's  transaction
-
         let lastQtrObject = getLastQuarter(mm, yyyy);
-        // console.log('Last QT bjt:: ' + lastQtrObject.mm + ':' + lastQtrObject.yyyy + ':' + lastQtrObject.qtr);
         let qtrObject2 = getQuarter(lastQtrObject.mm, lastQtrObject.yyyy);
         var firstDate2 = qtrObject2.firstDate;
         var lastDate2 = qtrObject2.lastDate;
@@ -1188,7 +2239,7 @@ exports.getVatQuarterly = (req, res, next) => {
         console.log('sDate :' + firstDate2);
         console.log('eDate :' + lastDate2);
         
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate2,
@@ -1204,10 +2255,6 @@ exports.getVatQuarterly = (req, res, next) => {
             }
           ])
         
-        
-          // calculate percentage change 
-          //   Formula
-          //   ((newPrice - oldPrice)/oldPrice) * 100
           var percentChange = 0;
           if (dat[0] && previous[0]) {
               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
@@ -1223,6 +2270,89 @@ exports.getVatQuarterly = (req, res, next) => {
     })        
        
 }
+
+
+// exports.getVatYearly = (req, res, next) => { 
+//     // var sector = req.params.sector;
+//     var yyyy = +req.params.yyyy;
+
+//     if (!yyyy) {
+//         const today = new Date();
+//         const yyyy = today.getFullYear();
+//         const mm = today.getMonth();
+//         const dd = today.getDate();
+//     }
+    
+    
+//     var firstDayOfTheYear = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+//     var tempDate = new Date(Date.UTC(yyyy, 11, 31, 00, 00, 00));
+//     var lastDayOfTheYear = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
+//     lastDayOfTheYear.setHours(23,59);
+
+  
+//     var firstDate = firstDayOfTheYear;
+//     var lastDate = lastDayOfTheYear;
+
+//     console.log('firstDate:' + firstDayOfTheYear);
+//     console.log('lastDate: '+ lastDayOfTheYear);
+    
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$_v",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (async dat => {
+
+//         firstDate.setFullYear(firstDate.getFullYear() - 1);
+//         lastDate.setFullYear(lastDate.getFullYear() - 1);
+//         var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
+        
+//         lastDate2.setHours(23,59);
+
+//         console.log('sDate :' + firstDate);
+//         console.log('eDate :' + lastDate2);
+        
+//         const previous = await Transactionz.aggregate([
+//             {
+//                 $match: {'createdAt': {
+//                     $gte: firstDate,
+//                     $lte: lastDate2}}
+//             },
+//             {
+//                 $group: {
+    
+//                     _id: "$_v",
+//                     totalSum: { $sum: "$vat"},
+//                     count: { $sum: 1 }
+//                 }
+//             }
+//           ])
+        
+//           var percentChange = 0;
+//           if (dat[0] && previous[0]) {
+//               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
+//               percentChange = percentChange.toFixed(1);
+//           }
+        
+//         res.status(200).json({message: 'success', thisYear: dat, lastYear: previous, percentChange: percentChange});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// }
 
 
 exports.getVatYearly = (req, res, next) => { 
@@ -1245,12 +2375,11 @@ exports.getVatYearly = (req, res, next) => {
   
     var firstDate = firstDayOfTheYear;
     var lastDate = lastDayOfTheYear;
-    // console.log('Sector:' + sector);
 
     console.log('firstDate:' + firstDayOfTheYear);
     console.log('lastDate: '+ lastDayOfTheYear);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -1267,7 +2396,6 @@ exports.getVatYearly = (req, res, next) => {
       ]
       ).then (async dat => {
 
-        // Check Previous Year's  transactions
         firstDate.setFullYear(firstDate.getFullYear() - 1);
         lastDate.setFullYear(lastDate.getFullYear() - 1);
         var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
@@ -1277,9 +2405,7 @@ exports.getVatYearly = (req, res, next) => {
         console.log('sDate :' + firstDate);
         console.log('eDate :' + lastDate2);
         
-     
-
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -1295,11 +2421,6 @@ exports.getVatYearly = (req, res, next) => {
             }
           ])
         
-        
-          // calculate percentage change 
-          //   Formula
-          //   ((newPrice - oldPrice)/oldPrice) * 100
-          
           var percentChange = 0;
           if (dat[0] && previous[0]) {
               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
@@ -1317,72 +2438,138 @@ exports.getVatYearly = (req, res, next) => {
 }
 
 
+// exports.getTrxYearlyAllSectors = (req, res, next) => { 
+// var yyyy = +req.params.yyyy;
+
+// if (!yyyy) {
+//     const today = new Date();
+//     const yyyy = today.getFullYear();
+// }
+    
+//     console.log('Log year: ' + yyyy);
+//     firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+//     testDate = new Date(Date.UTC(yyyy, 11, 1, 00, 00, 00));
+//     lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
+
+//     console.log('FirstD:' + firstDate);
+//     console.log('SecndD:' + lastDate);
+
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$sector",
+//                 totalSum: { $sum: "$trx_value"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (dat => {
+
+//         // calculate percentage
+//         if (dat) {
+
+//             for (i = 0; i < dat.length; i++){
+//                 sumValue += dat[i].totalSum;
+//             }
+
+//             for (i = 0; i < dat.length; i++) {
+//                 var ans = (dat[i].totalSum * 100)/sumValue;
+//                 var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
+//                 dadas = dadas + tempview;
+//             }
+
+//             dadas = dadas.substring(0, dadas.length - 1);
+//             dadas = "{" + dadas + "}" ;
+//             console.log(dadas);
+//             var perc = JSON.parse(dadas);
+
+//         }
+
+//         res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// }
+    
 
 exports.getTrxYearlyAllSectors = (req, res, next) => { 
-var yyyy = +req.params.yyyy;
-
-if (!yyyy) {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-}
+    var yyyy = +req.params.yyyy;
     
-    console.log('Log year: ' + yyyy);
-    firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
-    testDate = new Date(Date.UTC(yyyy, 11, 1, 00, 00, 00));
-    lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
-
-    console.log('FirstD:' + firstDate);
-    console.log('SecndD:' + lastDate);
-
-     var sumValue = 0;
-     var dadas = '';
-      Transactionz.aggregate([
-        {
-            $match: {'createdAt': {
-                $gte: firstDate,
-                $lte: lastDate}}
-        },
-        {
-            $group: {
-
-                _id: "$sector",
-                totalSum: { $sum: "$trx_value"},
-                count: { $sum: 1 }
-            }
-        }
-      ]
-      ).then (dat => {
-
-        // calculate percentage
-        if (dat) {
-
-            for (i = 0; i < dat.length; i++){
-                sumValue += dat[i].totalSum;
-            }
-
-            for (i = 0; i < dat.length; i++) {
-                var ans = (dat[i].totalSum * 100)/sumValue;
-                var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
-                dadas = dadas + tempview;
-            }
-
-            dadas = dadas.substring(0, dadas.length - 1);
-            dadas = "{" + dadas + "}" ;
-            console.log(dadas);
-            var perc = JSON.parse(dadas);
-
-        }
-
-        res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
-      })  .catch(err => {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err); // pass the error to the next error handling function
-    })        
-       
-}
+    if (!yyyy) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+    }
         
+        console.log('Log year: ' + yyyy);
+        firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+        testDate = new Date(Date.UTC(yyyy, 11, 1, 00, 00, 00));
+        lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
+    
+        console.log('FirstD:' + firstDate);
+        console.log('SecndD:' + lastDate);
+    
+         var sumValue = 0;
+         var dadas = '';
+          Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}}
+            },
+            {
+                $group: {
+    
+                    _id: "$sector",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ]
+          ).then (dat => {
+    
+            // calculate percentage
+            if (dat) {
+    
+                for (i = 0; i < dat.length; i++){
+                    sumValue += dat[i].totalSum;
+                }
+    
+                for (i = 0; i < dat.length; i++) {
+                    var ans = (dat[i].totalSum * 100)/sumValue;
+                    var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
+                    dadas = dadas + tempview;
+                }
+    
+                dadas = dadas.substring(0, dadas.length - 1);
+                dadas = "{" + dadas + "}" ;
+                console.log(dadas);
+                var perc = JSON.parse(dadas);
+    
+            }
+    
+            res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
+          })  .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })        
+           
+    }
+
+
 var months = [];
 function recursionGetByMonth(mm, yyyy) {
 
@@ -1920,12 +3107,113 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
 }) //End of October
 }
 
-exports.getVatSegmentYearlyAllSector = (req, res, next) => { 
-    // const today = new Date();
-    // const yyyy = today.getFullYear();
-    // var mm = today.getMonth();
-    // const dd = today.getDate();
+// exports.getVatSegmentYearlyAllSector = (req, res, next) => { 
+  
+//     var yyyy = +req.params.yyyy;
 
+//     if (!yyyy) {
+//         const today = new Date();
+//         const yyyy = today.getFullYear();
+//     }
+    
+
+//     // var sector = req.params.sector;
+//     firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+//     testDate = new Date(Date.UTC(yyyy, 11, 1, 00, 00, 00));
+//     lastDate = new Date(testDate.getFullYear(), testDate.getMonth() + 1, 0);
+
+//     console.log('firstDate :' + firstDate);
+//     console.log('lastDate :' + lastDate);
+
+//     lastDate.setHours(23, 59);
+//      var sumValue = 0;
+//      var dadas = '';
+//       Transactionz.aggregate([
+//         {
+//             $match: {'createdAt': {
+//                 $gte: firstDate,
+//                 $lte: lastDate}}
+//         },
+//         {
+//             $group: {
+
+//                 _id: "$sector",
+//                 totalSum: { $sum: "$vat"},
+//                 count: { $sum: 1 }
+//             }
+//         }
+//       ]
+//       ).then (async dat => {
+
+//          // Check Previous Year's  transactions
+//          firstDate.setFullYear(firstDate.getFullYear() - 1);
+//          lastDate.setFullYear(lastDate.getFullYear() - 1);
+//          var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
+         
+//          lastDate2.setHours(23,59);
+ 
+//          console.log('sDate :' + firstDate);
+//          console.log('eDate :' + lastDate2);
+         
+//          const previous = await Transactionz.aggregate([
+//              {
+//                  $match: {'createdAt': {
+//                      $gte: firstDate,
+//                      $lte: lastDate2}}
+//              },
+//              {
+//                  $group: {
+     
+//                      _id: "$sector",
+//                      totalSum: { $sum: "$vat"},
+//                      count: { $sum: 1 }
+//                  }
+//              }
+//            ])
+         
+     
+//            var percentChange = 0;
+//            if (previous[0]) percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
+
+//            for (i = 0; i < dat.length; i++) {
+//             for (let k = 0; k < previous.length; k++) {
+
+//                 if (dat[i] && previous[k]) {
+                                     
+//                     if (dat[i]._id === previous[k]._id) {
+//                         console.log('dat: ' + i + ':' + dat[i]._id + ', previous: ' + previous[k]._id);
+
+//                         var ans = ((dat[i].totalSum - previous[k].totalSum) / previous[k].totalSum) * 100;
+//                         var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
+//                             dadas = dadas + tempview;
+//                     }
+    
+                    
+//                 }
+//             }
+            
+//         }
+    
+//                 dadas = dadas.substring(0, dadas.length - 1);
+//                 dadas = "{" + dadas + "}" ;
+//                 console.log(dadas);
+//                 var perc = JSON.parse(dadas);
+            
+         
+//          res.status(200).json({message: 'success', thisYear: dat, lastYear: previous, percentChange: perc});        
+
+//         // res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
+//       })  .catch(err => {
+//         if (!err.statusCode) {
+//             err.statusCode = 500;
+//         }
+//         next(err); // pass the error to the next error handling function
+//     })        
+       
+// }
+
+exports.getVatSegmentYearlyAllSector = (req, res, next) => { 
+  
     var yyyy = +req.params.yyyy;
 
     if (!yyyy) {
@@ -1945,7 +3233,7 @@ exports.getVatSegmentYearlyAllSector = (req, res, next) => {
     lastDate.setHours(23, 59);
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -1972,7 +3260,7 @@ exports.getVatSegmentYearlyAllSector = (req, res, next) => {
          console.log('sDate :' + firstDate);
          console.log('eDate :' + lastDate2);
          
-         const previous = await Transactionz.aggregate([
+         const previous = await Vat.aggregate([
              {
                  $match: {'createdAt': {
                      $gte: firstDate,
@@ -1988,24 +3276,7 @@ exports.getVatSegmentYearlyAllSector = (req, res, next) => {
              }
            ])
          
-         
-           // calculate percentage change 
-           //   Formula
-           //   ((newPrice - oldPrice)/oldPrice) * 100
-
-        //    console.log('dat: ' + ':' + dat[0]._id);
-        //    console.log('previous: ' + ':' + previous[0]._id);
-
-        //    // Sorting 
-        //    dat.sort(function(a, b){return a - b});
-        //    previous.sort(function(a, b){return a - b});
-        //    // dat.sort();
-        //    // previous.sort();
-
-        //    console.log('After Sorting..');
-        //    console.log('dat: ' + ':' + dat[0]._id);
-        //    console.log('previous: ' + ':' + previous[0]._id);
-
+     
            var percentChange = 0;
            if (previous[0]) percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
 
@@ -2046,8 +3317,7 @@ exports.getVatSegmentYearlyAllSector = (req, res, next) => {
        
 }
 
-
-exports.getTransactionzWithPages = (req, res, next) => { 
+exports.getTransactionzWithPages = async (req, res, next) => { 
     var page = +req.params.pagenumber;
     var limit = +req.params.limit;
     if (!page || isNaN(page)) page = 1;
@@ -2357,10 +3627,7 @@ exports.getVatQuarterlyBySector = (req, res, next) => {
     var mm = today.getMonth();
     var dd = today.getDate();
 
-    let qtrObject = getQuarter(mm, yyyy);
-    
-    // console.time('T1');
-    
+    let qtrObject = getQuarter(mm, yyyy);  
         var firstDate = qtrObject.firstDate;
         var lastDate = qtrObject.lastDate;
         console.log(' qtr:' + qtrObject.qtr);
@@ -2385,9 +3652,6 @@ exports.getVatQuarterlyBySector = (req, res, next) => {
         }
       ]
       ).then (async dat => {
-
-        // Check Last Qtr's  transaction
-
         let lastQtrObject = getLastQuarter(mm, yyyy);
         console.log('Last QT bjt:: ' + lastQtrObject.mm + ':' + lastQtrObject.yyyy + ':' + lastQtrObject.qtr);
         let qtrObject2 = getQuarter(lastQtrObject.mm, lastQtrObject.yyyy);
@@ -2413,11 +3677,7 @@ exports.getVatQuarterlyBySector = (req, res, next) => {
                 }
             }
           ])
-        
-        
-          // calculate percentage change 
-          //   Formula
-          //   ((newPrice - oldPrice)/oldPrice) * 100
+    
           var percentChange = 0;
           if (dat[0] && previous[0]) { 
           percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
@@ -2581,7 +3841,7 @@ exports.getMarketSegmentYearly = (req, res, next) => {
        
 }
             
-
+// nested functions
 exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => { 
     var yyyy = +req.params.yyyy;
     var sector = req.params.sector;
