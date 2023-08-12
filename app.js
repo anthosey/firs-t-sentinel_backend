@@ -126,6 +126,23 @@ app.use((error, req, res, next) => {
 //     console.log("running a task every minute");
 // });
 
+// *****CHECK ENV. VARIABLES******
+// function checkVariables(){
+//   try {
+//     if (!process.env.TAXPRO_EMAIL || !process.env.TAXPRO_PASSWORD || 
+//       !process.env.TAXPRO_HOSTNAME || !process.env.TAXPRO_PATH || 
+//       !process.env.TAXPRO_PORT || !process.env.DB_CONNECTION || !process.env.SESSION_SECRET || !process.env.SECRET_NAME) {
+//       throw new Error("Some environment Variables not found");
+//     };
+
+//   } catch (err) {
+//     // next(err);
+//     console.log("Error: " + err);
+//   }
+// }
+
+// checkVariables();
+
 // Create the request body
 const testLoginData = JSON.stringify({
     email: process.env.TAXPRO_EMAIL,
