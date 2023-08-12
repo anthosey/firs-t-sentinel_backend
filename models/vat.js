@@ -40,8 +40,17 @@ const vatSchema = new mongoose.Schema({
     transaction_amount: {
         type: Number
     },
+    item_description: {
+        type: String
+    },
 
     vat: {
+        type: Number
+    },
+    vat_rate: {
+        type: Number
+    },
+    vat_status: {
         type: Number
     },
 
@@ -86,6 +95,15 @@ const vatSchema = new mongoose.Schema({
 
     sub_sector: {
         type: String
+    },
+    transaction_date: {
+        type: String
+    },
+    data_submitted: {
+        type: Number
+    },
+    taxpro_trans_id: {
+        type: Number
     }
 
 }, { timestamps: true }

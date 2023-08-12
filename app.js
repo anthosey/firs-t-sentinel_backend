@@ -7,11 +7,13 @@ const userRoutes = require('./routes/user');
 const profileRoutes = require('./routes/profile');
 const operationzRoutes = require('./routes/operationz');
 const session = require('express-session');
+var http = require('http');
+require("dotenv").config();
 
-
+const cron = require("node-cron"); // Cron jobs
 const path = require('path');
 const app = express();
-
+global.taxProloginStatus = false; // CREATE A GLOBAL VARIABLE
 let ext;
 // This is for image upload capabilities using multer middleware
 const fileStorage = multer.diskStorage({
@@ -52,8 +54,8 @@ const fileFilter = (req, file, cb) => {
 }
 
 const sessionConfig = {
-    secret: 'Tonesentinel',
-    name: 'TsentinelSecret1',
+    secret: process.env.SESSION_SECRET,
+    name: process.env.SECRET_NAME,
     resave: false,
     saveUninitialized: false,
     // store: store,
@@ -115,7 +117,81 @@ app.use((error, req, res, next) => {
     res.status(status).json({message: msg, data: data});
 })
 
-mongoose.connect('mongodb+srv://anthos:T-one.Pass@t-onedb.ahkgwe7.mongodb.net/?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true })
+
+// global.bearerToken = '';
+
+// 6 asteriks  * * * * * * === s(0 - 59) m(0 - 59) h(0 - 23) d(1 - 31) m(1 -12) dow(0 - 6) (0 and 7 both represent Sunday)
+// cron.schedule("* * * * *", function () {
+//     console.log("---------------------");
+//     console.log("running a task every minute");
+// });
+
+// Create the request body
+const testLoginData = JSON.stringify({
+    email: process.env.TAXPRO_EMAIL,
+    password: process.env.TAXPRO_PASSWORD
+  });
+
+  
+const testLoginOptions = {
+      hostname: process.env.TAXPRO_HOSTNAME,
+      path: process.env.TAXPRO_PATH,
+      method: 'POST',
+      port: process.env.TAXPRO_PORT,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(testLoginData),
+  },
+};
+    function logonToTaxpro(options) {
+        let data = '';
+        let token = '';
+      
+        const request = http.request(options, (response) => {
+          response.setEncoding('utf8');
+      
+          response.on('data', (chunk) => {
+            data += chunk;
+          });
+      
+          response.on('end', () => {
+            console.log(data);
+            newData = JSON.parse(data);
+            bearerToken = newData.token;
+            taxProloginStatus = true;
+            console.log('Login to TaxPro successful!');
+            
+          });
+        });
+    
+    
+        request.on('error', (error) => {
+          console.error(error);
+        });
+      
+        // Write data to the request body
+        request.write(testLoginData);
+      
+        request.end();
+    
+        
+      };
+
+    //   logonToTaxpro(loginOptions);
+
+cron.schedule("*/10 * * * * *", function () {
+    console.log("---------------------");
+    console.log("Checking login every 10 secs" + ':: Token:'); 
+
+    console.log('STATUS: '+ taxProloginStatus);
+
+    if (!taxProloginStatus) {
+        logonToTaxpro(testLoginOptions);
+        
+    } else {console.log('TaxPro Login active!, Token:: ' + bearerToken );}
+});
+
+mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 // mongoose.connect('mongodb+srv://anthos:anth05.p%4055@alaarudata-mlyhh.mongodb.net/alaaruDb?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true })
 
 .then(result => {

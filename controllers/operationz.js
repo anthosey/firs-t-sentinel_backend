@@ -6,9 +6,159 @@ const Personal = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 const Tlogs = require('../models/tlogs');
 const Vat = require('../models/vat');
+
+var https = require('https');
+var http = require('http');
+// const cron = require("node-cron"); // Cron jobs
+var trans_id;
+
 // const { parseTwoDigitYear } = require('moment');
 // const moment = require('moment');
 
+
+// const https = require('https');
+// var tempToken = '';
+
+// function supplyData(dataInput) {
+
+    
+//     const testEnvData = JSON.stringify({
+//         agent_tin: dataInput.agent_tin,
+//         beneficiary_tin: dataInput.beneficiary_tin,
+//         currency: dataInput.currency,
+//         trans_date: dataInput.transaction_date,
+//         base_amount: dataInput.base_amount,
+//         vat_calculated: dataInput.vat,
+//         total_amount: dataInput.total_amount,
+//         other_taxes: dataInput.other_taxes,
+//         vat_rate: dataInput.vat_rate,
+//         vat_status: dataInput.vat_status,
+//         item_description: dataInput.item_description,
+//         integrator_id: 27
+//       });
+//       return testEnvData;
+    
+// }
+
+
+// const testEnvDataOptions = {
+//     hostname: 'api.taxpromax.firs.gov.ng',
+//     path: '/vat-aggr/login',
+//     method: 'POST',
+//     port: 82,
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Bearer': tempToken,
+//       'Content-Length': Buffer.byteLength(supplyData()),
+// },
+// };
+
+function submitDataToTaxPro(dataInput, token, live) {
+    let data = '';
+    let dataOptions;
+    const dataIn = JSON.stringify({
+        agent_tin: dataInput.agent_tin,
+        beneficiary_tin: dataInput.beneficiary_tin,
+        currency: dataInput.currency,
+        trans_date: dataInput.transaction_date,
+        // trans_date: '2023-08-10',
+        base_amount: dataInput.base_amount,
+        vat_calculated: dataInput.vat,
+        total_amount: dataInput.total_amount,
+        other_taxes: dataInput.other_taxes,
+        vat_rate: dataInput.vat_rate,
+        vat_status: dataInput.vat_status,
+        item_description: dataInput.item_description,
+        integrator_id: 27
+      });
+        
+      console.log('DATAIN:: ' + dataIn);
+    if (live) { // Data Options for Live Environment
+        dataOptions = {
+            hostname: process.env.TAXPRO_HOSTNAME,
+            path: '/vat-aggr/transaction',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token,
+              'Content-Length': Buffer.byteLength(dataIn),
+        },
+        };
+
+    } else{ // Data Options for Test Environment
+     dataOptions = {
+        hostname: process.env.TAXPRO_HOSTNAME,
+        path: '/vat-aggr/transaction',
+        method: 'POST',
+        port: process.env.TAXPRO_PORT,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+          'Content-Length': Buffer.byteLength(dataIn),
+    },
+    };
+
+    }
+     
+    
+    const request = http.request(dataOptions, (response) => {
+      response.setEncoding('utf8');
+  
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+  
+      response.on('end', () => {
+        console.log('Returned Data:: ' + data);
+
+        if (data === 'error msg') {
+            // Ask the Login process to reinitiate login
+            taxProloginStatus = false;
+        } else {
+
+            var newData = JSON.parse(data);
+            trans_id = newData.trans_id;
+
+            // Update record in as sent in the local db
+            
+            // Vat.findOne({agent_tin: dataInput.agent_tin} && {trx_id: dataInput.trx_id})
+            //     .then(vatFound =>{
+            //         vatFound.taxpro_trans_id = trans_id;
+            //         vatFound.data_submitted = 1; 
+            //         return vatFound.save();
+            //     })
+            //     .then(vat => {
+            //         console.log('Vat Data:: ' + vat);
+            //         // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+
+            //     })
+            //     .catch(err => {
+            //         if (!err.statusCode) {
+            //             err.statusCode = 500;
+            //         }
+            //         // next(err); // pass the error to the next error handling function
+            //     });
+
+            console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+        }
+        
+      });
+    });
+
+
+    request.on('error', (error) => {
+      console.error(error);
+      taxProloginStatus = false;
+    });
+  
+    // Write data to the request body
+    request.write(dataIn);
+  
+    request.end();
+
+    
+  };
+  
 
 function generateToken(n) {
   
@@ -27,7 +177,7 @@ function generateToken(n) {
 
 exports.getTransactionz= (req, res, next) => { 
     // console.log('Filter:: ' + tempFilter);
-        Transactionz.find()
+        Vat.find({}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
         .then(trxs => {
             res.status(200).json({message: 'success', data: trxs});
         })
@@ -43,7 +193,7 @@ exports.getTransactionz= (req, res, next) => {
 exports.getOneTransaction = (req, res, next) => {
     const trxId = req.params.trx_id;
     console.log('trxID:' + trxId);
-    Transactionz.findOne({trx_id: trxId})
+    Vat.findOne({trx_id: trxId}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
     .then(trxs => {
         console.log(JSON.stringify(trxs));
         res.status(200).json(trxs);
@@ -63,7 +213,7 @@ exports.getAllTransactionsByOwner = (req, res, next) => {
     // const cacId = req.params.cac_id;
     const userId = req.params.user_id;
     // console.log('U ID::' + userId);
-    Transactionz.find({user_id: userId})
+    Vat.find({cac_id: userId}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
     .then(trxs => {
         if (trxs) {
             res.status(201).json({'message': 'Success', 'data': trxs });
@@ -84,10 +234,10 @@ exports.getAllTransactionsByOwner = (req, res, next) => {
 exports.getOwnerByTransaction = (req, res, next) => {
     const trxId = req.params.trx_id;
     // const userId = req.params.user_id;
-    Transactionz.findOne({trx_id: trxId})
+    Vat.findOne({trx_id: trxId})
     .then(trx => {
         if (trx) {
-            Company.findOne({cac_id: trx.cac_id})
+            Company.findOne({cac_id: trx.cac_id}, 'company_name company_address firs tin sector sub_sector company_head email phone image_url brief_history extra_note incorporation_date')
             .then(coy =>{
 
                 if (coy) {
@@ -223,6 +373,11 @@ exports.addTransaction = async (req, res, next) => {
             transaction.save()
              
             .then(async dat => {
+                // Check login to TaxPro
+                if (!bearerToken) {
+                    console.log('Got here');
+                    makePost2(loginOptions);
+                }
 
                 // DO VAT DEDUCTION
 
@@ -247,7 +402,14 @@ exports.addTransaction = async (req, res, next) => {
                 var secVat = (secFee * 7.5)/100;
                 var cscsVat = (cscsFee * 7.5)/100;
                 var ngxVat = (ngxFee * 7.5)/100;
+                
+                var  mktDate = new Date();
+                var dd = mktDate.getDate();
+                var mm = mktDate.getMonth();
+                var yyyy = mktDate.getFullYear();
+                var trDate = yyyy + '-'+ mm + '-' + dd;
 
+                console.log('DATE::' + trDate);
                 
                 // Get Vat for Initiator Company
                 const initiatorCompany = new Vat ({
@@ -262,6 +424,8 @@ exports.addTransaction = async (req, res, next) => {
                     currency: 1,
                     transaction_amount: totalAmount,
                     vat: upperVat,
+                    vat_rate: 7.5,
+                    vat_status: 0,
                     base_amount: upperCommission,
                     total_amount: upperCommission + upperVat,
 
@@ -274,11 +438,48 @@ exports.addTransaction = async (req, res, next) => {
                     company_name: main_company.company_name,
                     company_code: main_company.company_code,
                     sector: sector,
-                    sub_sector: 'STOCKBROKER'
+                    sub_sector: 'STOCKBROKERS',
+                    item_description: 'Stock trading',
+                    transaction_date: trDate,
+                    data_submitted: 0,
+                    vat_rate: 7.5,
+                    vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
             
                 });
 
                 await initiatorCompany.save();
+
+                await Promise.resolve(submitDataToTaxPro(initiatorCompany, bearerToken, false))
+                .then(response => 
+                    
+                    Vat.findOne({agent_tin: initiatorCompany.agent_tin} && {trx_id: initiatorCompany.trx_id})
+                    .then(vatFound =>{
+                    vatFound.taxpro_trans_id = trans_id;
+                    vatFound.data_submitted = 1; 
+                    vatFound.save();
+
+                    console.log('Done Executing initiator');
+                }));
+                    
+
+                // submitDataToTaxPro(initiatorCompany, bearerToken, false)
+
+
+                
+
+                // .then(vat => {
+                //     console.log('Vat Data:: ' + vat);
+                //     // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+
+                // })
+                // .catch(err => {
+                //     if (!err.statusCode) {
+                //         err.statusCode = 500;
+                //     }
+                //     // next(err); // pass the error to the next error handling function
+                // });
+
+
 
              // Get Vat for Counterparty Company
                 const counterpartyCompany = new Vat ({
@@ -305,11 +506,29 @@ exports.addTransaction = async (req, res, next) => {
                         company_name: counterparty_company.company_name,
                         company_code: counterparty_company.company_code,
                         sector: sector,
-                        sub_sector: 'STOCKBROKER'
+                        sub_sector: 'STOCKBROKERS',
+                        item_description: 'Stock trading',
+                        transaction_date: trDate,
+                        data_submitted: 0,
+                        vat_rate: 7.5,
+                        vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                 
                     });
     
                     await counterpartyCompany.save();
+                    // submitDataToTaxPro(counterpartyCompany, bearerToken, false);
+
+                    await Promise.resolve(submitDataToTaxPro(counterpartyCompany, bearerToken, false))
+                    .then(response => 
+                        
+                        Vat.findOne({agent_tin: counterpartyCompany.agent_tin} && {trx_id: counterpartyCompany.trx_id})
+                        .then(vatFound =>{
+                        vatFound.taxpro_trans_id = trans_id;
+                        vatFound.data_submitted = 1; 
+                        vatFound.save();
+    
+                        console.log('Done Executing counterparty');
+                    }));
 
 
                 if (trade_type == 'Buy') {
@@ -335,14 +554,33 @@ exports.addTransaction = async (req, res, next) => {
                             total_amount_upper: secVat + secVat,
     
                             other_taxes: 0,
-                            company_name: '', //main_company.company_name,
-                            company_code: '', // counterparty_company.company_code,
+                            company_name: sec_company.company_name, //main_company.company_name,
+                            company_code: sec_company.company_code, // counterparty_company.company_code,
                             sector: sector,
-                            sub_sector: 'SEC'
+                            sub_sector: 'SEC',
+                            item_description: 'Stock trading',
+                            transaction_date: trDate,
+                            data_submitted: 0,
+                            vat_rate: 7.5,
+                            vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                     
                         });
         
-                        await sec.save();                    
+                        await sec.save();      
+                        // submitDataToTaxPro(sec, bearerToken, false);     
+                       
+                        
+                    await Promise.resolve(submitDataToTaxPro(sec, bearerToken, false))
+                    .then(response => 
+                        
+                        Vat.findOne({agent_tin: sec.agent_tin} && {trx_id: sec.trx_id})
+                        .then(vatFound =>{
+                        vatFound.taxpro_trans_id = trans_id;
+                        vatFound.data_submitted = 1; 
+                        vatFound.save();
+    
+                        console.log('Done Executing sec');
+                    }));         
 
                 }
 
@@ -370,15 +608,32 @@ exports.addTransaction = async (req, res, next) => {
                         total_amount_upper: ngxVat + ngxVat,
 
                         other_taxes: 0,
-                        company_name: '', //main_company.company_name,
-                        company_code: '', // counterparty_company.company_code,
+                        company_name: ngx_company.company_name, //main_company.company_name,
+                        company_code: ngx_company.company_code, // counterparty_company.company_code,
                         sector: sector,
-                        sub_sector: 'NGX'
+                        sub_sector: 'NGX',
+                        item_description: 'Stock trading',
+                        transaction_date: trDate,
+                        data_submitted: 0,
+                        vat_rate: 7.5,
+                        vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                 
                     });
     
                     await ngx.save();    
+                    // submitDataToTaxPro(ngx, bearerToken, false);         
                     
+                    await Promise.resolve(submitDataToTaxPro(ngx, bearerToken, false))
+                    .then(response => 
+                        
+                        Vat.findOne({agent_tin: ngx.agent_tin} && {trx_id: ngx.trx_id})
+                        .then(vatFound =>{
+                        vatFound.taxpro_trans_id = trans_id;
+                        vatFound.data_submitted = 1; 
+                        vatFound.save();
+    
+                        console.log('Done Executing ngx');
+                    }));   
                     
                 // Get Vat for CSCS
                 const cscs = new Vat ({
@@ -402,37 +657,37 @@ exports.addTransaction = async (req, res, next) => {
                     total_amount_upper: cscsVat + cscsVat,
 
                     other_taxes: 0,
-                    company_name: '', //main_company.company_name,
-                    company_code: '', // counterparty_company.company_code,
+                    company_name: cscs_company.company_name, //main_company.company_name,
+                    company_code: cscs_company.company_code, // counterparty_company.company_code,
                     sector: sector,
-                    sub_sector: 'CSCS'
+                    sub_sector: 'CSCS',
+                    item_description: 'Stock trading',
+                    transaction_date: trDate,
+                    data_submitted: 0,
+                    vat_rate: 7.5,
+                    vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
             
                 });
 
-                await cscs.save();               
+                await cscs.save();             
+                // submitDataToTaxPro(cscs, bearerToken, false);      
 
+                
+                await Promise.resolve(submitDataToTaxPro(cscs, bearerToken, false))
+                    .then(response => 
+                        
+                        Vat.findOne({agent_tin: cscs.agent_tin} && {trx_id: cscs.trx_id})
+                        .then(vatFound =>{
+                        vatFound.taxpro_trans_id = trans_id;
+                        vatFound.data_submitted = 1; 
+                        vatFound.save();
+    
+                        console.log('Done Executing cscs');
+                    }));            
                 }
 
                 
-
-
-
-
-                
-
-                // var counterparty_company = await Company.findOne();
-                // .then(async dat => { 
-
-                // })
-                
-                // counter party company
-
-                // cscs
-
-                // ngx
-
-                // sec
-
+                // console.log('My Token::' + bearerToken);
 
                 console.log('record::' + dat + ', Trx ID::' + trxId);
                 res.status(201).json({
@@ -2674,7 +2929,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2703,7 +2958,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2732,7 +2987,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -2760,7 +3015,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -2788,7 +3043,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2817,7 +3072,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2845,7 +3100,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2874,7 +3129,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2902,7 +3157,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2930,7 +3185,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2959,7 +3214,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -2987,7 +3242,7 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3326,7 +3581,7 @@ exports.getTransactionzWithPages = async (req, res, next) => {
     console.log('Page: ' + page);
     console.log('Limit: ' + limit);
 
-        Transactionz.find({},'trx_id company_name sector trx_type trx_value vat remarks')
+        Vat.find({},'trx_id tin company_name transaction_amount base_amount vat, lower_vat sub_sector trade_type data_submitted taxpro_trans_id')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -3373,7 +3628,7 @@ exports.getVatTodayBySector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3397,7 +3652,7 @@ exports.getVatTodayBySector = (req, res, next) => {
         console.log('sDate :' + firstDate);
         console.log('eDate :' + lastDate);
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -3465,7 +3720,7 @@ exports.getVatWeeklyBySector = (req, res, next) => {
     console.log('firstDate:' + firstDate);
     console.log('lastDate: '+ lastDate);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3489,7 +3744,7 @@ exports.getVatWeeklyBySector = (req, res, next) => {
         console.log('sDate :' + firstDate);
         console.log('eDate :' + lastDate);
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -3551,7 +3806,7 @@ exports.getVatMonthlyBySector = (req, res, next) => {
     console.log('firstDate:' + firstDayOfMonth);
     console.log('lastDate: '+ lastDayOfMonth);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3581,7 +3836,7 @@ exports.getVatMonthlyBySector = (req, res, next) => {
         
      
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -3636,7 +3891,7 @@ exports.getVatQuarterlyBySector = (req, res, next) => {
     console.log('firstDate:' + firstDate);
     console.log('lastDate: '+ lastDate);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3662,7 +3917,7 @@ exports.getVatQuarterlyBySector = (req, res, next) => {
         console.log('sDate :' + firstDate2);
         console.log('eDate :' + lastDate2);
         
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate2,
@@ -3715,7 +3970,7 @@ exports.getVatYearlyBySector = (req, res, next) => {
     console.log('firstDate:' + firstDayOfTheYear);
     console.log('lastDate: '+ lastDayOfTheYear);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3744,7 +3999,7 @@ exports.getVatYearlyBySector = (req, res, next) => {
         
      
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -3794,7 +4049,7 @@ exports.getMarketSegmentYearly = (req, res, next) => {
     lastDate.setHours(23, 59);
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3804,7 +4059,7 @@ exports.getMarketSegmentYearly = (req, res, next) => {
             $group: {
 
                 _id: "$sub_sector",
-                totalSum: { $sum: "$trx_value"},
+                totalSum: { $sum: "$transaction_amount"},
                 count: { $sum: 1 }
             }
         }
@@ -3856,7 +4111,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3885,7 +4140,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3913,7 +4168,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -3941,7 +4196,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -3969,7 +4224,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -3998,7 +4253,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4026,7 +4281,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4055,7 +4310,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4083,7 +4338,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4111,7 +4366,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4139,7 +4394,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4167,7 +4422,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4198,34 +4453,34 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     'NGX': resData.ngx,
     'CSCS': resData.cscs,
     'SEC': resData.sec,
-    'FMDQ': resData.fmdq
+    'STOCKBROKERS': resData.stockbrokers
     },
     {'month': 'February', 
     'NGX': resData1.ngx,
     'CSCS': resData1.cscs,
     'SEC': resData1.sec,
-    'FMDQ': resData1.fmdq
+    'STOCKBROKERS': resData1.stockbrokers
     },
         
     {'month': 'March', 
     'NGX': resData2.ngx,
     'CSCS': resData2.cscs,
     'SEC': resData2.sec,
-    'FMDQ': resData2.fmdq
+    'STOCKBROKERS': resData2.stockbrokers
     },
     
     {'month': 'April', 
     'NGX': resData3.ngx,
     'CSCS': resData3.cscs,
     'SEC': resData3.sec,
-    'FMDQ': resData3.fmdq
+    'STOCKBROKERS': resData3.stockbrokers
     },
 
     {'month': 'May', 
     'NGX': resData4.ngx,
     'CSCS': resData4.cscs,
     'SEC': resData4.sec,
-    'FMDQ': resData4.fmdq
+    'STOCKBROKERS': resData4.stockbrokers
     },
 
 
@@ -4233,7 +4488,7 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     'NGX': resData5.ngx,
     'CSCS': resData5.cscs,
     'SEC': resData5.sec,
-    'FMDQ': resData5.fmdq
+    'STOCKBROKERS': resData5.stockbrokers
     },
 
 
@@ -4241,42 +4496,42 @@ exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => {
     'NGX': resData6.ngx,
     'CSCS': resData6.cscs,
     'SEC': resData6.sec,
-    'FMDQ': resData6.fmdq
+    'STOCKBROKERS': resData6.stockbrokers
     },
 
     {'month': 'August', 
     'NGX': resData7.ngx,
     'CSCS': resData7.cscs,
     'SEC': resData7.sec,
-    'FMDQ': resData7.fmdq
+    'STOCKBROKERS': resData7.stockbrokers
     },
 
     {'month': 'September', 
     'NGX': resData8.ngx,
     'CSCS': resData8.cscs,
     'SEC': resData8.sec,
-    'FMDQ': resData8.fmdq
+    'STOCKBROKERS': resData8.stockbrokers
     },
 
     {'month': 'October', 
     'NGX': resData9.ngx,
     'CSCS': resData9.cscs,
     'SEC': resData9.sec,
-    'FMDQ': resData9.fmdq
+    'STOCKBROKERS': resData9.stockbrokers
     },
 
     {'month': 'November', 
     'NGX': resData10.ngx,
     'CSCS': resData10.cscs,
     'SEC': resData10.sec,
-    'FMDQ': resData10.fmdq
+    'STOCKBROKERS': resData10.stockbrokers
     },
 
     {'month': 'December', 
     'NGX': resData11.ngx,
     'CSCS': resData11.cscs,
     'SEC': resData11.sec,
-    'FMDQ': resData11.fmdq
+    'STOCKBROKERS': resData11.stockbrokers
     }];
        
 
@@ -4307,7 +4562,7 @@ function findData (x) {
     let sec = 0;
     let cscs = 0;
     let ngx = 0;
-    let fmdq = 0;
+    let stockbrokers = 0;
 
 
     for (var i = 0; i < x.length; i++){
@@ -4315,11 +4570,11 @@ function findData (x) {
         if (x[i]._id === 'SEC') sec = x[i].totalSum;
         if (x[i]._id === 'CSCS') cscs = x[i].totalSum;
         if (x[i]._id === 'NGX') ngx = x[i].totalSum;
-        if (x[i]._id === 'FMDQ') fmdq = x[i].totalSum;
+        if (x[i]._id === 'STOCKBROKERS') stockbrokers = x[i].totalSum;
 
     }
 
-    let ansObj = {sec: sec, cscs: cscs, ngx: ngx, fmdq: fmdq}
+    let ansObj = {sec: sec, cscs: cscs, ngx: ngx, stockbrokers: stockbrokers}
 return ansObj;
 }
 
@@ -4355,7 +4610,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4384,7 +4639,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4412,7 +4667,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -4440,7 +4695,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -4468,7 +4723,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4497,7 +4752,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4525,7 +4780,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4554,7 +4809,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4582,7 +4837,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4610,7 +4865,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4638,7 +4893,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4666,7 +4921,7 @@ exports.getVatMonthlyBySectorInsurance = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4808,7 +5063,7 @@ exports.getVatSegmentYearlyBySector = (req, res, next) => {
     lastDate.setHours(23, 59);
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4837,7 +5092,7 @@ exports.getVatSegmentYearlyBySector = (req, res, next) => {
          
       
  
-         const previous = await Transactionz.aggregate([
+         const previous = await Vat.aggregate([
              {
                  $match: {'createdAt': {
                      $gte: firstDate,
@@ -4899,13 +5154,13 @@ exports.getSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('Sector:' + sector);
 // sector = 'Insurance';
-        Transactionz.find({},'trx_id company_name sector trx_type trx_value vat remarks').where({'sector': sector})
+        Vat.find({},'trx_id tin company_name transaction_amount base_amount vat, lower_vat sub_sector trade_type data_submitted taxpro_trans_id').where({'sector': sector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({'sector': sector});
+            const count = await Vat.count({'sector': sector});
             
             if(trxs) {
                 console.log('Count:' + count);
@@ -4946,7 +5201,7 @@ exports.getVatTodayBySubSector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -4970,7 +5225,7 @@ exports.getVatTodayBySubSector = (req, res, next) => {
         console.log('sDate :' + firstDate);
         console.log('eDate :' + lastDate);
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -5027,7 +5282,7 @@ exports.getVatMonthlyBySubSector = (req, res, next) => {
     console.log('firstDate:' + firstDayOfMonth);
     console.log('lastDate: '+ lastDayOfMonth);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5057,7 +5312,7 @@ exports.getVatMonthlyBySubSector = (req, res, next) => {
         
      
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -5114,7 +5369,7 @@ exports.getVatQuarterlyBySubSector = (req, res, next) => {
     console.log('firstDate:' + firstDate);
     console.log('lastDate: '+ lastDate);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5143,7 +5398,7 @@ exports.getVatQuarterlyBySubSector = (req, res, next) => {
         console.log('sDate :' + firstDate2);
         console.log('eDate :' + lastDate2);
         
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate2,
@@ -5200,7 +5455,7 @@ exports.getVatYearlyBySubSector = (req, res, next) => {
     console.log('firstDate:' + firstDayOfTheYear);
     console.log('lastDate: '+ lastDayOfTheYear);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5229,7 +5484,7 @@ exports.getVatYearlyBySubSector = (req, res, next) => {
         
      
 
-        const previous = await Transactionz.aggregate([
+        const previous = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate,
@@ -5325,7 +5580,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
     
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5351,7 +5606,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
     // console.log('firstDate1:' + firstDate);
     // console.log('lastDate1: '+ lastDate);
     
-      Transactionz.aggregate([
+    Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5378,7 +5633,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
             
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -5403,7 +5658,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
          
              var sumValue = 0;
              var dadas = '';
-              Transactionz.aggregate([
+             Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -5427,7 +5682,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
 
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5452,7 +5707,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
 
      var sumValue = 0;
      var dadas = '';
-      Transactionz.aggregate([
+     Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5474,7 +5729,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5497,7 +5752,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5519,7 +5774,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5541,7 +5796,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         firstDate.setHours(firstDate.getHours() + 1);
         lastDate.setHours(lastDate.getHours() + 1);
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5565,7 +5820,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5590,7 +5845,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5614,7 +5869,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5638,7 +5893,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
 
         console.log('firstD::' + firstDate);
         console.log('lastD::' + lastDate);
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5661,7 +5916,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5684,7 +5939,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5707,7 +5962,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5730,7 +5985,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5753,7 +6008,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5776,7 +6031,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5799,7 +6054,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5822,7 +6077,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5845,7 +6100,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5868,7 +6123,7 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
         lastDate.setHours(lastDate.getHours() + 1);
 
 
-      Transactionz.aggregate([
+        Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -5942,15 +6197,13 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('subSector:' + subsector);
 // sector = 'Insurance';
-        Transactionz.find({
-            
-        },'trx_id company_name sector sub_sector trx_type trx_value vat remarks').where ({'sub_sector': subsector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id').where ({'sub_sector': subsector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({'sub_sector': subsector});
+            const count = await Vat.count({'sub_sector': subsector});
             
 
             if(trxs) {
@@ -5994,7 +6247,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
     console.log('firstDate:' + firstDate);
     console.log('lastDate: '+ lastDate);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         {
             $match: {'createdAt': {
                 $gte: firstDate,
@@ -6023,7 +6276,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
         console.log('sDate :' + firstDate2);
         console.log('eDate :' + lastDate2);
         
-        const secondQtr = await Transactionz.aggregate([
+        const secondQtr = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate2,
@@ -6049,7 +6302,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
         console.log('sDate3 :' + firstDate3);
         console.log('eDate3 :' + lastDate3);
         
-        const thirdQtr = await Transactionz.aggregate([
+        const thirdQtr = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate3,
@@ -6076,7 +6329,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
         console.log('sDate4 :' + firstDate4);
         console.log('eDate4 :' + lastDate4);
         
-        const fourthQtr = await Transactionz.aggregate([
+        const fourthQtr = await Vat.aggregate([
             {
                 $match: {'createdAt': {
                     $gte: firstDate4,
@@ -6134,7 +6387,7 @@ exports.getTopPerfomersByYear = (req, res, next) => {
     console.log('firstDate:' + firstDayOfTheYear);
     console.log('lastDate: '+ lastDayOfTheYear);
     
-      Transactionz.aggregate([
+      Vat.aggregate([
         
         {
             $match: {'createdAt': {
@@ -6147,7 +6400,7 @@ exports.getTopPerfomersByYear = (req, res, next) => {
                 _id: "$cac_id",
                 
                 totalVat: { $sum: "$vat"},
-                totalTrxn: { $sum: "$trx_value"},
+                totalTrxn: { $sum: "$transaction_amountgetNumberOfVatsAllTimes"},
                 count: { $sum: 1 }
             }
         
@@ -6158,7 +6411,7 @@ exports.getTopPerfomersByYear = (req, res, next) => {
         .sort('-totalTrxn')
         .then (async dat => {
             // Get total summation for transaction
-            const totalVat = await Transactionz.aggregate([
+            const totalVat = await Vat.aggregate([
                 {
                     $match: {'createdAt': {
                         $gte: firstDate,
@@ -6216,7 +6469,7 @@ exports.getTopPerfomersByYear = (req, res, next) => {
 }
 
 exports.getNumberOfVatsAllTimes = async (req, res, next) => { 
-            const count = await Transactionz.count();
+            const count = await Vat.count();
 
             res.status(200).json({message: 'success', count: count}); 
              
@@ -6225,14 +6478,14 @@ exports.getNumberOfVatsAllTimes = async (req, res, next) => {
 
 exports.getSummaryOfAllTimes = async (req, res, next) => { 
 
-    Transactionz.aggregate([
+    Vat.aggregate([
 
         {
             $group: {
 
                 _id: "$_v",   
                 totalVat: { $sum: "$vat"},
-                totalTrxn: { $sum: "$trx_value"},
+                totalTrxn: { $sum: "$transaction_amount"},
                 count: { $sum: 1 }
             }
         
@@ -6240,7 +6493,7 @@ exports.getSummaryOfAllTimes = async (req, res, next) => {
       ]
       ).then (async dat => {
 
-        const count = await Transactionz.count();
+        const count = await Vat.count();
      
 
     res.status(200).json({message: 'success', totalTrxnAllTimes: dat[0].totalTrxn, totalVatAllTimes: dat[0].totalVat, totalRecords: count }); 
@@ -6257,7 +6510,7 @@ exports.getSummaryOfAllTimes = async (req, res, next) => {
 exports.getTransactionsByTrxIdOnly = (req, res, next) => { 
     var trx_id = req.params.trxid;
     
-        Transactionz.find({trx_id: trx_id},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        Vat.find({trx_id: trx_id},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
         
         .then(trxs => {
 
@@ -6284,13 +6537,13 @@ exports.getTransactionsBySubSectorOnly = (req, res, next) => {
     // console.log('Page: ' + page);
     // console.log('Limit: ' + limit);
 
-        Transactionz.find({sub_sector: sub_sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        Vat.find({sub_sector: sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({sub_sector: sub_sector});
+            const count = await Vat.count({sub_sector: sub_sector});
             
             if(trxs) {
                 console.log('Count:' + count);
@@ -6323,13 +6576,13 @@ exports.getTransactionsBySectorOnly = (req, res, next) => {
     // console.log('Page: ' + page);
     // console.log('Limit: ' + limit);
 
-        Transactionz.find({sector: sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        Vat.find({sector: sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({sector: sector});
+            const count = await Vat.count({sector: sector});
             
             if(trxs) {
                 console.log('Count:' + count);
@@ -6371,14 +6624,14 @@ exports.getTransactionsWith2Dates = (req, res, next) => {
     lastDate.setHours(23,59);
 
     
-        Transactionz.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({'createdAt': {
+            const count = await Vat.count({'createdAt': {
                 $gte: firstDate, $lte: lastDate }});
             
             if(trxs) {
@@ -6421,14 +6674,14 @@ exports.getTransactionsWith2DatesandSector = (req, res, next) => {
     lastDate.setHours(23,59);
 
     
-        Transactionz.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({'createdAt': {
+            const count = await Vat.count({'createdAt': {
                 $gte: firstDate, $lte: lastDate }, 'sector': sector});
             
             if(trxs) {
@@ -6471,14 +6724,14 @@ exports.getTransactionsWith2DatesandSubSector = (req, res, next) => {
     lastDate.setHours(23,59);
 
     
-        Transactionz.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id company_name sector sub_sector trx_type trx_value vat createdAt remarks')
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
         .then(async trxs => {
 
-            const count = await Transactionz.count({'createdAt': {
+            const count = await Vat.count({'createdAt': {
                 $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector});
             
             if(trxs) {
