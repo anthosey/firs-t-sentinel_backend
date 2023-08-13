@@ -184,6 +184,8 @@ router.get('/transactionswith2datesandsubsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:
 router.get('/logswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getAuditTrailWith2Dates);
 // ******REPORTS ENDS *****
 
-// 
+// GET DATA FROM TAXPRO
+// router.get('/vathourbysubsector/:dd/mm/:mm/year/:yyyy/subsector/:subsector', operationzController.getVatHourlyBySubSector);
+router.get('/monthlypayment/:mm/yyyy/:yyyy', operationzController.getMonthlyPayment);
 
 module.exports = router;

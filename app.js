@@ -7,6 +7,7 @@ const userRoutes = require('./routes/user');
 const profileRoutes = require('./routes/profile');
 const operationzRoutes = require('./routes/operationz');
 const session = require('express-session');
+const Vat = require ('./models/vat')
 var http = require('http');
 require("dotenv").config();
 
@@ -14,6 +15,7 @@ const cron = require("node-cron"); // Cron jobs
 const path = require('path');
 const app = express();
 global.taxProloginStatus = false; // CREATE A GLOBAL VARIABLE
+global.companyData = [];
 let ext;
 // This is for image upload capabilities using multer middleware
 const fileStorage = multer.diskStorage({
@@ -160,7 +162,7 @@ const testLoginOptions = {
         'Content-Length': Buffer.byteLength(testLoginData),
   },
 };
-    function logonToTaxpro(options) {
+  function logonToTaxpro(options) {
         let data = '';
         let token = '';
       
@@ -194,7 +196,7 @@ const testLoginOptions = {
         
       };
 
-    //   logonToTaxpro(loginOptions);
+    //  CHECK ACCESS TO TAXPRO
 
 cron.schedule("*/10 * * * * *", function () {
     console.log("---------------------");
@@ -207,6 +209,130 @@ cron.schedule("*/10 * * * * *", function () {
         
     } else {console.log('TaxPro Login active!, Token:: ' + bearerToken );}
 });
+
+
+function submitDataToTaxPro(dataInput, token, live) {
+  let data = '';
+  let dataOptions;
+  const dataIn = JSON.stringify({
+      agent_tin: dataInput.agent_tin,
+      beneficiary_tin: dataInput.beneficiary_tin,
+      currency: dataInput.currency,
+      trans_date: dataInput.transaction_date,
+      // trans_date: '2023-08-10',
+      base_amount: dataInput.base_amount,
+      vat_calculated: dataInput.vat,
+      total_amount: dataInput.total_amount,
+      other_taxes: dataInput.other_taxes,
+      vat_rate: dataInput.vat_rate,
+      vat_status: dataInput.vat_status,
+      item_description: dataInput.item_description,
+      integrator_id: 27
+    });
+      
+    console.log('DATAIN:: ' + dataIn);
+  if (live) { // Data Options for Live Environment
+      dataOptions = {
+          hostname: process.env.TAXPRO_HOSTNAME,
+          path: '/vat-aggr/transaction',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token,
+            'Content-Length': Buffer.byteLength(dataIn),
+      },
+      };
+
+  } else{ // Data Options for Test Environment
+   dataOptions = {
+      hostname: process.env.TAXPRO_HOSTNAME,
+      path: '/vat-aggr/transaction',
+      method: 'POST',
+      port: process.env.TAXPRO_PORT,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'Content-Length': Buffer.byteLength(dataIn),
+  },
+  };
+
+  }
+   
+  
+  const request = http.request(dataOptions, (response) => {
+    response.setEncoding('utf8');
+
+    response.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    response.on('end', () => {
+      console.log('Returned Data:: ' + data);
+
+      if (data === 'error msg') {
+          // Ask the Login process to reinitiate login
+          taxProloginStatus = false;
+      } else {
+
+          var newData = JSON.parse(data);
+          trans_id = newData.trans_id;
+
+          // Update record in as sent in the local db
+          
+          Vat.findOne({agent_tin: dataInput.agent_tin} && {trx_id: dataInput.trx_id})
+              .then(vatFound =>{
+                  vatFound.taxpro_trans_id = trans_id;
+                  vatFound.data_submitted = 1; 
+                  return vatFound.save();
+              })
+              .then(vat => {
+                  console.log('Vat Data:: ' + vat);
+                  companyData.splice(0,1); // Start from the first, remove 1 element
+                  // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+
+              })
+              .catch(err => {
+                  if (!err.statusCode) {
+                      err.statusCode = 500;
+                  }
+                  // next(err); // pass the error to the next error handling function
+              });
+
+          return trans_id;
+          console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+      }
+      
+    });
+  });
+
+
+  request.on('error', (error) => {
+    console.error(error);
+    taxProloginStatus = false;
+  });
+
+  // Write data to the request body
+  request.write(dataIn);
+
+  request.end();
+
+  
+};
+
+
+cron.schedule("*/45 * * * * *", function() {
+  if (companyData.length > 0) {
+    console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    // Get the data to TaxPro, then update the Local Db
+
+    submitDataToTaxPro(companyData[0], bearerToken, false);
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
 
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 // mongoose.connect('mongodb+srv://anthos:anth05.p%4055@alaarudata-mlyhh.mongodb.net/alaaruDb?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true })

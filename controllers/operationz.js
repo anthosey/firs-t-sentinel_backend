@@ -12,46 +12,78 @@ var http = require('http');
 // const cron = require("node-cron"); // Cron jobs
 var trans_id;
 
-// const { parseTwoDigitYear } = require('moment');
-// const moment = require('moment');
+function getDataFromTaxPro(dataInput, token, queryPath, method, live) {
+    let data = '';
+    let dataOptions;
+        
+    console.log('DATAIN:: ' + dataInput);
+    if (live) { // Data Options for Live Environment
+        dataOptions = {
+            hostname: process.env.TAXPRO_HOSTNAME,
+            path: queryPath,
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token,
+              'Content-Length': Buffer.byteLength(dataInput),
+        },
+        };
+
+    } else{ // Data Options for Test Environment
+     dataOptions = {
+        hostname: process.env.TAXPRO_HOSTNAME,
+        path: queryPath,
+        method: method,
+        port: process.env.TAXPRO_PORT,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+          'Content-Length': Buffer.byteLength(dataInput),
+    },
+    };
+
+    }
+     
+    
+    const request = http.request(dataOptions, (response) => {
+      response.setEncoding('utf8');
+  
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+  
+      response.on('end', () => {
+        console.log('Returned Data:: ' + data);
+
+        if (data === 'error msg') {
+            // Ask the Login process to reinitiate login
+            taxProloginStatus = false;
+            return 'Err: 4000';
+        } else {
+
+            return 'Err: 5000';
+            // var newData = JSON.parse(data);
+            // return newData.vat_paid;
+      
+            // console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+        }
+        
+      });
+    });
 
 
-// const https = require('https');
-// var tempToken = '';
-
-// function supplyData(dataInput) {
+    request.on('error', (error) => {
+      console.error(error);
+      taxProloginStatus = false;
+    });
+  
+    // Write data to the request body
+    request.write(dataInput);
+  
+    request.end();
 
     
-//     const testEnvData = JSON.stringify({
-//         agent_tin: dataInput.agent_tin,
-//         beneficiary_tin: dataInput.beneficiary_tin,
-//         currency: dataInput.currency,
-//         trans_date: dataInput.transaction_date,
-//         base_amount: dataInput.base_amount,
-//         vat_calculated: dataInput.vat,
-//         total_amount: dataInput.total_amount,
-//         other_taxes: dataInput.other_taxes,
-//         vat_rate: dataInput.vat_rate,
-//         vat_status: dataInput.vat_status,
-//         item_description: dataInput.item_description,
-//         integrator_id: 27
-//       });
-//       return testEnvData;
-    
-// }
-
-
-// const testEnvDataOptions = {
-//     hostname: 'api.taxpromax.firs.gov.ng',
-//     path: '/vat-aggr/login',
-//     method: 'POST',
-//     port: 82,
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Bearer': tempToken,
-//       'Content-Length': Buffer.byteLength(supplyData()),
-// },
-// };
+  };
 
 function submitDataToTaxPro(dataInput, token, live) {
     let data = '';
@@ -374,10 +406,10 @@ exports.addTransaction = async (req, res, next) => {
              
             .then(async dat => {
                 // Check login to TaxPro
-                if (!bearerToken) {
-                    console.log('Got here');
-                    makePost2(loginOptions);
-                }
+                // if (!bearerToken) {
+                //     console.log('Got here');
+                //     makePost2(loginOptions);
+                // }
 
                 // DO VAT DEDUCTION
 
@@ -448,18 +480,19 @@ exports.addTransaction = async (req, res, next) => {
                 });
 
                 await initiatorCompany.save();
+                companyData.push (initiatorCompany);
 
-                await Promise.resolve(submitDataToTaxPro(initiatorCompany, bearerToken, false))
-                .then(response => 
+                // await Promise.resolve(submitDataToTaxPro(initiatorCompany, bearerToken, false))
+                // .then(response => 
                     
-                    Vat.findOne({agent_tin: initiatorCompany.agent_tin} && {trx_id: initiatorCompany.trx_id})
-                    .then(vatFound =>{
-                    vatFound.taxpro_trans_id = trans_id;
-                    vatFound.data_submitted = 1; 
-                    vatFound.save();
+                //     Vat.findOne({agent_tin: initiatorCompany.agent_tin} && {trx_id: initiatorCompany.trx_id})
+                //     .then(vatFound =>{
+                //     vatFound.taxpro_trans_id = trans_id;
+                //     vatFound.data_submitted = 1; 
+                //     vatFound.save();
 
-                    console.log('Done Executing initiator');
-                }));
+                //     console.log('Done Executing initiator');
+                // }));
                     
 
                 // submitDataToTaxPro(initiatorCompany, bearerToken, false)
@@ -516,19 +549,20 @@ exports.addTransaction = async (req, res, next) => {
                     });
     
                     await counterpartyCompany.save();
+                    companyData.push (counterpartyCompany);
                     // submitDataToTaxPro(counterpartyCompany, bearerToken, false);
 
-                    await Promise.resolve(submitDataToTaxPro(counterpartyCompany, bearerToken, false))
-                    .then(response => 
+                    // await Promise.resolve(submitDataToTaxPro(counterpartyCompany, bearerToken, false))
+                    // .then(response => 
                         
-                        Vat.findOne({agent_tin: counterpartyCompany.agent_tin} && {trx_id: counterpartyCompany.trx_id})
-                        .then(vatFound =>{
-                        vatFound.taxpro_trans_id = trans_id;
-                        vatFound.data_submitted = 1; 
-                        vatFound.save();
+                    //     Vat.findOne({agent_tin: counterpartyCompany.agent_tin} && {trx_id: counterpartyCompany.trx_id})
+                    //     .then(vatFound =>{
+                    //     vatFound.taxpro_trans_id = trans_id;
+                    //     vatFound.data_submitted = 1; 
+                    //     vatFound.save();
     
-                        console.log('Done Executing counterparty');
-                    }));
+                    //     console.log('Done Executing counterparty');
+                    // }));
 
 
                 if (trade_type == 'Buy') {
@@ -567,20 +601,21 @@ exports.addTransaction = async (req, res, next) => {
                         });
         
                         await sec.save();      
+                        companyData.push (sec);
                         // submitDataToTaxPro(sec, bearerToken, false);     
                        
                         
-                    await Promise.resolve(submitDataToTaxPro(sec, bearerToken, false))
-                    .then(response => 
+                    // await Promise.resolve(submitDataToTaxPro(sec, bearerToken, false))
+                    // .then(response => 
                         
-                        Vat.findOne({agent_tin: sec.agent_tin} && {trx_id: sec.trx_id})
-                        .then(vatFound =>{
-                        vatFound.taxpro_trans_id = trans_id;
-                        vatFound.data_submitted = 1; 
-                        vatFound.save();
+                    //     Vat.findOne({agent_tin: sec.agent_tin} && {trx_id: sec.trx_id})
+                    //     .then(vatFound =>{
+                    //     vatFound.taxpro_trans_id = trans_id;
+                    //     vatFound.data_submitted = 1; 
+                    //     vatFound.save();
     
-                        console.log('Done Executing sec');
-                    }));         
+                    //     console.log('Done Executing sec');
+                    // }));         
 
                 }
 
@@ -621,19 +656,20 @@ exports.addTransaction = async (req, res, next) => {
                     });
     
                     await ngx.save();    
+                    companyData.push (ngx);
                     // submitDataToTaxPro(ngx, bearerToken, false);         
                     
-                    await Promise.resolve(submitDataToTaxPro(ngx, bearerToken, false))
-                    .then(response => 
+                    // await Promise.resolve(submitDataToTaxPro(ngx, bearerToken, false))
+                    // .then(response => 
                         
-                        Vat.findOne({agent_tin: ngx.agent_tin} && {trx_id: ngx.trx_id})
-                        .then(vatFound =>{
-                        vatFound.taxpro_trans_id = trans_id;
-                        vatFound.data_submitted = 1; 
-                        vatFound.save();
+                    //     Vat.findOne({agent_tin: ngx.agent_tin} && {trx_id: ngx.trx_id})
+                    //     .then(vatFound =>{
+                    //     vatFound.taxpro_trans_id = trans_id;
+                    //     vatFound.data_submitted = 1; 
+                    //     vatFound.save();
     
-                        console.log('Done Executing ngx');
-                    }));   
+                    //     console.log('Done Executing ngx');
+                    // }));   
                     
                 // Get Vat for CSCS
                 const cscs = new Vat ({
@@ -669,21 +705,22 @@ exports.addTransaction = async (req, res, next) => {
             
                 });
 
-                await cscs.save();             
+                await cscs.save();            
+                companyData.push (cscs); 
                 // submitDataToTaxPro(cscs, bearerToken, false);      
 
                 
-                await Promise.resolve(submitDataToTaxPro(cscs, bearerToken, false))
-                    .then(response => 
+                // await Promise.resolve(submitDataToTaxPro(cscs, bearerToken, false))
+                //     .then(response => 
                         
-                        Vat.findOne({agent_tin: cscs.agent_tin} && {trx_id: cscs.trx_id})
-                        .then(vatFound =>{
-                        vatFound.taxpro_trans_id = trans_id;
-                        vatFound.data_submitted = 1; 
-                        vatFound.save();
+                //         Vat.findOne({agent_tin: cscs.agent_tin} && {trx_id: cscs.trx_id})
+                //         .then(vatFound =>{
+                //         vatFound.taxpro_trans_id = trans_id;
+                //         vatFound.data_submitted = 1; 
+                //         vatFound.save();
     
-                        console.log('Done Executing cscs');
-                    }));            
+                //         console.log('Done Executing cscs');
+                //     }));            
                 }
 
                 
@@ -6228,7 +6265,6 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
 // 1st, 2nd , 3rd and 4th Qtr summary of reports
 exports.getVatQuarter1234BySector = (req, res, next) => { 
     var sector = req.params.sector;
-    
     var today = new Date();
     var yyyy = today.getFullYear();
     var mm = today.getMonth();
@@ -6802,3 +6838,53 @@ exports.getAuditTrailWith2Dates = (req, res, next) => {
 }
 
 // *****REPORTS END******
+
+// *******GET DATA FROM TAXPRO******
+
+exports.getMonthlyPayment = async (req, res, next) => { 
+    console.log('finding payment...');
+    var total = +req.params.mm;
+
+    // Vat.aggregate([
+
+    //     {
+    //         $group: {
+
+    //             _id: "$_v",   
+    //             totalVat: { $sum: "$vat"},
+    //             totalTrxn: { $sum: "$transaction_amount"},
+    //             count: { $sum: 1 }
+    //         }
+        
+    //     }
+    //   ]
+    //   ).then (async dat => {
+
+    const dataIn = JSON.stringify({
+        month: +req.params.mm,
+        year: +req.params.yyyy,
+        integrator_id: 27
+      });
+    
+    console.log('DATA jhere::' + dataIn);
+
+    setTimeout(()=> {
+        console.log('Response TaxPro::' + resp) ;
+        res.status(200).json({message: 'success', monthlyTotal: resp});     
+    }, 2000);
+    
+    var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
+
+        if (!resp) resp = 0;
+    // const count = await Vat.count();
+     
+
+    
+// })  .catch(err => {
+//     if (!err.statusCode) {
+//         err.statusCode = 500;
+//     }
+//     next(err); // pass the error to the next error handling function
+// })        
+
+}
