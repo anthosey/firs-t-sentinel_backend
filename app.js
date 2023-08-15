@@ -13,6 +13,7 @@ require("dotenv").config();
 
 const cron = require("node-cron"); // Cron jobs
 const path = require('path');
+const { JsonWebTokenError } = require('jsonwebtoken');
 const app = express();
 global.taxProloginStatus = false; // CREATE A GLOBAL VARIABLE
 global.companyData = [];
@@ -162,7 +163,8 @@ const testLoginOptions = {
         'Content-Length': Buffer.byteLength(testLoginData),
   },
 };
-  function logonToTaxpro(options) {
+  
+function logonToTaxpro(options) {
         let data = '';
         let token = '';
       
@@ -279,7 +281,8 @@ function submitDataToTaxPro(dataInput, token, live) {
 
           // Update record in as sent in the local db
           
-          Vat.findOne({agent_tin: dataInput.agent_tin} && {trx_id: dataInput.trx_id})
+          Vat.findOne({item_id: dataInput.item_id})
+          // Vat.findOne({_id: dataInput._id})
               .then(vatFound =>{
                   vatFound.taxpro_trans_id = trans_id;
                   vatFound.data_submitted = 1; 
@@ -320,19 +323,44 @@ function submitDataToTaxPro(dataInput, token, live) {
 };
 
 
-cron.schedule("*/45 * * * * *", function() {
-  if (companyData.length > 0) {
-    console.log('Coy Data: ' + companyData[0]);
-    console.log('Coy ********: ' + companyData[0].company_name);
-    // Get the data to TaxPro, then update the Local Db
+function mopupData() {
+ Vat.find({taxpro_trans_id: null})
+ .then(data => {
+  console.log('Length:: ' + data.length);
+  // console.log('Data:: ' + data[0]._id);
+  companyData.splice(0,0, ...data);
 
-    submitDataToTaxPro(companyData[0], bearerToken, false);
+ })
+
+}
+
+// Move data to TraxPro every 2 seconds
+cron.schedule("*/2 * * * * *", function() {
+  if (companyData.length > 0) {
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken, false);
+    }
 
   }else{
     console.log('No data found!');
   } 
   
   })
+
+ 
+  // Taxpro Offline handler: checks for data that could not be uploaded to Taxpro realtime and upload them
+cron.schedule("0 0 */16 * * *", function() { // 2:05 am
+  console.log('Daily Data Mop-up'); 
+    mopupData();
+})
+// job.start();
+
 
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 // mongoose.connect('mongodb+srv://anthos:anth05.p%4055@alaarudata-mlyhh.mongodb.net/alaaruDb?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true })

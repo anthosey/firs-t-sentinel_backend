@@ -301,6 +301,11 @@ exports.getOwnerByTransaction = (req, res, next) => {
     
 }
 
+function getOpposite(tradeType) {
+if (tradeType == 'Buy') return 'Sell';
+if (tradeType == 'Sell') return 'Buy';
+}
+
 exports.addTransaction = async (req, res, next) => {
     
     const errors = validationResult(req);
@@ -445,6 +450,7 @@ exports.addTransaction = async (req, res, next) => {
                 
                 // Get Vat for Initiator Company
                 const initiatorCompany = new Vat ({
+                
                     trx_id: trxId,
                     transaction_ref: trx_ref_provider,
                     cac_id: main_company.cac_id,
@@ -475,7 +481,8 @@ exports.addTransaction = async (req, res, next) => {
                     transaction_date: trDate,
                     data_submitted: 0,
                     vat_rate: 7.5,
-                    vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                    vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                    item_id: trxId + '1'
             
                 });
 
@@ -520,7 +527,7 @@ exports.addTransaction = async (req, res, next) => {
                         transaction_ref: trx_ref_provider,
                         cac_id: counterparty_company.cac_id,
                         transaction_type: trx_type,
-                        trade_type: trade_type,
+                        trade_type: getOpposite(trade_type),
                         tin: counterparty_company.tin,
                         agent_tin: counterparty_company.tin, 
                         beneficiary_tin: counterparty_company.tin,
@@ -544,8 +551,8 @@ exports.addTransaction = async (req, res, next) => {
                         transaction_date: trDate,
                         data_submitted: 0,
                         vat_rate: 7.5,
-                        vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                
+                        vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                        item_id: trxId + '2'
                     });
     
                     await counterpartyCompany.save();
@@ -565,14 +572,14 @@ exports.addTransaction = async (req, res, next) => {
                     // }));
 
 
-                if (trade_type == 'Buy') {
+                // if (trade_type == 'Buy') {
                     // Get Vat for Sec
                         const sec = new Vat ({
                             trx_id: trxId,
                             transaction_ref: trx_ref_provider,
                             cac_id: sec_company.cac_id,
                             transaction_type: trx_type,
-                            trade_type: trade_type,
+                            trade_type: 'Buy',
                             tin: sec_company.tin,
                             agent_tin: sec_company.tin, 
                             beneficiary_tin: sec_company.tin,
@@ -596,38 +603,24 @@ exports.addTransaction = async (req, res, next) => {
                             transaction_date: trDate,
                             data_submitted: 0,
                             vat_rate: 7.5,
-                            vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                    
+                            vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                            item_id: trxId + '3'
                         });
         
                         await sec.save();      
                         companyData.push (sec);
-                        // submitDataToTaxPro(sec, bearerToken, false);     
-                       
-                        
-                    // await Promise.resolve(submitDataToTaxPro(sec, bearerToken, false))
-                    // .then(response => 
-                        
-                    //     Vat.findOne({agent_tin: sec.agent_tin} && {trx_id: sec.trx_id})
-                    //     .then(vatFound =>{
-                    //     vatFound.taxpro_trans_id = trans_id;
-                    //     vatFound.data_submitted = 1; 
-                    //     vatFound.save();
-    
-                    //     console.log('Done Executing sec');
-                    // }));         
-
-                }
+                      
+                // }
 
                  // ********For sell orders*********
-                 if (trade_type == 'Sell') {
+                //  if (trade_type == 'Sell') {
                     // Get Vat for NGX
                     const ngx = new Vat ({
                         trx_id: trxId,
                         transaction_ref: trx_ref_provider,
                         cac_id: ngx_company.cac_id,
                         transaction_type: trx_type,
-                        trade_type: trade_type,
+                        trade_type: 'Sell',
                         tin: ngx_company.tin,
                         agent_tin: ngx_company.tin, 
                         beneficiary_tin: ngx_company.tin,
@@ -651,8 +644,8 @@ exports.addTransaction = async (req, res, next) => {
                         transaction_date: trDate,
                         data_submitted: 0,
                         vat_rate: 7.5,
-                        vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                
+                        vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                        item_id: trxId + '4'
                     });
     
                     await ngx.save();    
@@ -677,7 +670,7 @@ exports.addTransaction = async (req, res, next) => {
                     transaction_ref: trx_ref_provider,
                     cac_id: cscs_company.cac_id,
                     transaction_type: trx_type,
-                    trade_type: trade_type,
+                    trade_type: 'Sell',
                     tin: cscs_company.tin,
                     agent_tin: cscs_company.tin, 
                     beneficiary_tin: cscs_company.tin,
@@ -701,8 +694,8 @@ exports.addTransaction = async (req, res, next) => {
                     transaction_date: trDate,
                     data_submitted: 0,
                     vat_rate: 7.5,
-                    vat_status: 0 //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-            
+                    vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                    item_id: trxId + '5'
                 });
 
                 await cscs.save();            
@@ -721,7 +714,8 @@ exports.addTransaction = async (req, res, next) => {
     
                 //         console.log('Done Executing cscs');
                 //     }));            
-                }
+                
+                // }
 
                 
                 // console.log('My Token::' + bearerToken);
@@ -3618,7 +3612,7 @@ exports.getTransactionzWithPages = async (req, res, next) => {
     console.log('Page: ' + page);
     console.log('Limit: ' + limit);
 
-        Vat.find({},'trx_id tin company_name transaction_amount base_amount vat, lower_vat sub_sector trade_type data_submitted taxpro_trans_id')
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -5191,7 +5185,7 @@ exports.getSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('Sector:' + sector);
 // sector = 'Insurance';
-        Vat.find({},'trx_id tin company_name transaction_amount base_amount vat, lower_vat sub_sector trade_type data_submitted taxpro_trans_id').where({'sector': sector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id').where({'sector': sector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6234,7 +6228,7 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('subSector:' + subsector);
 // sector = 'Insurance';
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id').where ({'sub_sector': subsector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id').where ({'sub_sector': subsector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')

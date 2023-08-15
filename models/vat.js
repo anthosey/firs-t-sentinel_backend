@@ -6,6 +6,9 @@ const vatSchema = new mongoose.Schema({
     trx_id: {
         type: String
     },
+    item_id: {
+        type: String
+    },
     transaction_ref: {
         type: String
     },
