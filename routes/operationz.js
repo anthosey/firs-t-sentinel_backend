@@ -188,4 +188,6 @@ router.get('/logswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyy
 // router.get('/vathourbysubsector/:dd/mm/:mm/year/:yyyy/subsector/:subsector', operationzController.getVatHourlyBySubSector);
 router.get('/monthlypayment/:mm/yyyy/:yyyy', operationzController.getMonthlyPayment);
 
+router.get('/vatpaidbytin/:tin/mm/:mm/yyyy/:yyyy', operationzController.getVatPaidByTin);
+
 module.exports = router;

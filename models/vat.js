@@ -107,7 +107,10 @@ const vatSchema = new mongoose.Schema({
     },
     taxpro_trans_id: {
         type: Number
-    }
+    },
+    earning_type: {
+        type: String
+    },
 
 }, { timestamps: true }
 );

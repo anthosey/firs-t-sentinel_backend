@@ -482,7 +482,8 @@ exports.addTransaction = async (req, res, next) => {
                     data_submitted: 0,
                     vat_rate: 7.5,
                     vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                    item_id: trxId + '1'
+                    item_id: trxId + '1',
+                    earning_type: 'Commission'
             
                 });
 
@@ -552,7 +553,8 @@ exports.addTransaction = async (req, res, next) => {
                         data_submitted: 0,
                         vat_rate: 7.5,
                         vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                        item_id: trxId + '2'
+                        item_id: trxId + '2',
+                        earning_type: 'Commission'
                     });
     
                     await counterpartyCompany.save();
@@ -604,7 +606,8 @@ exports.addTransaction = async (req, res, next) => {
                             data_submitted: 0,
                             vat_rate: 7.5,
                             vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                            item_id: trxId + '3'
+                            item_id: trxId + '3',
+                            earning_type: 'Fee'
                         });
         
                         await sec.save();      
@@ -645,7 +648,8 @@ exports.addTransaction = async (req, res, next) => {
                         data_submitted: 0,
                         vat_rate: 7.5,
                         vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                        item_id: trxId + '4'
+                        item_id: trxId + '4',
+                        earning_type: 'Fee'
                     });
     
                     await ngx.save();    
@@ -695,7 +699,8 @@ exports.addTransaction = async (req, res, next) => {
                     data_submitted: 0,
                     vat_rate: 7.5,
                     vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
-                    item_id: trxId + '5'
+                    item_id: trxId + '5',
+                    earning_type: 'Fee'
                 });
 
                 await cscs.save();            
@@ -741,609 +746,7 @@ exports.addTransaction = async (req, res, next) => {
 
 // ***** DASHBOARD  BEGINS ********
 
-// exports.getVatHourly = (req, res, next) => { 
-//     var dd = +req.params.dd;
-//     var mm = +req.params.mm;
-//     var yyyy = +req.params.yyyy;
 
-//     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
-//     lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
-//     lastDate.setHours(firstDate.getHours() + 1);
-   
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat => {
-//         if (!dat[0]) dat[0] = 0;
-
-
-//         // 2AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat1 => {
-//         if (!dat1[0]) dat1[0] = 0;
-       
-//                 // 3AM
-//                 firstDate.setHours(firstDate.getHours() + 1);
-//                 lastDate.setHours(lastDate.getHours() + 1);
-        
-//              var sumValue = 0;
-//              var dadas = '';
-//               Transactionz.aggregate([
-//                 {
-//                     $match: {'createdAt': {
-//                         $gte: firstDate,
-//                         $lte: lastDate}}
-//                 },
-//                 {
-//                     $group: {
-        
-//                         _id: "$_v",
-//                         totalSum: { $sum: "$vat"},
-//                         count: { $sum: 1 }
-//                     }
-//                 }
-//               ]
-//               ).then (dat2 => {
-//                 if (!dat2[0]) dat2[0] = 0;
-
-
-//                 // 4AM
-//                 firstDate.setHours(firstDate.getHours() + 1);
-//                 lastDate.setHours(lastDate.getHours() + 1);
-         
-//              var sumValue = 0;
-//              var dadas = '';
-//               Transactionz.aggregate([
-//                 {
-//                     $match: {'createdAt': {
-//                         $gte: firstDate,
-//                         $lte: lastDate}}
-//                 },
-//                 {
-//                     $group: {
-        
-//                         _id: "$_v",
-//                         totalSum: { $sum: "$vat"},
-//                         count: { $sum: 1 }
-//                     }
-//                 }
-//               ]
-//               ).then (dat3 => {
-//                 if (!dat3[0]) dat3[0] = 0;
-
-//         // 5AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat4 => {
-//         if (!dat4[0]) dat4[0] = 0;
-
-
-//         // 6AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat5 => {
-//         if (!dat5[0]) dat5[0] = 0;
-        
-//         // 7AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat6 => {
-//         if (!dat6[0]) dat6[0] = 0;
-
-
-//         // 8AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat7 => {
-//         if (!dat7[0]) dat7[0] = 0;
-
-//         // 9AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat8 => {
-//         if (!dat8[0]) dat8[0] = 0;
-
-//         // 10AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat9 => {
-//         if (!dat9[0]) dat9[0] = 0;
-
-
-//         // 11AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat10 => {
-//         if (!dat10[0]) dat10[0] = 0;
-
-
-        
-//         // 12PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat11 => {
-//         if (!dat11[0]) dat11[0] = 0;
-
-
-//         // 1PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat12 => {
-//         if (!dat12[0]) dat12[0] = 0;
-
-//         // 2PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-//         console.log('firstD::' + firstDate);
-//         console.log('lastD::' + lastDate);
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat13 => {
-//         if (!dat13[0]) dat13[0] = 0;
-       
-//         // 3PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat14 => {
-//         if (!dat14[0]) dat14[0] = 0;
-
-//         // 4PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat15 => {
-//         if (!dat15[0]) dat15[0] = 0;
-
-//         // 5PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat16 => {
-//         if (!dat16[0]) dat16[0] = 0;
-
-//         // 6PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat17 => {
-//         if (!dat17[0]) dat17[0] = 0;
-
-//         // 7PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat18 => {
-//         if (!dat18[0]) dat18[0] = 0;
-
-//         // 8PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat19 => {
-
-//         if (!dat19[0]) dat19[0] = 0;
-//         // 9PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat20 => {
-//         if (!dat20[0]) dat20[0] = 0;
-
-//         // 10PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat21 => {
-//         if (!dat21[0]) dat21[0] = 0;
-
-//         // 11PM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat22 => {
-//         if (!dat22[0]) dat22[0] = 0;
-
-//         // 12AM
-//         firstDate.setHours(firstDate.getHours() + 1);
-//         lastDate.setHours(lastDate.getHours() + 1);
-
-
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat23 => {
-//         if (!dat23[0]) dat23[0] = 0;
-    
-//     let arrData = [{'hour': '01', 'transactions': dat[0].totalSum || 0} , {'hour': '02', 'transactions': dat1[0].totalSum || 0}, {'hour': '03', 'transactions': dat2[0].totalSum || 0} , {'hour': '04', 'transactions': dat3[0].totalSum || 0} , {'hour': '05', 'transactions': dat4[0].totalSum || 0} , {'hour': '06', 'transactions': dat5[0].totalSum || 0}, 
-//     {'hour': '07', 'transactions': dat6[0].totalSum || 0}, {'hour': '08', 'transactions': dat7[0].totalSum || 0}, {'hour': '09', 'transactions': dat8[0].totalSum || 0}, {'hour': '10', 'transactions': dat9[0].totalSum || 0}, {'hour': '11', 'transactions': dat10[0].totalSum || 0}, {'hour': '12', 'transactions': dat11[0].totalSum || 0}, 
-//     {'hour': '13', 'transactions': dat12[0].totalSum || 0}, {'hour': '14', 'transactions': dat13[0].totalSum || 0}, {'hour': '15', 'transactions': dat14[0].totalSum || 0}, {'hour': '16', 'transactions': dat15[0].totalSum || 0}, {'hour': '17', 'transactions': dat16[0].totalSum || 0}, {'hour': '18', 'transactions': dat17[0].totalSum || 0}, 
-//     {'hour': '19', 'transactions': dat18[0].totalSum || 0}, {'hour': '20', 'transactions': dat19[0].totalSum || 0}, {'hour': '21', 'transactions': dat20[0].totalSum || 0}, {'hour': '22', 'transactions': dat21[0].totalSum || 0}, {'hour': '23', 'transactions': dat22[0].totalSum || 0}, {'hour': '24', 'transactions': dat23[0].totalSum || 0}];
-       
-//         res.status(200).json({message: 'success', data: arrData});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// });
-// }); 
-// }); 
-// }); 
-// }); 
-// }); 
-// }); 
-// }); 
-// }); 
-// });
-// });
-// });
-// }); 
-// }); 
-// }); 
-// }); 
-// });
-// });
-// });
-// });
-// });
-// });
-// });
-// }
 exports.getVatHourly = (req, res, next) => { 
     var dd = +req.params.dd;
     var mm = +req.params.mm;
@@ -3612,7 +3015,7 @@ exports.getTransactionzWithPages = async (req, res, next) => {
     console.log('Page: ' + page);
     console.log('Limit: ' + limit);
 
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id')
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -5185,7 +4588,7 @@ exports.getSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('Sector:' + sector);
 // sector = 'Insurance';
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id').where({'sector': sector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type').where({'sector': sector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6228,7 +5631,7 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('subSector:' + subsector);
 // sector = 'Insurance';
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id').where ({'sub_sector': subsector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type').where ({'sub_sector': subsector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6655,7 +6058,7 @@ exports.getTransactionsWith2Dates = (req, res, next) => {
 
     
         Vat.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
+            $gte: firstDate, $lte: lastDate }},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6705,7 +6108,7 @@ exports.getTransactionsWith2DatesandSector = (req, res, next) => {
 
     
         Vat.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
+            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6755,7 +6158,7 @@ exports.getTransactionsWith2DatesandSubSector = (req, res, next) => {
 
     
         Vat.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
+            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6860,7 +6263,60 @@ exports.getMonthlyPayment = async (req, res, next) => {
         integrator_id: 27
       });
     
-    console.log('DATA jhere::' + dataIn);
+    console.log('DATA here::' + dataIn);
+
+    setTimeout(()=> {
+        console.log('Response TaxPro::' + resp) ;
+        res.status(200).json({message: 'success', monthlyTotal: resp});     
+    }, 2000);
+    
+    var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
+
+        if (!resp) resp = 0;
+    // const count = await Vat.count();
+     
+
+    
+// })  .catch(err => {
+//     if (!err.statusCode) {
+//         err.statusCode = 500;
+//     }
+//     next(err); // pass the error to the next error handling function
+// })        
+
+}
+
+
+
+exports.getVatPaidByTin = async (req, res, next) => { 
+    console.log('finding payment...');
+    var mm = +req.params.mm;
+    var tin = req.params.tin;
+    var year = +req.params.year;
+
+    // Vat.aggregate([
+
+    //     {
+    //         $group: {
+
+    //             _id: "$_v",   
+    //             totalVat: { $sum: "$vat"},
+    //             totalTrxn: { $sum: "$transaction_amount"},
+    //             count: { $sum: 1 }
+    //         }
+        
+    //     }
+    //   ]
+    //   ).then (async dat => {
+
+    const dataIn = JSON.stringify({
+        tin: tin,
+        month: +req.params.mm,
+        year: +req.params.yyyy,
+        integrator_id: 27
+      });
+    
+    console.log('DATA here::' + dataIn);
 
     setTimeout(()=> {
         console.log('Response TaxPro::' + resp) ;

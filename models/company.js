@@ -79,14 +79,38 @@ const companySchema = new mongoose.Schema({
     taxpayer_address: {
         type:String
     },
+    taxpayer_type: {
+        type: String
+    },
+    taxpayer_rc: {
+        type: String
+    },
+    taxpayer_email: {
+        type: String
+    },
+    taxpayer_Phone: {
+        type: String
+    },
     tax_office_id: {
         type: String
     },
-    tax_office_address: {
+    tax_office_name: {
         type: String
     },
-    tin_verification: {
+    jtbtin:{
         type: String
+    },
+   region: {
+    type: String
+   },
+   state: {
+    type: String
+   },
+   trans_threshold:{
+    type: String
+   },
+    tin_verified: {
+        type: Number
     }
 
     

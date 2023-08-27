@@ -9,6 +9,7 @@ const operationzRoutes = require('./routes/operationz');
 const session = require('express-session');
 const Vat = require ('./models/vat')
 var http = require('http');
+var https = require('https');
 require("dotenv").config();
 
 const cron = require("node-cron"); // Cron jobs
@@ -198,19 +199,210 @@ function logonToTaxpro(options) {
         
       };
 
-    //  CHECK ACCESS TO TAXPRO
+ 
+function getRegion (states) {
+  var state = states.toUpperCase();
+  var region="";
+  switch (state) {
+    case 'BENUE': region = "North Central"; break;
+    case 'KOGI': region = "North Central"; break;
+    case 'KWARA': region = "North Central"; break;
+    case 'NASARAWA': region = "North Central"; break;
+    case 'NIGER': region = "North Central"; break;
+    case 'PLATEAU': region = "North Central"; break;
+    case 'FCT': region = "North Central"; break;
 
-cron.schedule("*/10 * * * * *", function () {
-    console.log("---------------------");
-    console.log("Checking login every 10 secs" + ':: Token:'); 
+    case 'ADAMAWA': region = "North East"; break;
+    case 'BAUCHI': region = "North East"; break;
+    case 'BORNO': region = "North East"; break;
+    case 'GOMBE': region = "North East"; break;
+    case 'TARABA': region = "North East"; break;
+    case 'YOBE': region = "North East"; break;
 
-    console.log('STATUS: '+ taxProloginStatus);
+    case 'JIGAWA': region = "North West"; break;
+    case 'KADUNA': region = "North West"; break;
+    case 'KANO': region = "North West"; break;
+    case 'KATSINA': region = "North West"; break;
+    case 'KEBBI': region = "North West"; break;
+    case 'SOKOTO': region = "North West"; break;
+    case 'ZAMFARA': region = "North West"; break;
 
-    if (!taxProloginStatus) {
-        logonToTaxpro(testLoginOptions);
-        
-    } else {console.log('TaxPro Login active!, Token:: ' + bearerToken );}
-});
+    case 'ABIA': region = "South East"; break;
+    case 'ANAMBRA': region = "South East"; break;
+    case 'EBONYI': region = "South East"; break;
+    case 'ENUGU': region = "South East"; break;
+    case 'IMO': region = "South East"; break;
+
+    case 'AKWA IBOM': region = "South South"; break;
+    case 'BAYELSA': region = "South South"; break;
+    case 'CROSS RIVER': region = "South South"; break;
+    case 'DELTA': region = "South South"; break;
+    case 'EDO': region = "South South"; break;
+    case 'RIVERS': region = "South South"; break;
+
+    case 'EKITI': region = "South West"; break;
+    case 'LAGOS': region = "South West"; break;
+    case 'OGUN': region = "South West"; break;
+    case 'ONDO': region = "South West"; break;
+    case 'OSUN': region = "South West"; break;
+    case 'OYO': region = "South West"; break;
+    
+    default: region = "Invalid State"
+
+  }
+  return region.toUpperCase();
+}
+
+function getThreshold(addy) {
+  let x =-1;
+  let thresh = '';
+  var addy = addy.toUpperCase();
+console.log('Addy Receu::' + addy);
+  if (addy.indexOf('MSTO')) {
+    thresh = 'MSTO'; 
+  }else {
+    
+    if (addy.indexOf('LTO')) {
+      thresh = 'LTO';
+    } else {
+      if (addy.indexOf('MTO')) {
+        thresh = 'MTO';
+      } else {
+        if (addy.indexOf('GBTO')) {
+          thresh = 'GBTO';
+        } else {
+          if (addy.indexOf('DMO')) {
+            thresh = 'DMO';
+            }
+        }
+      
+      }
+    }
+  }
+  
+  
+
+  // switch(addy) {
+
+  // }
+
+  console.log('Thrwsh Found!:: ' + thresh);
+return thresh;
+
+
+}
+
+function validateTinFromFIRS(tin) {
+  let data = '';
+  let state = '';
+  let region = '';
+  let threshold = '';
+
+  let dataOptions;
+  // console.log('TIN-API called! user: ' + username + ', pass: '+ passw + ', Tin: ' + tin);
+  const dataIn = JSON.stringify({
+      tin: tin  });
+      
+    console.log('DATAIN:: ' + dataIn);
+  // if (live) { // Data Options for Live Environment
+      dataOptions = {
+          hostname: process.env.TIN_VER_HOSTNAME,
+          path: '/apis/tinvalidation/' + tin,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + Buffer.from(process.env.TIN_VER_USERNAME + ':' + process.env.TIN_VER_PASS).toString('base64'),
+            // 'Content-Length': Buffer.byteLength(dataIn),
+      },
+      };
+   
+  
+  const request = https.request(dataOptions, (response) => {
+    response.setEncoding('utf8');
+
+    response.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    response.on('end', () => {
+      console.log('Returned Data:: ' + data);
+
+      if (data === 'error msg') {
+          // Ask the Login process to reinitiate login
+          taxProloginStatus = false;
+      } else {
+
+          var newData = JSON.parse(data);
+          console.log('TIN DATA:: ' + newData.Address);
+
+          // console.log('DATum Chunk:: ' + data);
+          // console.log('DATum:: ' + data.Address);
+
+          var myString = newData.Address;
+          myString = myString.split(" ");
+          state = myString.at(myString.length - 1);
+          console.log('STATE:: ' + state);
+
+          console.log('Offic Name::' + newData.TaxOfficeName);
+
+          // Get Region
+          region = getRegion(state);
+          threshold = getThreshold(newData.TaxOfficeName);
+          console.log("Threshold::" + threshold);
+
+          // Update record in as sent in the local db
+          // Company.findOne({tin: tin})
+          
+          //     .then(coyFound =>{
+          //         coyFound.region = region;
+          //         coyFound.state = state;
+          //         coyFound.trans_threshold = thresholds;
+          //         coyFound.jtbtin = newData.JTBTIN;
+          //         coyFound.taxpayer_name = newData.TaxPayerName;
+          //         coyFound.taxpayer_address = newData.Address;
+          //         coyFound.tax_office_id = newData.TaxOfficeId;
+          //         coyFound.tax_office_name = newData.TaxOfficeName;
+          //         coyFound.taxpayer_type = newData.TaxPayerType;
+          //         coyFound.taxpayer_rc = newData.RCNumber;
+          //         coyFound.taxpayer_email = newData.Email;
+          //         coyFound.taxpayer_phone = newData.Phone;
+
+
+          //         return coyFound.save();
+          //     })
+          //     .then(vat => {
+          //         console.log('Vat Data:: ' + vat);
+          //         companyData.splice(0,1); // Start from the first, remove 1 element
+          //         // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+
+          //     })
+          //     .catch(err => {
+          //         if (!err.statusCode) {
+          //             err.statusCode = 500;
+          //         }
+          //         // next(err); // pass the error to the next error handling function
+          //     });
+
+          // return trans_id;
+          // console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+      }
+      
+    });
+  });
+
+
+  request.on('error', (error) => {
+    console.error(error);
+    taxProloginStatus = false;
+  });
+
+  // Write data to the request body
+  request.write(dataIn);
+
+  request.end();
+
+  
+};
 
 
 function submitDataToTaxPro(dataInput, token, live) {
@@ -229,6 +421,7 @@ function submitDataToTaxPro(dataInput, token, live) {
       vat_rate: dataInput.vat_rate,
       vat_status: dataInput.vat_status,
       item_description: dataInput.item_description,
+      vendor_transaction_id: dataInput.item_id,
       integrator_id: 27
     });
       
@@ -240,7 +433,7 @@ function submitDataToTaxPro(dataInput, token, live) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token,
+            'Authorization': 'Bearer ' + token,
             'Content-Length': Buffer.byteLength(dataIn),
       },
       };
@@ -334,8 +527,22 @@ function mopupData() {
 
 }
 
-// Move data to TraxPro every 2 seconds
-cron.schedule("*/2 * * * * *", function() {
+   //  CHECK ACCESS TO TAXPRO
+
+   cron.schedule("*/10 * * * * *", function () {
+    console.log("---------------------");
+    console.log("Checking login every 10 secs" + ':: Token:'); 
+
+    console.log('STATUS: '+ taxProloginStatus);
+
+    if (!taxProloginStatus) {
+        logonToTaxpro(testLoginOptions);
+        
+    } else {console.log('TaxPro Login active!, Token:: ' + bearerToken );}
+});
+
+// Move data to TraxPro every 5 seconds
+cron.schedule("*/5 * * * * *", function() {
   if (companyData.length > 0) {
     // console.log('Coy Data: ' + companyData[0]);
     console.log('Coy ********: ' + companyData[0].company_name);
@@ -355,10 +562,22 @@ cron.schedule("*/2 * * * * *", function() {
 
  
   // Taxpro Offline handler: checks for data that could not be uploaded to Taxpro realtime and upload them
-cron.schedule("0 0 */16 * * *", function() { // 2:05 am
+cron.schedule("0 */59 */12 * * *", function() { // 2:05 am
   console.log('Daily Data Mop-up'); 
     mopupData();
 })
+
+// Call Tin Verification from here to validate new companies
+cron.schedule("*/10 * * * * *", function() { // 2:05 am
+  console.log('Calling TIN now....'); 
+  validateTinFromFIRS('12001705-0001');
+
+  // console.log('region:: ' + getRegion ('benue')); 
+})
+
+
+
+
 // job.start();
 
 
