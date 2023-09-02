@@ -107,6 +107,7 @@ exports.addCompany = (req, res, next) => {
             
             .then (record =>{
                 console.log('record::' + record);
+                tinVerificationData.push(company); //send data to the central waiting pool
                 res.status(201).json({
                     message: 'account created successfully',
                     data: {cac_id: cac_id,
@@ -127,7 +128,7 @@ exports.addCompany = (req, res, next) => {
                         company_code: company_code,
                         postal_address: postal_address,
                         corporate_website: corporate_website,
-                        tin_verification: "Unverified"
+                        tin_verified: 0
                                
                     }
                 })

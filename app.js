@@ -8,6 +8,7 @@ const profileRoutes = require('./routes/profile');
 const operationzRoutes = require('./routes/operationz');
 const session = require('express-session');
 const Vat = require ('./models/vat')
+const Company = require('./models/company');
 var http = require('http');
 var https = require('https');
 require("dotenv").config();
@@ -18,6 +19,8 @@ const { JsonWebTokenError } = require('jsonwebtoken');
 const app = express();
 global.taxProloginStatus = false; // CREATE A GLOBAL VARIABLE
 global.companyData = [];
+global.tinVerificationData = [];
+global.taxProPayLiteral = -1;
 let ext;
 // This is for image upload capabilities using multer middleware
 const fileStorage = multer.diskStorage({
@@ -257,21 +260,23 @@ function getThreshold(addy) {
   let x =-1;
   let thresh = '';
   var addy = addy.toUpperCase();
-console.log('Addy Receu::' + addy);
-  if (addy.indexOf('MSTO')) {
+  // var addy = 'MTO TELECOMS AND BROADCASTING';
+// console.log('Addy Receu::' + addy.indexOf('MTSO'));
+  if (addy.indexOf('MSTO') >= 0) {
     thresh = 'MSTO'; 
+    // thresh = 'BROAD'; 
   }else {
-    
-    if (addy.indexOf('LTO')) {
+    // thresh = 'NOT FOUND';}
+    if (addy.indexOf('LTO') >= 0) {
       thresh = 'LTO';
     } else {
-      if (addy.indexOf('MTO')) {
+      if (addy.indexOf('MTO') >= 0) {
         thresh = 'MTO';
       } else {
-        if (addy.indexOf('GBTO')) {
+        if (addy.indexOf('GBTO') >= 0) {
           thresh = 'GBTO';
         } else {
-          if (addy.indexOf('DMO')) {
+          if (addy.indexOf('DMO') >= 0) {
             thresh = 'DMO';
             }
         }
@@ -326,13 +331,18 @@ function validateTinFromFIRS(tin) {
 
     response.on('end', () => {
       console.log('Returned Data:: ' + data);
+      var newData = JSON.parse(data);
+      console.log('Returned Data message:: ' + newData.Message);
 
-      if (data === 'error msg') {
+      if (newData.Message === 'TIN Not Found') {
           // Ask the Login process to reinitiate login
-          taxProloginStatus = false;
+          // taxProloginStatus = false;
+          console.log('INVALID TIN');
+          tinVerificationData.splice(0,1); // Start from the first, remove 1 element
       } else {
 
           var newData = JSON.parse(data);
+          console.log('NEW DATA AFTER PSRSE::' + newData);
           console.log('TIN DATA:: ' + newData.Address);
 
           // console.log('DATum Chunk:: ' + data);
@@ -351,37 +361,37 @@ function validateTinFromFIRS(tin) {
           console.log("Threshold::" + threshold);
 
           // Update record in as sent in the local db
-          // Company.findOne({tin: tin})
+          Company.findOne({tin: tin})
           
-          //     .then(coyFound =>{
-          //         coyFound.region = region;
-          //         coyFound.state = state;
-          //         coyFound.trans_threshold = thresholds;
-          //         coyFound.jtbtin = newData.JTBTIN;
-          //         coyFound.taxpayer_name = newData.TaxPayerName;
-          //         coyFound.taxpayer_address = newData.Address;
-          //         coyFound.tax_office_id = newData.TaxOfficeId;
-          //         coyFound.tax_office_name = newData.TaxOfficeName;
-          //         coyFound.taxpayer_type = newData.TaxPayerType;
-          //         coyFound.taxpayer_rc = newData.RCNumber;
-          //         coyFound.taxpayer_email = newData.Email;
-          //         coyFound.taxpayer_phone = newData.Phone;
+              .then(coyFound =>{
+                  coyFound.region = region;
+                  coyFound.state = state;
+                  coyFound.trans_threshold = threshold;
+                  coyFound.jtbtin = newData.JTBTIN;
+                  coyFound.taxpayer_name = newData.TaxPayerName;
+                  coyFound.taxpayer_address = newData.Address;
+                  coyFound.tax_office_id = newData.TaxOfficeId;
+                  coyFound.tax_office_name = newData.TaxOfficeName;
+                  coyFound.taxpayer_type = newData.TaxPayerType;
+                  coyFound.taxpayer_rc = newData.RCNumber;
+                  coyFound.taxpayer_email = newData.Email;
+                  coyFound.taxpayer_phone = newData.Phone;
+                  coyFound.tin_verified = 1;
 
 
-          //         return coyFound.save();
-          //     })
-          //     .then(vat => {
-          //         console.log('Vat Data:: ' + vat);
-          //         companyData.splice(0,1); // Start from the first, remove 1 element
-          //         // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
-
-          //     })
-          //     .catch(err => {
-          //         if (!err.statusCode) {
-          //             err.statusCode = 500;
-          //         }
-          //         // next(err); // pass the error to the next error handling function
-          //     });
+                  return coyFound.save();
+              })
+              .then(tin => {
+                  console.log('Coy Data:: ' + tin);
+                  tinVerificationData.splice(0,1); // Start from the first, remove 1 element
+                  
+              })
+              .catch(err => {
+                  if (!err.statusCode) {
+                      err.statusCode = 500;
+                  }
+                  // next(err); // pass the error to the next error handling function
+              });
 
           // return trans_id;
           // console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
@@ -527,6 +537,17 @@ function mopupData() {
 
 }
 
+function mopupTinVERIFICATION() {
+  console.log('Gotto here...');
+  Company.find({tax_office_id: null})
+ .then(data => {
+  console.log('Length:: ' + data.length);
+  // console.log('Data:: ' + data[0]._id);
+  tinVerificationData.splice(0,0, ...data);
+
+ })
+}
+
    //  CHECK ACCESS TO TAXPRO
 
    cron.schedule("*/10 * * * * *", function () {
@@ -567,12 +588,25 @@ cron.schedule("0 */59 */12 * * *", function() { // 2:05 am
     mopupData();
 })
 
+  
 // Call Tin Verification from here to validate new companies
 cron.schedule("*/10 * * * * *", function() { // 2:05 am
-  console.log('Calling TIN now....'); 
-  validateTinFromFIRS('12001705-0001');
+  if (tinVerificationData.length > 0) {
+    console.log('TIN Data length:: ' + tinVerificationData.length);
 
-  // console.log('region:: ' + getRegion ('benue')); 
+    var tin = tinVerificationData[0].tin;
+  console.log('Calling TIN now....'); 
+  validateTinFromFIRS(tin);
+  }else {
+    console.log('No TIN verification Data found!');
+  }
+  
+})
+
+// TIN VERIFICATION Offline handler:
+cron.schedule("0 */23 */19 * * *", function() { // 2:05 am
+  console.log('Daily TIN Data Mop-up'); 
+    mopupTinVERIFICATION();
 })
 
 

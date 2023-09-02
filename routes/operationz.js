@@ -86,6 +86,18 @@ router.post('/addtransaction', [
                 .not()
                 .isEmpty()
                 .withMessage('Provider code is compulsory'),
+        
+        // body('counter_party_cscs')
+        //         .trim()
+        //         .not()
+        //         .isEmpty()
+        //         .withMessage('Counter party CSCS Number is compulsory'),
+        
+        // body('counter_party_name')
+        //         .trim()
+        //         .not()
+        //         .isEmpty()
+        //         .withMessage('Counter party Customer Name is compulsory'),
 
 ], operationzController.addTransaction);
 
@@ -107,6 +119,8 @@ router.get('/monthsummaryforallsectors/:yyyy', operationzController.getTrxMonthl
 router.get('/yearlyvatsegmentallsectors/:yyyy', operationzController.getVatSegmentYearlyAllSector); // Done for new
 
 router.get('/alltransactionwithpages/:pagenumber/limitdata/:limit', operationzController.getTransactionzWithPages); // Done for new
+
+router.get('/vatthisyearbyregion/:yyyy', operationzController.getVatYearlyByRegion); // Done for new
 
 //***** DASHBOARD OPERATIONS ENDS */
 
@@ -182,6 +196,16 @@ router.get('/transactionswith2datesandsubsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:
 
 // Dates Only
 router.get('/logswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getAuditTrailWith2Dates);
+
+
+// Dates and region
+router.get('/transactionswith2datesandregion/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/region/:region', operationzController.getTransactionsWith2DatesandRegion);
+
+// Dates and State
+router.get('/transactionswith2datesandstate/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/state/:state', operationzController.getTransactionsWith2DatesandState);
+
+// Dates and TIN
+router.get('/transactionswith2datesandtin/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/tin/:tin', operationzController.getTransactionsWith2DatesandTIN);
 // ******REPORTS ENDS *****
 
 // GET DATA FROM TAXPRO

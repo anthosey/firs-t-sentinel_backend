@@ -54,19 +54,24 @@ function getDataFromTaxPro(dataInput, token, queryPath, method, live) {
   
       response.on('end', () => {
         console.log('Returned Data:: ' + data);
+        console.log('Vat PAID:' + data.slice(10));
+        // const dat = JSON.parse(data);
 
-        if (data === 'error msg') {
-            // Ask the Login process to reinitiate login
-            taxProloginStatus = false;
-            return 'Err: 4000';
-        } else {
+        let vatReturned = data.slice(10);
+        taxProPayLiteral = +vatReturned;
+        // res (resp = {data: vatReturned });
+        // if (data === 'error msg') {
+        //     // Ask the Login process to reinitiate login
+        //     taxProloginStatus = false;
+        //     return 'Err: 4000';
+        // } else {
 
-            return 'Err: 5000';
-            // var newData = JSON.parse(data);
-            // return newData.vat_paid;
+        //     return 'Err: 5000';
+        //     // var newData = JSON.parse(data);
+        //     // return newData.vat_paid;
       
-            // console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
-        }
+        //     // console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+        // }
         
       });
     });
@@ -74,7 +79,7 @@ function getDataFromTaxPro(dataInput, token, queryPath, method, live) {
 
     request.on('error', (error) => {
       console.error(error);
-      taxProloginStatus = false;
+    //   taxProloginStatus = false;
     });
   
     // Write data to the request body
@@ -85,111 +90,111 @@ function getDataFromTaxPro(dataInput, token, queryPath, method, live) {
     
   };
 
-function submitDataToTaxPro(dataInput, token, live) {
-    let data = '';
-    let dataOptions;
-    const dataIn = JSON.stringify({
-        agent_tin: dataInput.agent_tin,
-        beneficiary_tin: dataInput.beneficiary_tin,
-        currency: dataInput.currency,
-        trans_date: dataInput.transaction_date,
-        // trans_date: '2023-08-10',
-        base_amount: dataInput.base_amount,
-        vat_calculated: dataInput.vat,
-        total_amount: dataInput.total_amount,
-        other_taxes: dataInput.other_taxes,
-        vat_rate: dataInput.vat_rate,
-        vat_status: dataInput.vat_status,
-        item_description: dataInput.item_description,
-        integrator_id: 27
-      });
+// function submitDataToTaxPro(dataInput, token, live) {
+//     let data = '';
+//     let dataOptions;
+//     const dataIn = JSON.stringify({
+//         agent_tin: dataInput.agent_tin,
+//         beneficiary_tin: dataInput.beneficiary_tin,
+//         currency: dataInput.currency,
+//         trans_date: dataInput.transaction_date,
+//         // trans_date: '2023-08-10',
+//         base_amount: dataInput.base_amount,
+//         vat_calculated: dataInput.vat,
+//         total_amount: dataInput.total_amount,
+//         other_taxes: dataInput.other_taxes,
+//         vat_rate: dataInput.vat_rate,
+//         vat_status: dataInput.vat_status,
+//         item_description: dataInput.item_description,
+//         integrator_id: 27
+//       });
         
-      console.log('DATAIN:: ' + dataIn);
-    if (live) { // Data Options for Live Environment
-        dataOptions = {
-            hostname: process.env.TAXPRO_HOSTNAME,
-            path: '/vat-aggr/transaction',
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': token,
-              'Content-Length': Buffer.byteLength(dataIn),
-        },
-        };
+//       console.log('DATAIN:: ' + dataIn);
+//     if (live) { // Data Options for Live Environment
+//         dataOptions = {
+//             hostname: process.env.TAXPRO_HOSTNAME,
+//             path: '/vat-aggr/transaction',
+//             method: 'POST',
+//             headers: {
+//               'Content-Type': 'application/json',
+//               'Authorization': token,
+//               'Content-Length': Buffer.byteLength(dataIn),
+//         },
+//         };
 
-    } else{ // Data Options for Test Environment
-     dataOptions = {
-        hostname: process.env.TAXPRO_HOSTNAME,
-        path: '/vat-aggr/transaction',
-        method: 'POST',
-        port: process.env.TAXPRO_PORT,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-          'Content-Length': Buffer.byteLength(dataIn),
-    },
-    };
+//     } else{ // Data Options for Test Environment
+//      dataOptions = {
+//         hostname: process.env.TAXPRO_HOSTNAME,
+//         path: '/vat-aggr/transaction',
+//         method: 'POST',
+//         port: process.env.TAXPRO_PORT,
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'Authorization': 'Bearer ' + token,
+//           'Content-Length': Buffer.byteLength(dataIn),
+//     },
+//     };
 
-    }
+//     }
      
     
-    const request = http.request(dataOptions, (response) => {
-      response.setEncoding('utf8');
+//     const request = http.request(dataOptions, (response) => {
+//       response.setEncoding('utf8');
   
-      response.on('data', (chunk) => {
-        data += chunk;
-      });
+//       response.on('data', (chunk) => {
+//         data += chunk;
+//       });
   
-      response.on('end', () => {
-        console.log('Returned Data:: ' + data);
+//       response.on('end', () => {
+//         console.log('Returned Data:: ' + data);
 
-        if (data === 'error msg') {
-            // Ask the Login process to reinitiate login
-            taxProloginStatus = false;
-        } else {
+//         if (data === 'error msg') {
+//             // Ask the Login process to reinitiate login
+//             taxProloginStatus = false;
+//         } else {
 
-            var newData = JSON.parse(data);
-            trans_id = newData.trans_id;
+//             var newData = JSON.parse(data);
+//             trans_id = newData.trans_id;
 
-            // Update record in as sent in the local db
+//             // Update record in as sent in the local db
             
-            // Vat.findOne({agent_tin: dataInput.agent_tin} && {trx_id: dataInput.trx_id})
-            //     .then(vatFound =>{
-            //         vatFound.taxpro_trans_id = trans_id;
-            //         vatFound.data_submitted = 1; 
-            //         return vatFound.save();
-            //     })
-            //     .then(vat => {
-            //         console.log('Vat Data:: ' + vat);
-            //         // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+//             // Vat.findOne({agent_tin: dataInput.agent_tin} && {trx_id: dataInput.trx_id})
+//             //     .then(vatFound =>{
+//             //         vatFound.taxpro_trans_id = trans_id;
+//             //         vatFound.data_submitted = 1; 
+//             //         return vatFound.save();
+//             //     })
+//             //     .then(vat => {
+//             //         console.log('Vat Data:: ' + vat);
+//             //         // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
 
-            //     })
-            //     .catch(err => {
-            //         if (!err.statusCode) {
-            //             err.statusCode = 500;
-            //         }
-            //         // next(err); // pass the error to the next error handling function
-            //     });
+//             //     })
+//             //     .catch(err => {
+//             //         if (!err.statusCode) {
+//             //             err.statusCode = 500;
+//             //         }
+//             //         // next(err); // pass the error to the next error handling function
+//             //     });
 
-            console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
-        }
+//             console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+//         }
         
-      });
-    });
+//       });
+//     });
 
 
-    request.on('error', (error) => {
-      console.error(error);
-      taxProloginStatus = false;
-    });
+//     request.on('error', (error) => {
+//       console.error(error);
+//       taxProloginStatus = false;
+//     });
   
-    // Write data to the request body
-    request.write(dataIn);
+//     // Write data to the request body
+//     request.write(dataIn);
   
-    request.end();
+//     request.end();
 
     
-  };
+//   };
   
 
 function generateToken(n) {
@@ -339,6 +344,8 @@ exports.addTransaction = async (req, res, next) => {
     const counter_party_code = req.body.counter_party_code;
     const remarks = req.body.remarks;
     const provider_code = req.body.provider_code;
+    const counter_party_beneficiary_name = req.body.counter_party_name;
+    const counter_party_cscs = req.body.counter_party_cscs;
     
     trx_value = (volume * price);
     
@@ -356,9 +363,6 @@ exports.addTransaction = async (req, res, next) => {
         {'company_code': company_code}
     );
 
-    // console.log('Main Coy: ' + main_company.company_name);
-    // console.log('Main Coy: ' + counterparty_company.company_name);
-    
     var counterparty_company = await Company.findOne(
         {'company_code': counter_party_code}
     );
@@ -375,6 +379,11 @@ exports.addTransaction = async (req, res, next) => {
         {'company_code': 'NGX'}
     );
 
+    // console.log('COY1:: ' + main_company.company_name + ', region: ' + main_company.region + ', State: ' + main_company.state);
+    // console.log('COY2:: ' + counterparty_company.company_name + ', region: ' + counterparty_company.region + ', State: ' + counterparty_company.state);
+    // console.log('SEC:: ' + sec_company.company_name + ', region: ' + sec_company.region + ', State: ' + sec_company.state);
+    // console.log('COY1:: ' + ngx_company.company_name + ', region: ' + ngx_company.region + ', State: ' + ngx_company.state);
+    // console.log('COY1:: ' + cscs_company.company_name + ', region: ' + cscs_company.region + ', State: ' + cscs_company.state);
     
 
 
@@ -399,26 +408,20 @@ exports.addTransaction = async (req, res, next) => {
             stock_symbol: stock_symbol,
             price: price,
             volume: volume,
-            counter_party_code: counter_party_code,
-            counter_party_name: counter_party_name,
+            counter_party_company_code: counter_party_code,
+            counter_party_company_name: counterparty_company.company_name,
             provider_code: provider_code,
             trx_value: trx_value,
-            remarks: remarks
+            remarks: remarks,
+            counter_party_name: counter_party_beneficiary_name,
+            counter_party_cscs_number: counter_party_cscs
+
                         
             });
             
             transaction.save()
              
             .then(async dat => {
-                // Check login to TaxPro
-                // if (!bearerToken) {
-                //     console.log('Got here');
-                //     makePost2(loginOptions);
-                // }
-
-                // DO VAT DEDUCTION
-
-                // transaction initiator
 
                 var totalAmount = volume * price;
                 var lowerCommission = 0;
@@ -483,7 +486,11 @@ exports.addTransaction = async (req, res, next) => {
                     vat_rate: 7.5,
                     vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                     item_id: trxId + '1',
-                    earning_type: 'Commission'
+                    earning_type: 'Commission',
+                    region: main_company.region,
+                    state: main_company.state,
+                    trans_threshold: main_company.trans_threshold
+                    
             
                 });
 
@@ -554,7 +561,10 @@ exports.addTransaction = async (req, res, next) => {
                         vat_rate: 7.5,
                         vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                         item_id: trxId + '2',
-                        earning_type: 'Commission'
+                        earning_type: 'Commission',
+                        region: counterparty_company.region,
+                        state: counterparty_company.state,
+                        trans_threshold: counterparty_company.trans_threshold
                     });
     
                     await counterpartyCompany.save();
@@ -607,7 +617,10 @@ exports.addTransaction = async (req, res, next) => {
                             vat_rate: 7.5,
                             vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                             item_id: trxId + '3',
-                            earning_type: 'Fee'
+                            earning_type: 'Fee',
+                            region: sec_company.region,
+                            state: sec_company.state,
+                            trans_threshold: sec_company.trans_threshold
                         });
         
                         await sec.save();      
@@ -649,7 +662,10 @@ exports.addTransaction = async (req, res, next) => {
                         vat_rate: 7.5,
                         vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                         item_id: trxId + '4',
-                        earning_type: 'Fee'
+                        earning_type: 'Fee',
+                        region: ngx_company.region,
+                        state: ngx_company.state,
+                        trans_threshold: ngx_company.trans_threshold
                     });
     
                     await ngx.save();    
@@ -700,7 +716,10 @@ exports.addTransaction = async (req, res, next) => {
                     vat_rate: 7.5,
                     vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
                     item_id: trxId + '5',
-                    earning_type: 'Fee'
+                    earning_type: 'Fee',
+                    region: cscs_company.region,
+                    state: cscs_company.state,
+                    trans_threshold: cscs_company.trans_threshold
                 });
 
                 await cscs.save();            
@@ -1351,91 +1370,6 @@ exports.getVatHourly = (req, res, next) => {
 });
 }
 
-// exports.getVatToday = (req, res, next) => { 
-//     var dd = +req.params.dd;
-//     var mm = +req.params.mm;
-//     var yyyy = +req.params.yyyy;
-
-//     console.log('dd: ' + dd + ' mm: ' + mm + ', yyyy: ' + yyyy);
-
-//     if (!dd || !mm || !yyyy) {
-//         const today = new Date();
-//         const yyyy = today.getFullYear();
-//         const mm = today.getMonth();
-//         const dd = today.getDate();
-//     }
-    
-//     console.log('After dd: ' + dd + ' mm: ' + mm + ', yyyy: ' + yyyy);
-
-//     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
-//     lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
-//     firstDate.setHours(00, 00);
-//     lastDate.setHours(23, 59);
-//     // console.log('Sector:' + sector);
-
-//     console.log('firstDate:' + firstDate);
-//     console.log('lastDate: '+ lastDate);
-    
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (async dat => {
-
-//         // Check Previous day's  transaction
-//         firstDate.setDate(firstDate.getDate() - 1);
-//         lastDate.setDate(lastDate.getDate() - 1);
-//         firstDate.setHours(00, 00);
-//         lastDate.setHours(23, 59);
-
-//         console.log('sDate :' + firstDate);
-//         console.log('eDate :' + lastDate);
-
-//         const previous = await Transactionz.aggregate([
-//             {
-//                 $match: {'createdAt': {
-//                     $gte: firstDate,
-//                     $lte: lastDate}}
-//             },
-//             {
-//                 $group: {
-    
-//                     _id: "$_v",
-//                     totalSum: { $sum: "$vat"},
-//                     count: { $sum: 1 }
-//                 }
-//             }
-//           ])
-       
-//           var percentChange = 0;
-//         if (dat[0] && previous[0]) {
-//             percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
-//             percentChange = percentChange.toFixed(1);
-//         }
-
-//         res.status(200).json({message: 'success', today: dat, yesterday: previous, percentChange: percentChange});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// }
-
 
 exports.getVatToday = (req, res, next) => { 
     var dd = +req.params.dd;
@@ -1523,77 +1457,6 @@ exports.getVatToday = (req, res, next) => {
 }
 
 
-// exports.getVatMonthly = (req, res, next) => { 
-//     var mm = +req.params.mm;
-//     var yyyy = +req.params.yyyy;
-    
-//     if (!mm || !yyyy) {
-//         const today = new Date();
-//         const yyyy = today.getFullYear();
-//         const mm = today.getMonth();
-//     }
-    
-//     var firstDayOfMonth = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
-//     var lastDayOfMonth = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth() + 1, 0);
-
-//     lastDayOfMonth.setHours(23,59);
-//     var firstDate = firstDayOfMonth;
-//     var lastDate = lastDayOfMonth;
-    
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (async dat => {
-//         firstDate.setMonth(firstDate.getMonth() - 1);
-//         lastDate.setMonth(lastDate.getMonth() - 1);
-//         var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
-//         lastDate2.setHours(23,59);
-
-//         console.log('sDate :' + firstDate);
-//         console.log('eDate :' + lastDate2);
-        
-//         const previous = await Transactionz.aggregate([
-//             {
-//                 $match: {'createdAt': {
-//                     $gte: firstDate,
-//                     $lte: lastDate2}}
-//             },
-//             {
-//                 $group: {
-    
-//                     _id: "$_v",
-//                     totalSum: { $sum: "$vat"},
-//                     count: { $sum: 1 }
-//                 }
-//             }
-//           ])
-//           var percentChange = 0;
-//           if (dat[0] && previous[0]) {
-//               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
-//               percentChange = percentChange.toFixed(1);
-//           }        
-          
-//         res.status(200).json({message: 'success', thisMonth: dat, lastMonth: previous, percentChange: percentChange});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// }
 
 exports.getVatMonthly = (req, res, next) => { 
     var mm = +req.params.mm;
@@ -1802,85 +1665,6 @@ console.log('Month in Fnct: ' + mm);
       }
 }
 
-// exports.getVatQuarterly = (req, res, next) => { 
-
-//     var mm = +req.params.mm;
-//     var yyyy = +req.params.yyyy;
-//     console.log('mm: ' + mm + ', yyyy: ' + yyyy );
-    
-//     if (!mm || !yyyy) {
-//         const today = new Date();
-//         const yyyy = today.getFullYear();
-//         const mm = today.getMonth();
-//     }
-
-//     let qtrObject = getQuarter(mm, yyyy);
-    
-//         var firstDate = qtrObject.firstDate;
-//         var lastDate = qtrObject.lastDate;
-//         console.log(' qtr:' + qtrObject.qtr);
-
-//     console.log('firstDate:' + firstDate);
-//     console.log('lastDate: '+ lastDate);
-    
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (async dat => {
-
-//         let lastQtrObject = getLastQuarter(mm, yyyy);
-//         let qtrObject2 = getQuarter(lastQtrObject.mm, lastQtrObject.yyyy);
-//         var firstDate2 = qtrObject2.firstDate;
-//         var lastDate2 = qtrObject2.lastDate;
-//         console.log('Last qtr:' + qtrObject2.qtr);
-
-//         console.log('sDate :' + firstDate2);
-//         console.log('eDate :' + lastDate2);
-        
-//         const previous = await Transactionz.aggregate([
-//             {
-//                 $match: {'createdAt': {
-//                     $gte: firstDate2,
-//                     $lte: lastDate2}}
-//             },
-//             {
-//                 $group: {
-    
-//                     _id: "$_v",
-//                     totalSum: { $sum: "$vat"},
-//                     count: { $sum: 1 }
-//                 }
-//             }
-//           ])
-        
-//           var percentChange = 0;
-//           if (dat[0] && previous[0]) {
-//               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
-//               percentChange = percentChange.toFixed(1);
-//           }
-        
-//         res.status(200).json({message: 'success', thisQuarter: dat, lastQuarter: previous, percentChange: percentChange});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// }
-
 exports.getVatQuarterly = (req, res, next) => { 
 
     var mm = +req.params.mm;
@@ -1959,89 +1743,6 @@ exports.getVatQuarterly = (req, res, next) => {
     })        
        
 }
-
-
-// exports.getVatYearly = (req, res, next) => { 
-//     // var sector = req.params.sector;
-//     var yyyy = +req.params.yyyy;
-
-//     if (!yyyy) {
-//         const today = new Date();
-//         const yyyy = today.getFullYear();
-//         const mm = today.getMonth();
-//         const dd = today.getDate();
-//     }
-    
-    
-//     var firstDayOfTheYear = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
-//     var tempDate = new Date(Date.UTC(yyyy, 11, 31, 00, 00, 00));
-//     var lastDayOfTheYear = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
-//     lastDayOfTheYear.setHours(23,59);
-
-  
-//     var firstDate = firstDayOfTheYear;
-//     var lastDate = lastDayOfTheYear;
-
-//     console.log('firstDate:' + firstDayOfTheYear);
-//     console.log('lastDate: '+ lastDayOfTheYear);
-    
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$_v",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (async dat => {
-
-//         firstDate.setFullYear(firstDate.getFullYear() - 1);
-//         lastDate.setFullYear(lastDate.getFullYear() - 1);
-//         var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
-        
-//         lastDate2.setHours(23,59);
-
-//         console.log('sDate :' + firstDate);
-//         console.log('eDate :' + lastDate2);
-        
-//         const previous = await Transactionz.aggregate([
-//             {
-//                 $match: {'createdAt': {
-//                     $gte: firstDate,
-//                     $lte: lastDate2}}
-//             },
-//             {
-//                 $group: {
-    
-//                     _id: "$_v",
-//                     totalSum: { $sum: "$vat"},
-//                     count: { $sum: 1 }
-//                 }
-//             }
-//           ])
-        
-//           var percentChange = 0;
-//           if (dat[0] && previous[0]) {
-//               percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
-//               percentChange = percentChange.toFixed(1);
-//           }
-        
-//         res.status(200).json({message: 'success', thisYear: dat, lastYear: previous, percentChange: percentChange});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// }
 
 
 exports.getVatYearly = (req, res, next) => { 
@@ -2126,72 +1827,6 @@ exports.getVatYearly = (req, res, next) => {
        
 }
 
-
-// exports.getTrxYearlyAllSectors = (req, res, next) => { 
-// var yyyy = +req.params.yyyy;
-
-// if (!yyyy) {
-//     const today = new Date();
-//     const yyyy = today.getFullYear();
-// }
-    
-//     console.log('Log year: ' + yyyy);
-//     firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
-//     testDate = new Date(Date.UTC(yyyy, 11, 1, 00, 00, 00));
-//     lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
-
-//     console.log('FirstD:' + firstDate);
-//     console.log('SecndD:' + lastDate);
-
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$sector",
-//                 totalSum: { $sum: "$trx_value"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (dat => {
-
-//         // calculate percentage
-//         if (dat) {
-
-//             for (i = 0; i < dat.length; i++){
-//                 sumValue += dat[i].totalSum;
-//             }
-
-//             for (i = 0; i < dat.length; i++) {
-//                 var ans = (dat[i].totalSum * 100)/sumValue;
-//                 var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
-//                 dadas = dadas + tempview;
-//             }
-
-//             dadas = dadas.substring(0, dadas.length - 1);
-//             dadas = "{" + dadas + "}" ;
-//             console.log(dadas);
-//             var perc = JSON.parse(dadas);
-
-//         }
-
-//         res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// }
-    
 
 exports.getTrxYearlyAllSectors = (req, res, next) => { 
     var yyyy = +req.params.yyyy;
@@ -2335,20 +1970,6 @@ function recursionGetByMonth(mm, yyyy) {
     
     
 }
-
-// exports.getTrxMonthlyAllSectors_old = (req, res, next) => { 
-//   var mm = +req.params.mm;
-//     var yyyy = +req.params.yyyy;
-
-//     // Get current month
-//     const today = new Date();
-   
-//      recursionGetByMonth(mm, yyyy);
-//      console.log('X:' + months[0]);
-//          res.status(200).json({message: 'success', data: months});  
-     
-       
-// }
 
 
 exports.getTrxMonthlyAllSectors = (req, res, next) => { 
@@ -2796,110 +2417,6 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
 }) //End of October
 }
 
-// exports.getVatSegmentYearlyAllSector = (req, res, next) => { 
-  
-//     var yyyy = +req.params.yyyy;
-
-//     if (!yyyy) {
-//         const today = new Date();
-//         const yyyy = today.getFullYear();
-//     }
-    
-
-//     // var sector = req.params.sector;
-//     firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
-//     testDate = new Date(Date.UTC(yyyy, 11, 1, 00, 00, 00));
-//     lastDate = new Date(testDate.getFullYear(), testDate.getMonth() + 1, 0);
-
-//     console.log('firstDate :' + firstDate);
-//     console.log('lastDate :' + lastDate);
-
-//     lastDate.setHours(23, 59);
-//      var sumValue = 0;
-//      var dadas = '';
-//       Transactionz.aggregate([
-//         {
-//             $match: {'createdAt': {
-//                 $gte: firstDate,
-//                 $lte: lastDate}}
-//         },
-//         {
-//             $group: {
-
-//                 _id: "$sector",
-//                 totalSum: { $sum: "$vat"},
-//                 count: { $sum: 1 }
-//             }
-//         }
-//       ]
-//       ).then (async dat => {
-
-//          // Check Previous Year's  transactions
-//          firstDate.setFullYear(firstDate.getFullYear() - 1);
-//          lastDate.setFullYear(lastDate.getFullYear() - 1);
-//          var lastDate2 = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 0);
-         
-//          lastDate2.setHours(23,59);
- 
-//          console.log('sDate :' + firstDate);
-//          console.log('eDate :' + lastDate2);
-         
-//          const previous = await Transactionz.aggregate([
-//              {
-//                  $match: {'createdAt': {
-//                      $gte: firstDate,
-//                      $lte: lastDate2}}
-//              },
-//              {
-//                  $group: {
-     
-//                      _id: "$sector",
-//                      totalSum: { $sum: "$vat"},
-//                      count: { $sum: 1 }
-//                  }
-//              }
-//            ])
-         
-     
-//            var percentChange = 0;
-//            if (previous[0]) percentChange = ((dat[0].totalSum - previous[0].totalSum) / previous[0].totalSum) * 100;
-
-//            for (i = 0; i < dat.length; i++) {
-//             for (let k = 0; k < previous.length; k++) {
-
-//                 if (dat[i] && previous[k]) {
-                                     
-//                     if (dat[i]._id === previous[k]._id) {
-//                         console.log('dat: ' + i + ':' + dat[i]._id + ', previous: ' + previous[k]._id);
-
-//                         var ans = ((dat[i].totalSum - previous[k].totalSum) / previous[k].totalSum) * 100;
-//                         var tempview = "\"" + dat[i]._id + "\"" +":" + ans.toFixed(2) + ',';
-//                             dadas = dadas + tempview;
-//                     }
-    
-                    
-//                 }
-//             }
-            
-//         }
-    
-//                 dadas = dadas.substring(0, dadas.length - 1);
-//                 dadas = "{" + dadas + "}" ;
-//                 console.log(dadas);
-//                 var perc = JSON.parse(dadas);
-            
-         
-//          res.status(200).json({message: 'success', thisYear: dat, lastYear: previous, percentChange: perc});        
-
-//         // res.status(200).json({message: 'success', data: dat, marketCap: sumValue, percent: perc});        
-//       })  .catch(err => {
-//         if (!err.statusCode) {
-//             err.statusCode = 500;
-//         }
-//         next(err); // pass the error to the next error handling function
-//     })        
-       
-// }
 
 exports.getVatSegmentYearlyAllSector = (req, res, next) => { 
   
@@ -3039,6 +2556,319 @@ exports.getTransactionzWithPages = async (req, res, next) => {
             next(err); // pass the error to the next error handling function
         })    
              
+}
+
+
+exports.getVatYearlyByRegion = (req, res, next) => { 
+    // var sector = req.params.sector;
+    var yyyy = +req.params.yyyy;
+
+    if (!yyyy) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = today.getMonth();
+        const dd = today.getDate();
+    }
+    
+    
+    var firstDayOfTheYear = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+    var tempDate = new Date(Date.UTC(yyyy, 11, 31, 00, 00, 00));
+    var lastDayOfTheYear = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
+    lastDayOfTheYear.setHours(23,59);
+
+    const firstDate = firstDayOfTheYear;
+    const lastDate = lastDayOfTheYear;
+
+
+    var firstDayOfTheYear2 = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+    var tempDate2 = new Date(Date.UTC(yyyy, 11, 31, 00, 00, 00));
+    var lastDayOfTheYear2 = new Date(tempDate2.getFullYear(), tempDate2.getMonth() + 1, 0);
+    lastDayOfTheYear2.setHours(23,59);
+
+
+    
+    firstDayOfTheYear2.setFullYear(firstDayOfTheYear2.getFullYear() - 1);
+    const firstDate2 = firstDayOfTheYear2;
+    lastDayOfTheYear2.setFullYear(lastDayOfTheYear2.getFullYear() - 1);
+    var lastDate2 = new Date(lastDayOfTheYear2.getFullYear(), lastDayOfTheYear2.getMonth() + 1, 0);
+        
+    lastDate2.setHours(23,59);
+    
+
+
+    console.log('firstDate:' + firstDate);
+    console.log('lastDate: '+ lastDate);
+
+    console.log('firstDate2:' + firstDate2);
+    console.log('lastDate2: '+ lastDate2);
+
+    
+      Vat.aggregate([
+       {
+        $match: {'createdAt': {
+            $gte: firstDate,
+            $lte: lastDate}, 'region': 'NORTH WEST'}
+    },
+    {
+        $group: {
+
+            _id: "$_v",
+            totalSum: { $sum: "$vat"},
+            count: { $sum: 1 }
+        }
+    }
+      ]).then (async NW => {
+
+        
+        const previousNW = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate2,
+                    $lte: lastDate2}, 'region': "NORTH WEST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeNW = 0;
+          if (NW[0] && previousNW[0]) {
+              percentChangeNW = ((dat[0].totalSum - previousNW[0].totalSum) / previousNW[0].totalSum) * 100;
+              percentChangeNW = percentChangeNW.toFixed(1);
+          }
+        // End of North West
+
+
+        // PROCESS FOR NC 
+        const NC  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'region': "NORTH CENTRAL"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!NC[0]) NC[0] = 0;
+
+        
+        const previousNC = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'region': "NORTH CENTRAL"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeNC = 0;
+          if (NC[0] && previousNC[0]) {
+              percentChangeNC = ((NC[0].totalSum - previousNC[0].totalSum) / previousNC[0].totalSum) * 100;
+              percentChangeNC = percentChangeNC.toFixed(1);
+          }
+        // End of North Central
+
+
+        // PROCESS FOR NE 
+        const NE  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'region': "NORTH EAST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!NE[0]) NE[0] = 0;
+      
+        const previousNE = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'region': "NORTH EAST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeNE = 0;
+          if (NE[0] && previousNE[0]) {
+              percentChangeNE = ((NE[0].totalSum - previousNE[0].totalSum) / previousNE[0].totalSum) * 100;
+              percentChangeNE = percentChangeNE.toFixed(1);
+          }
+        // End of North East
+
+
+        // PROCESS FOR SW 
+        const SW  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'region': "SOUTH WEST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!SW[0]) SW[0] = 0;
+      
+        const previousSW = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'region': "SOUTH WEST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeSW = 0;
+          if (SW[0] && previousSW[0]) {
+              percentChangeSW = ((SW[0].totalSum - previousSW[0].totalSum) / previousSW[0].totalSum) * 100;
+              percentChangeSW = percentChangeSW.toFixed(1);
+          }
+        // End of South West
+
+        // PROCESS FOR SE 
+        const SE  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'region': "SOUTH EAST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!SE[0]) SE[0] = 0;
+      
+        const previousSE = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'region': "SOUTH EAST"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeSE = 0;
+          if (SE[0] && previousSE[0]) {
+              percentChangeSE = ((SE[0].totalSum - previousSE[0].totalSum) / previousSE[0].totalSum) * 100;
+              percentChangeSE = percentChangeSE.toFixed(1);
+          }
+        // End of South East
+
+        // PROCESS FOR SS 
+        const SS  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'region': "SOUTH SOUTH"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!SS[0]) SS[0] = 0;
+      
+        const previousSS = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'region': "SOUTH SOUTH"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeSS = 0;
+          if (SS[0] && previousSS[0]) {
+              percentChangeSS = ((SS[0].totalSum - previousSS[0].totalSum) / previousSS[0].totalSum) * 100;
+              percentChangeSS = percentChangeSS.toFixed(1);
+          }
+        // End of South East
+
+        let NorthWest = {thisYear: NW, lastYear: previousNW, percentChange: percentChangeNW};
+        let NorthCentral = {thisYear: NC, lastYear: previousNC, percentChange: percentChangeNC};
+        let NorthEast = {thisYear: NE, lastYear: previousNE, percentChange: percentChangeNE};
+        let SouthWest = {thisYear: SW, lastYear: previousSW, percentChange: percentChangeSW};
+        let SouthEast = {thisYear: SE, lastYear: previousSE, percentChange: percentChangeSE};
+        let SouthSouth = {thisYear: SS, lastYear: previousSS, percentChange: percentChangeSS};
+
+
+        // res.status(200).json({message: 'success', thisYear: NW, lastYear: previousNW, percentChangeNW: percentChangeNW});        
+        res.status(200).json({message: 'success', NorthWest: NorthWest, NorthCentral: NorthCentral, NorthEast: NorthEast, SouthWest: SouthWest, SouthEast: SouthEast, SouthSouth: SouthSouth});        
+      })  .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })        
+       
 }
 
 // ***** DASHBOARD  ENDS ********
@@ -6185,6 +6015,157 @@ exports.getTransactionsWith2DatesandSubSector = (req, res, next) => {
   
 }
 
+
+exports.getTransactionsWith2DatesandRegion = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    
+    var region = req.params.region;
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'region': region},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Vat.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }, 'region': region});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+exports.getTransactionsWith2DatesandState = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    
+    var state = req.params.state;
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'state': state},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Vat.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }, 'state': state});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
+
+exports.getTransactionsWith2DatesandTIN = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    
+    var tin = req.params.tin;
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }, 'tin': tin},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Vat.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }, 'tin': tin});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
 exports.getAuditTrailWith2Dates = (req, res, next) => { 
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
@@ -6241,22 +6222,6 @@ exports.getAuditTrailWith2Dates = (req, res, next) => {
 exports.getMonthlyPayment = async (req, res, next) => { 
     console.log('finding payment...');
     var total = +req.params.mm;
-
-    // Vat.aggregate([
-
-    //     {
-    //         $group: {
-
-    //             _id: "$_v",   
-    //             totalVat: { $sum: "$vat"},
-    //             totalTrxn: { $sum: "$transaction_amount"},
-    //             count: { $sum: 1 }
-    //         }
-        
-    //     }
-    //   ]
-    //   ).then (async dat => {
-
     const dataIn = JSON.stringify({
         month: +req.params.mm,
         year: +req.params.yyyy,
@@ -6264,25 +6229,14 @@ exports.getMonthlyPayment = async (req, res, next) => {
       });
     
     console.log('DATA here::' + dataIn);
-
+ 
     setTimeout(()=> {
-        console.log('Response TaxPro::' + resp) ;
-        res.status(200).json({message: 'success', monthlyTotal: resp});     
+        console.log('Response TaxPro::' + taxProPayLiteral) ; 
+        res.status(200).json({message: 'success', monthlyTotal: taxProPayLiteral});      
     }, 2000);
     
     var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
 
-        if (!resp) resp = 0;
-    // const count = await Vat.count();
-     
-
-    
-// })  .catch(err => {
-//     if (!err.statusCode) {
-//         err.statusCode = 500;
-//     }
-//     next(err); // pass the error to the next error handling function
-// })        
 
 }
 
@@ -6294,22 +6248,7 @@ exports.getVatPaidByTin = async (req, res, next) => {
     var tin = req.params.tin;
     var year = +req.params.year;
 
-    // Vat.aggregate([
-
-    //     {
-    //         $group: {
-
-    //             _id: "$_v",   
-    //             totalVat: { $sum: "$vat"},
-    //             totalTrxn: { $sum: "$transaction_amount"},
-    //             count: { $sum: 1 }
-    //         }
-        
-    //     }
-    //   ]
-    //   ).then (async dat => {
-
-    const dataIn = JSON.stringify({
+     const dataIn = JSON.stringify({
         tin: tin,
         month: +req.params.mm,
         year: +req.params.yyyy,
@@ -6319,22 +6258,12 @@ exports.getVatPaidByTin = async (req, res, next) => {
     console.log('DATA here::' + dataIn);
 
     setTimeout(()=> {
-        console.log('Response TaxPro::' + resp) ;
-        res.status(200).json({message: 'success', monthlyTotal: resp});     
-    }, 2000);
+        console.log('resp: ' + resp);
+        console.log('Response TaxPro1::' + taxProPayLiteral) ;
+        res.status(200).json({'msg': 'success1', 'monthlyTotal': taxProPayLiteral});     
+    }, 1000);
     
     var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
 
-        if (!resp) resp = 0;
-    // const count = await Vat.count();
-     
-
     
-// })  .catch(err => {
-//     if (!err.statusCode) {
-//         err.statusCode = 500;
-//     }
-//     next(err); // pass the error to the next error handling function
-// })        
-
 }

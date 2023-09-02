@@ -111,6 +111,15 @@ const vatSchema = new mongoose.Schema({
     earning_type: {
         type: String
     },
+    region: {
+        type: String
+    },
+    state: {
+        type: String
+    },
+    trans_threshold: {
+        type: String
+    }
 
 }, { timestamps: true }
 );

@@ -82,14 +82,20 @@ const transactionzSchema = new mongoose.Schema({
         type: Number
     },
 
-    counter_party_code: {
+    counter_party_company_code: {
         type: String
     },
-    counter_party_name: {
+    counter_party_company_name: {
         type: String
     },
 
     provider_code: {
+        type: String
+    },
+    counter_party_cscs_number: {
+        type: String
+    },
+    counter_party_name: {
         type: String
     }
     
