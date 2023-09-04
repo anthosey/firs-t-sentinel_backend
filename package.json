@@ -1,7 +1,7 @@
 {
   "name": "firs-t-sentinel",
   "version": "1.0.0",
-  "description": "FinTech solution",
+  "description": "VAT Gateway solution",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

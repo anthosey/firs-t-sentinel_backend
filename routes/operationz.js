@@ -8,7 +8,7 @@ const Transactionz = require('../models/transactionz');
 
 
 
-// const isAuth = require('../middleware/isAuth');
+const isAuth = require('../middleware/isAuth');
 
 // router.get('/drivers', isAuth, userController.getDrivers);
 router.get('/transactions', operationzController.getTransactionz);
@@ -121,6 +121,8 @@ router.get('/yearlyvatsegmentallsectors/:yyyy', operationzController.getVatSegme
 router.get('/alltransactionwithpages/:pagenumber/limitdata/:limit', operationzController.getTransactionzWithPages); // Done for new
 
 router.get('/vatthisyearbyregion/:yyyy', operationzController.getVatYearlyByRegion); // Done for new
+
+router.get('/vatthisyearbythreshold/:yyyy', operationzController.getVatYearlyByThreshold); // Done for new
 
 //***** DASHBOARD OPERATIONS ENDS */
 

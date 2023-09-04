@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Company = require('../models/company');
+const User = require('../models/user');
 const Individual = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 
@@ -39,14 +40,29 @@ exports.getOneCompany = (req, res, next) => {
     
 }
 
+function generateToken(n) {
+  
+    var add = 1, max = 12 - add;   // 12 is the min safe number Math.random() can generate without it starting to pad the end with zeros.   
+    console.log(n);
+    // if ( n > max ) {
+    //         return generate(max) + generate(n - max);
+    // }
+    
+    max        = Math.pow(10, n+add);
+    var min    = max/10; // Math.pow(10, n) basically
+    var number = Math.floor( Math.random() * (max - min + 1) ) + min;
+
+    return ("" + number).substring(add); 
+}
+
 
 exports.addCompany = (req, res, next) => {
-    
+    console.log('We GOT hia::');
     const errors = validationResult(req);
     var msg;
     var token;
     if (!errors.isEmpty()) {
-        const error = new Error('Validation failed!');
+        const error = new Error('Validation failed! this error');
         error.statusCode = 422;
         error.data = errors.array();
         throw error;
@@ -106,6 +122,51 @@ exports.addCompany = (req, res, next) => {
             company.save()
             
             .then (record =>{
+
+                // Create login for the company
+                const token = generateToken(6);
+                const firstname = company_name.split(' ')[0];
+                const lastname = company_name.split(' ')[1];
+                // const email = req.body.email;
+                // const mobile = req.body.mobile;
+                const password = 'Password123';
+                const usertype = 'company';
+                const status = 'verified';
+                // const rating = 5;
+
+                var hashedPasskeys;
+
+                // Create secure hash password with bcrypt
+
+                bcrypt.hash(password, 12)
+                .then(hashPassword => {
+                    hashedPasskeys = hashPassword;
+                    bcrypt.hash(token, 12)
+                    .then (async hashedToken => {
+
+                const user = new User({
+                    firstname: firstname,
+                    lastname: lastname,
+                    email: email,
+                    mobile: mobile,
+                    password: hashedPasskeys,
+                    usertype: usertype,
+                    status: status,
+                    // wallet: wallet,
+                    accountActivationToken: hashedToken
+                
+                });
+                await user.save();
+                
+            });
+        });
+        
+       
+                // Create a signup profile for the company
+
+
+
+
                 console.log('record::' + record);
                 tinVerificationData.push(company); //send data to the central waiting pool
                 res.status(201).json({
@@ -132,8 +193,9 @@ exports.addCompany = (req, res, next) => {
                                
                     }
                 })
-        
+               
             })
+            
             .catch(err => {
                 if (!err.statusCode) {
                     err.statusCode = 500;

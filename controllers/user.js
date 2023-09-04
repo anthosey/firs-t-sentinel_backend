@@ -408,12 +408,13 @@ exports.userLogin = (req, res, next) => {
                     email: loadedUser.email,
                     userId: loadedUser._id.toString()
                 }, 
-                'tonetechnologiesfirssentinel@nthos.p@ss',
+                process.env.KOKORO_IWOLE,
                 {expiresIn: '1h'}
                 
             );
+          
             return res.status(200).json({token: token, 
-                                        userId: loadedUser._id.toString(), 
+                                        // userId: loadedUser._id.toString(),
                                         email: loadedUser.email, 
                                         expiryHours: 1, 
                                         mobile: loadedUser.mobile,

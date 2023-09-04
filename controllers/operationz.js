@@ -90,112 +90,6 @@ function getDataFromTaxPro(dataInput, token, queryPath, method, live) {
     
   };
 
-// function submitDataToTaxPro(dataInput, token, live) {
-//     let data = '';
-//     let dataOptions;
-//     const dataIn = JSON.stringify({
-//         agent_tin: dataInput.agent_tin,
-//         beneficiary_tin: dataInput.beneficiary_tin,
-//         currency: dataInput.currency,
-//         trans_date: dataInput.transaction_date,
-//         // trans_date: '2023-08-10',
-//         base_amount: dataInput.base_amount,
-//         vat_calculated: dataInput.vat,
-//         total_amount: dataInput.total_amount,
-//         other_taxes: dataInput.other_taxes,
-//         vat_rate: dataInput.vat_rate,
-//         vat_status: dataInput.vat_status,
-//         item_description: dataInput.item_description,
-//         integrator_id: 27
-//       });
-        
-//       console.log('DATAIN:: ' + dataIn);
-//     if (live) { // Data Options for Live Environment
-//         dataOptions = {
-//             hostname: process.env.TAXPRO_HOSTNAME,
-//             path: '/vat-aggr/transaction',
-//             method: 'POST',
-//             headers: {
-//               'Content-Type': 'application/json',
-//               'Authorization': token,
-//               'Content-Length': Buffer.byteLength(dataIn),
-//         },
-//         };
-
-//     } else{ // Data Options for Test Environment
-//      dataOptions = {
-//         hostname: process.env.TAXPRO_HOSTNAME,
-//         path: '/vat-aggr/transaction',
-//         method: 'POST',
-//         port: process.env.TAXPRO_PORT,
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'Authorization': 'Bearer ' + token,
-//           'Content-Length': Buffer.byteLength(dataIn),
-//     },
-//     };
-
-//     }
-     
-    
-//     const request = http.request(dataOptions, (response) => {
-//       response.setEncoding('utf8');
-  
-//       response.on('data', (chunk) => {
-//         data += chunk;
-//       });
-  
-//       response.on('end', () => {
-//         console.log('Returned Data:: ' + data);
-
-//         if (data === 'error msg') {
-//             // Ask the Login process to reinitiate login
-//             taxProloginStatus = false;
-//         } else {
-
-//             var newData = JSON.parse(data);
-//             trans_id = newData.trans_id;
-
-//             // Update record in as sent in the local db
-            
-//             // Vat.findOne({agent_tin: dataInput.agent_tin} && {trx_id: dataInput.trx_id})
-//             //     .then(vatFound =>{
-//             //         vatFound.taxpro_trans_id = trans_id;
-//             //         vatFound.data_submitted = 1; 
-//             //         return vatFound.save();
-//             //     })
-//             //     .then(vat => {
-//             //         console.log('Vat Data:: ' + vat);
-//             //         // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
-
-//             //     })
-//             //     .catch(err => {
-//             //         if (!err.statusCode) {
-//             //             err.statusCode = 500;
-//             //         }
-//             //         // next(err); // pass the error to the next error handling function
-//             //     });
-
-//             console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
-//         }
-        
-//       });
-//     });
-
-
-//     request.on('error', (error) => {
-//       console.error(error);
-//       taxProloginStatus = false;
-//     });
-  
-//     // Write data to the request body
-//     request.write(dataIn);
-  
-//     request.end();
-
-    
-//   };
-  
 
 function generateToken(n) {
   
@@ -2638,7 +2532,7 @@ exports.getVatYearlyByRegion = (req, res, next) => {
         
           var percentChangeNW = 0;
           if (NW[0] && previousNW[0]) {
-              percentChangeNW = ((dat[0].totalSum - previousNW[0].totalSum) / previousNW[0].totalSum) * 100;
+              percentChangeNW = ((NW[0].totalSum - previousNW[0].totalSum) / previousNW[0].totalSum) * 100;
               percentChangeNW = percentChangeNW.toFixed(1);
           }
         // End of North West
@@ -2871,6 +2765,318 @@ exports.getVatYearlyByRegion = (req, res, next) => {
        
 }
 
+
+exports.getVatYearlyByThreshold = (req, res, next) => { 
+    // var sector = req.params.sector;
+    var yyyy = +req.params.yyyy;
+
+    if (!yyyy) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = today.getMonth();
+        const dd = today.getDate();
+    }
+    
+    
+    var firstDayOfTheYear = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+    var tempDate = new Date(Date.UTC(yyyy, 11, 31, 00, 00, 00));
+    var lastDayOfTheYear = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
+    lastDayOfTheYear.setHours(23,59);
+
+    const firstDate = firstDayOfTheYear;
+    const lastDate = lastDayOfTheYear;
+
+
+    var firstDayOfTheYear2 = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
+    var tempDate2 = new Date(Date.UTC(yyyy, 11, 31, 00, 00, 00));
+    var lastDayOfTheYear2 = new Date(tempDate2.getFullYear(), tempDate2.getMonth() + 1, 0);
+    lastDayOfTheYear2.setHours(23,59);
+
+
+    
+    firstDayOfTheYear2.setFullYear(firstDayOfTheYear2.getFullYear() - 1);
+    const firstDate2 = firstDayOfTheYear2;
+    lastDayOfTheYear2.setFullYear(lastDayOfTheYear2.getFullYear() - 1);
+    var lastDate2 = new Date(lastDayOfTheYear2.getFullYear(), lastDayOfTheYear2.getMonth() + 1, 0);
+        
+    lastDate2.setHours(23,59);
+    
+
+
+    console.log('firstDate:' + firstDate);
+    console.log('lastDate: '+ lastDate);
+
+    console.log('firstDate2:' + firstDate2);
+    console.log('lastDate2: '+ lastDate2);
+
+    // MTO
+      Vat.aggregate([
+       {
+        $match: {'createdAt': {
+            $gte: firstDate,
+            $lte: lastDate}, 'trans_threshold': 'MTO'}
+    },
+    {
+        $group: {
+
+            _id: "$_v",
+            totalSum: { $sum: "$vat"},
+            count: { $sum: 1 }
+        }
+    }
+      ]).then (async MTO => {
+
+        
+        const previousMTO = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate2,
+                    $lte: lastDate2}, 'trans_threshold': "MTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeMTO = 0;
+          if (MTO[0] && previousMTO[0]) {
+              percentChangeMTO = ((MTO[0].totalSum - previousMTO[0].totalSum) / previousMTO[0].totalSum) * 100;
+              percentChangeMTO = percentChangeMTO.toFixed(1);
+          }
+        // End of North West
+
+
+        // PROCESS FOR GBTO
+        const GBTO  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'trans_threshold': "GBTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!GBTO[0]) GBTO[0] = 0;
+
+        
+        const previousGBTO = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'trans_threshold': "GBTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeGBTO = 0;
+          if (GBTO[0] && previousGBTO[0]) {
+              percentChangeGBTO = ((GBTO[0].totalSum - previousGBTO[0].totalSum) / previousGBTO[0].totalSum) * 100;
+              percentChangeGBTO = percentChangeGBTO.toFixed(1);
+          }
+        // End of North Central
+
+
+        // PROCESS FOR DMO 
+        const DMO  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'trans_threshold': "DMO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!DMO[0]) DMO[0] = 0;
+      
+        const previousDMO = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'trans_threshold': "DMO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeDMO = 0;
+          if (DMO[0] && previousDMO[0]) {
+              percentChangeDMO = ((DMO[0].totalSum - previousDMO[0].totalSum) / previousDMO[0].totalSum) * 100;
+              percentChangeDMO = percentChangeDMO.toFixed(1);
+          }
+        // End of North East
+
+
+        // PROCESS FOR LTO 
+        const LTO  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'trans_threshold': "LTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!LTO[0]) LTO[0] = 0;
+      
+        const previousLTO = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'trans_threshold': "LTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeLTO = 0;
+          if (LTO[0] && previousLTO[0]) {
+              percentChangeLTO = ((LTO[0].totalSum - previousLTO[0].totalSum) / previousLTO[0].totalSum) * 100;
+              percentChangeLTO = percentChangeLTO.toFixed(1);
+          }
+        // End of South West
+
+        // PROCESS FOR MSTO 
+        const MSTO  = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate}, 'trans_threshold': "MSTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        if (!MSTO[0]) MSTO[0] = 0;
+      
+        const previousMSTO = await Vat.aggregate([
+            {
+                $match: {'createdAt': {
+                    $gte: firstDate,
+                    $lte: lastDate2}, 'trans_threshold': "MSTO"}
+            },
+            {
+                $group: {
+    
+                    _id: "$_v",
+                    totalSum: { $sum: "$vat"},
+                    count: { $sum: 1 }
+                }
+            }
+          ])
+        
+          var percentChangeMSTO = 0;
+          if (MSTO[0] && previousMSTO[0]) {
+              percentChangeMSTO = ((MSTO[0].totalSum - previousMSTO[0].totalSum) / previousMSTO[0].totalSum) * 100;
+              percentChangeMSTO = percentChangeMSTO.toFixed(1);
+          }
+        // End of South East
+
+        // // PROCESS FOR SS 
+        // const SS  = await Vat.aggregate([
+        //     {
+        //         $match: {'createdAt': {
+        //             $gte: firstDate,
+        //             $lte: lastDate}, 'region': "SOUTH SOUTH"}
+        //     },
+        //     {
+        //         $group: {
+    
+        //             _id: "$_v",
+        //             totalSum: { $sum: "$vat"},
+        //             count: { $sum: 1 }
+        //         }
+        //     }
+        //   ])
+        // if (!SS[0]) SS[0] = 0;
+      
+        // const previousSS = await Vat.aggregate([
+        //     {
+        //         $match: {'createdAt': {
+        //             $gte: firstDate,
+        //             $lte: lastDate2}, 'region': "SOUTH SOUTH"}
+        //     },
+        //     {
+        //         $group: {
+    
+        //             _id: "$_v",
+        //             totalSum: { $sum: "$vat"},
+        //             count: { $sum: 1 }
+        //         }
+        //     }
+        //   ])
+        
+        //   var percentChangeSS = 0;
+        //   if (SS[0] && previousSS[0]) {
+        //       percentChangeSS = ((SS[0].totalSum - previousSS[0].totalSum) / previousSS[0].totalSum) * 100;
+        //       percentChangeSS = percentChangeSS.toFixed(1);
+        //   }
+        // // End of South East
+
+        let threshMTO = {thisYear: MTO, lastYear: previousMTO, percentChange: percentChangeMTO};
+        let threshGBTO = {thisYear: GBTO, lastYear: previousGBTO, percentChange: percentChangeGBTO};
+        let threshDMO = {thisYear: DMO, lastYear: previousDMO, percentChange: percentChangeDMO};
+        let threshLTO = {thisYear: LTO, lastYear: previousLTO, percentChange: percentChangeLTO};
+        let threshMSTO = {thisYear: MSTO, lastYear: previousMSTO, percentChange: percentChangeMSTO};
+        // let SouthSouth = {thisYear: SS, lastYear: previousSS, percentChange: percentChangeSS};
+
+
+        // res.status(200).json({message: 'success', thisYear: NW, lastYear: previousNW, percentChangeNW: percentChangeNW});        
+        res.status(200).json({message: 'success', MTO: threshMTO, GBTO: threshGBTO, DMO: threshDMO, LTO: threshLTO, MSTO: threshMSTO});        
+      })  .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })        
+       
+}
 // ***** DASHBOARD  ENDS ********
 
 
@@ -4784,50 +4990,6 @@ exports.getVatYearlyBySubSector = (req, res, next) => {
        
 }
 
-exports.getVatHourlyBySubSector_old = (req, res, next) => { 
-    var hr = req.params.hr;
-    var intervalBack = req.params.hrback;
-    var subsector = req.params.subsector;
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = today.getMonth();
-    const dd = today.getDate();
-    
-    // var intervalBack = 1;
-    console.log('Hr::' + hr + ' min: ' + intervalBack);
-    const options = {
-        year: '2-digit',
-    }
-    
-    const toTime = new Date(Date.UTC(yyyy, mm, dd, hr, 00, 00));
-    var toTime1 = toTime.getTime();
-    console.log('Old Time TO:' + toTime);
-
-    toTime1 = new Date(toTime1);  // Add 1hr to care for UK time zone and Nigeria
-    fromTime1 = new Date(toTime1 - intervalBack*60*60*1000);
-
-    console.log('From: ' + fromTime1);
-    console.log('To: ' + toTime1);
-
-    let sumVat = 0;
-        Transactionz.find({'createdAt': {
-            $gte: new Date(fromTime1),
-            $lte: new Date(toTime1)}, 'sub_sector': subsector}, 'vat trx_value sector sub_sector', (err, vats) => {
-                if (err) {
-                    return err;
-                } else {
-                    // calculate summary of vats
-                    
-                    for (let i = 0; i<vats.length; i++) {
-                        sumVat += vats[i].vat;
-                        console.log(i + ': ' + vats[i].vat)
-                    }
-                    res.status(200).json({message: 'success', hourlyVat: sumVat, data: vats});        
-                }
-            })
-
-}
-
 exports.getVatHourlyBySubSector = (req, res, next) => { 
     var dd = +req.params.dd;
     var mm = +req.params.mm;
@@ -4837,10 +4999,6 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
     firstDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
     lastDate = new Date(Date.UTC(yyyy, mm, dd, 00, 00, 00));
     lastDate.setHours(firstDate.getHours() + 1);
-    // lastDate = new Date(testDate.getFullYear(), testDate.getMonth()+1, 0);
-
-    // console.log('firstDate:' + firstDate);
-    // console.log('lastDate: '+ lastDate);
     
      var sumValue = 0;
      var dadas = '';
@@ -5628,9 +5786,7 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
 exports.getTopPerfomersByYear = (req, res, next) => { 
     var total = +req.params.total;
     var yyyy = +req.params.yyyy;
-    
-    // const mm = today.getMonth();
-    // const dd = today.getDate();
+ 
     
     if (!yyyy) {
         const today = new Date();
@@ -5797,9 +5953,6 @@ exports.getTransactionsBySubSectorOnly = (req, res, next) => {
     if (!page || isNaN(page)) page = 1;
     if (!limit || isNaN(limit)) limit = 5;
 
-    // console.log('Page: ' + page);
-    // console.log('Limit: ' + limit);
-
         Vat.find({sub_sector: sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
@@ -5835,9 +5988,6 @@ exports.getTransactionsBySectorOnly = (req, res, next) => {
     var limit = +req.params.limit;
     if (!page || isNaN(page)) page = 1;
     if (!limit || isNaN(limit)) limit = 5;
-
-    // console.log('Page: ' + page);
-    // console.log('Limit: ' + limit);
 
         Vat.find({sector: sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
         .limit(limit * 1)
@@ -6240,14 +6390,12 @@ exports.getMonthlyPayment = async (req, res, next) => {
 
 }
 
-
-
 exports.getVatPaidByTin = async (req, res, next) => { 
     console.log('finding payment...');
     var mm = +req.params.mm;
     var tin = req.params.tin;
-    var year = +req.params.year;
-
+    var year = +req.params.yyyy;
+console.log('MM: ' + mm + ', YYYY: ' + year + ', TIN: ' + tin);
      const dataIn = JSON.stringify({
         tin: tin,
         month: +req.params.mm,
@@ -6260,8 +6408,8 @@ exports.getVatPaidByTin = async (req, res, next) => {
     setTimeout(()=> {
         console.log('resp: ' + resp);
         console.log('Response TaxPro1::' + taxProPayLiteral) ;
-        res.status(200).json({'msg': 'success1', 'monthlyTotal': taxProPayLiteral});     
-    }, 1000);
+        res.status(200).json({'message': 'success', 'totalByTIN': taxProPayLiteral});     
+    }, 2000);
     
     var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
 
