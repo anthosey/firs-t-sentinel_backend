@@ -2426,7 +2426,7 @@ exports.getTransactionzWithPages = async (req, res, next) => {
     console.log('Page: ' + page);
     console.log('Limit: ' + limit);
 
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type')
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type region state')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
