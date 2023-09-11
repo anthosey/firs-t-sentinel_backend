@@ -4624,7 +4624,7 @@ exports.getSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('Sector:' + sector);
 // sector = 'Insurance';
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type').where({'sector': sector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region').where({'sector': sector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -5619,7 +5619,7 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
     console.log('Limit: ' + limit);
     console.log('subSector:' + subsector);
 // sector = 'Insurance';
-        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type').where ({'sub_sector': subsector})
+        Vat.find({},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region').where ({'sub_sector': subsector})
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -5953,7 +5953,7 @@ exports.getTransactionsBySubSectorOnly = (req, res, next) => {
     if (!page || isNaN(page)) page = 1;
     if (!limit || isNaN(limit)) limit = 5;
 
-        Vat.find({sub_sector: sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
+        Vat.find({sub_sector: sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -5989,7 +5989,7 @@ exports.getTransactionsBySectorOnly = (req, res, next) => {
     if (!page || isNaN(page)) page = 1;
     if (!limit || isNaN(limit)) limit = 5;
 
-        Vat.find({sector: sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
+        Vat.find({sector: sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6038,7 +6038,7 @@ exports.getTransactionsWith2Dates = (req, res, next) => {
 
     
         Vat.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type createdAt')
+            $gte: firstDate, $lte: lastDate }},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6088,7 +6088,7 @@ exports.getTransactionsWith2DatesandSector = (req, res, next) => {
 
     
         Vat.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type createdAt')
+            $gte: firstDate, $lte: lastDate }, 'sector': sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
@@ -6138,7 +6138,7 @@ exports.getTransactionsWith2DatesandSubSector = (req, res, next) => {
 
     
         Vat.find({'createdAt': {
-            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type createdAt')
+            $gte: firstDate, $lte: lastDate }, 'sub_sector': sub_sector},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id earning_type state region createdAt')
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort('-createdAt')
