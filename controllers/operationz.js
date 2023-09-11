@@ -6316,6 +6316,62 @@ exports.getTransactionsWith2DatesandTIN = (req, res, next) => {
         })    
   
 }
+
+exports.getVatRecordedByTin = async (req, res, next) => { 
+    // var dd1 = req.params.dd1;
+    var mm = req.params.mm;
+    var yyyy = req.params.yyyy;
+
+    if (!mm || !yyyy) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = today.getMonth();
+    }
+    
+    var firstDayOfMonth = new Date(Date.UTC(yyyy, mm, 1, 00, 00, 00));
+    var lastDayOfMonth = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth() + 1, 0);
+
+    lastDayOfMonth.setHours(23,59);
+    var firstDate = firstDayOfMonth;
+    var lastDate = lastDayOfMonth;
+    
+      Vat.aggregate([
+        {
+            $match: {
+                'createdAt': {
+                $gte: firstDate,
+                $lte: lastDate},
+            'tin': '12001705-0001'}
+        },
+        {
+            $group: {
+
+                _id: "$_v",
+                totalSum: { $sum: "$vat"},
+                count: { $sum: 1 }
+            }
+        }
+      ]
+      ).then (dat => {
+
+        let tSum = 0;
+        let tCount = 0;
+        if (dat.length > 0) {
+            tSum = dat[0].totalSum;
+            tCount = dat[0].count;
+        }
+        // const count = await Vat.count();
+     
+
+    res.status(200).json({message: 'success', totalAmount: tSum, totalCount: tCount }); 
+    })  .catch(err => {
+    if (!err.statusCode) {
+        err.statusCode = 500;
+    }
+    next(err); // pass the error to the next error handling function
+})        
+
+}
 exports.getAuditTrailWith2Dates = (req, res, next) => { 
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
@@ -6364,6 +6420,8 @@ exports.getAuditTrailWith2Dates = (req, res, next) => {
         })    
   
 }
+
+
 
 // *****REPORTS END******
 
@@ -6415,3 +6473,6 @@ console.log('MM: ' + mm + ', YYYY: ' + year + ', TIN: ' + tin);
 
     
 }
+
+
+

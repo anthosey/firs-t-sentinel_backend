@@ -216,4 +216,6 @@ router.get('/monthlypayment/:mm/yyyy/:yyyy', operationzController.getMonthlyPaym
 
 router.get('/vatpaidbytin/:tin/mm/:mm/yyyy/:yyyy', operationzController.getVatPaidByTin);
 
+router.get('/vatrecordedbytin/:tin/mm/:mm/yyyy/:yyyy', operationzController.getVatRecordedByTin);
+
 module.exports = router;

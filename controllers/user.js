@@ -400,6 +400,12 @@ exports.userLogin = (req, res, next) => {
                 });
                 
                 await tlogs.save();
+                var tin ='';
+                if (loadedUser.usertype == 'company') {
+                    const coy = await Company.findOne({email: email});
+                    tin = coy.tin;
+                }
+                
                 console.log('Log  created successfully!');
 
     
@@ -419,7 +425,8 @@ exports.userLogin = (req, res, next) => {
                                         expiryHours: 1, 
                                         mobile: loadedUser.mobile,
                                         firstname: loadedUser.firstname,
-                                        userType: loadedUser.usertype
+                                        userType: loadedUser.usertype,
+                                        tin: tin
                                         // contactAddress: loadedUser.contactAddress,
                                      });
         })
