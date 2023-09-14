@@ -180,11 +180,22 @@ function logonToTaxpro(options) {
           });
       
           response.on('end', () => {
-            console.log(data);
-            newData = JSON.parse(data);
-            bearerToken = newData.token;
-            taxProloginStatus = true;
-            console.log('Login to TaxPro successful!');
+            // console.log(data);
+            try {
+              newData = JSON.parse(data);
+              bearerToken = newData.token;
+              taxProloginStatus = true;
+              console.log('Login to TaxPro successful!');
+            }
+
+            catch {
+              taxProloginStatus = false;
+              console.log('Unable to login to Taxpro');
+            }
+
+            finally {
+
+            }
             
           });
         });
