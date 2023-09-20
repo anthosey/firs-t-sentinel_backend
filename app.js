@@ -125,7 +125,7 @@ app.use((error, req, res, next) => {
 })
 
 
-// global.bearerToken = '';
+global.bearerToken = '';
 
 // 6 asteriks  * * * * * * === s(0 - 59) m(0 - 59) h(0 - 23) d(1 - 31) m(1 -12) dow(0 - 6) (0 and 7 both represent Sunday)
 // cron.schedule("* * * * *", function () {
@@ -134,21 +134,22 @@ app.use((error, req, res, next) => {
 // });
 
 // *****CHECK ENV. VARIABLES******
-// function checkVariables(){
-//   try {
-//     if (!process.env.TAXPRO_EMAIL || !process.env.TAXPRO_PASSWORD || 
-//       !process.env.TAXPRO_HOSTNAME || !process.env.TAXPRO_PATH || 
-//       !process.env.TAXPRO_PORT || !process.env.DB_CONNECTION || !process.env.SESSION_SECRET || !process.env.SECRET_NAME) {
-//       throw new Error("Some environment Variables not found");
-//     };
 
-//   } catch (err) {
-//     // next(err);
-//     console.log("Error: " + err);
-//   }
-// }
+function checkVariables(){
+  try {
+    if (!process.env.TAXPRO_EMAIL || !process.env.TAXPRO_PASSWORD || !process.env.DB_CONNECTION || !process.env.TIN_VER_HOSTNAME ||
+      !process.env.TAXPRO_HOSTNAME || !process.env.TAXPRO_PATH || !prpcess.env.TIN_VER_USERNAME || !process.env.TIN_VER_PASS || !process.env.KOKORO_IWOLE ||
+      !process.env.TAXPRO_PORT || !process.env.DB_CONNECTION || !process.env.SESSION_SECRET || !process.env.SECRET_NAME) {
+      throw new Error("Some environment Variables not found");
+    };
 
-// checkVariables();
+  } catch (err) {
+    // next(err);
+    console.log("Error: " + err);
+  }
+}
+
+checkVariables();
 
 // Create the request body
 const testLoginData = JSON.stringify({

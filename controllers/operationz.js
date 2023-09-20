@@ -6443,8 +6443,17 @@ exports.getMonthlyPayment = async (req, res, next) => {
         res.status(200).json({message: 'success', monthlyTotal: taxProPayLiteral});      
     }, 2000);
     
+    if (bearerToken) {
+        try {
     var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
-
+        }
+        catch {
+            taxProloginStatus = false;
+            console.log('Connection issues with Taxpro');
+          }
+        } else {
+            console.log('Unable to login to TaxPro');
+        }
 
 }
 
@@ -6469,9 +6478,17 @@ console.log('MM: ' + mm + ', YYYY: ' + year + ', TIN: ' + tin);
         res.status(200).json({'message': 'success', 'totalByTIN': taxProPayLiteral});     
     }, 2000);
     
+    if (bearerToken) {
+    try {
     var resp = getDataFromTaxPro(dataIn, bearerToken, '/vat-aggr/payment-summary', 'POST', false);
-
-    
+    }
+    catch {
+        taxProloginStatus = false;
+        console.log('Connection issues with Taxpro');
+      }
+    } else {
+        console.log('Unable to login to TaxPro');
+    }
 }
 
 
