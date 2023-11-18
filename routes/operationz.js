@@ -19,7 +19,7 @@ router.get('/transactionsbyowner/:user_id', operationzController.getAllTransacti
 router.get('/ownerbytransaction/:trx_id', operationzController.getOwnerByTransaction);
 
 // router.get('/countrycode/:code', userController.getCountryCodes);
-router.post('/addtransaction', [
+router.post('/addtransaction', isAuth, [
     body('trx_ref_provider')
     .trim()
         .not()
@@ -102,27 +102,27 @@ router.post('/addtransaction', [
 ], operationzController.addTransaction);
 
 //***** DASHBOARD OPERATIONS BEGINS */
-router.get('/vattoday/:dd/mm/:mm/year/:yyyy', operationzController.getVatToday); // Done for new
+router.get('/vattoday/:dd/mm/:mm/year/:yyyy', isAuth, operationzController.getVatToday); // Done for new
 
-router.get('/vatbyhour/:dd/mm/:mm/year/:yyyy', operationzController.getVatHourly); // Done
+router.get('/vatbyhour/:dd/mm/:mm/year/:yyyy', isAuth, operationzController.getVatHourly); // Done
 
-router.get('/vatthismonth/:mm/year/:yyyy', operationzController.getVatMonthly); // Done for new
+router.get('/vatthismonth/:mm/year/:yyyy', isAuth, operationzController.getVatMonthly); // Done for new
 
-router.get('/vatthisquarter/:mm/year/:yyyy', operationzController.getVatQuarterly); // Done for new
+router.get('/vatthisquarter/:mm/year/:yyyy', isAuth, operationzController.getVatQuarterly); // Done for new
 
-router.get('/vatthisyear/:yyyy', operationzController.getVatYearly); // Done for new
+router.get('/vatthisyear/:yyyy', isAuth, operationzController.getVatYearly); // Done for new
 
-router.get('/yearsummaryforallsectors/:yyyy', operationzController.getTrxYearlyAllSectors); // Done for new
+router.get('/yearsummaryforallsectors/:yyyy', isAuth, operationzController.getTrxYearlyAllSectors); // Done for new
 
-router.get('/monthsummaryforallsectors/:yyyy', operationzController.getTrxMonthlyAllSectors);
+router.get('/monthsummaryforallsectors/:yyyy', isAuth, operationzController.getTrxMonthlyAllSectors);
 
-router.get('/yearlyvatsegmentallsectors/:yyyy', operationzController.getVatSegmentYearlyAllSector); // Done for new
+router.get('/yearlyvatsegmentallsectors/:yyyy', isAuth, operationzController.getVatSegmentYearlyAllSector); // Done for new
 
-router.get('/alltransactionwithpages/:pagenumber/limitdata/:limit', operationzController.getTransactionzWithPages); // Done for new
+router.get('/alltransactionwithpages/:pagenumber/limitdata/:limit', isAuth, operationzController.getTransactionzWithPages); // Done for new
 
-router.get('/vatthisyearbyregion/:yyyy', operationzController.getVatYearlyByRegion); // Done for new
+router.get('/vatthisyearbyregion/:yyyy', isAuth, operationzController.getVatYearlyByRegion); // Done for new
 
-router.get('/vatthisyearbythreshold/:yyyy', operationzController.getVatYearlyByThreshold); // Done for new
+router.get('/vatthisyearbythreshold/:yyyy', isAuth, operationzController.getVatYearlyByThreshold); // Done for new
 
 //***** DASHBOARD OPERATIONS ENDS */
 
