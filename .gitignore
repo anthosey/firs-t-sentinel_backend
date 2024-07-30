@@ -2,3 +2,4 @@ node_modules
 .env
 env1.env
 envVar.env
+testing.txt
