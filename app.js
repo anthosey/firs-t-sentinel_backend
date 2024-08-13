@@ -9,6 +9,8 @@ const operationzRoutes = require('./routes/operationz');
 const session = require('express-session');
 const Vat = require ('./models/vat')
 const Company = require('./models/company');
+const Ngxdata = require('./models/ngxdata');
+const NegotiatedDeal = require('./models/negotiated_deal');
 var http = require('http');
 var https = require('https');
 // require("dotenv").config();
@@ -16,6 +18,7 @@ var https = require('https');
 const path = require('path');
 const dotenv = require('dotenv');
 const axios = require('axios');
+const qs = require('qs');
 
 const dns = require('dns');
 
@@ -40,9 +43,15 @@ const cron = require("node-cron"); // Cron jobs
 const { JsonWebTokenError } = require('jsonwebtoken');
 const app = express();
 global.taxProloginStatus = false; // CREATE A GLOBAL VARIABLE
+global.ngxLoginStatus = false;
 global.companyData = [];
 global.tinVerificationData = [];
 global.taxProPayLiteral = -1;
+global.savedDataCount = 0;
+global.countData = 0;
+global.ngxResponseData = [];
+global.dataApiCalledForTheDay = false;
+global.provider_code = '';
 let ext;
 // This is for image upload capabilities using multer middleware
 const fileStorage = multer.diskStorage({
@@ -148,6 +157,7 @@ app.use((error, req, res, next) => {
 
 
 global.bearerToken = '';
+global.ngxBearerToken = '';
 
 // 6 asteriks  * * * * * * === s(0 - 59) m(0 - 59) h(0 - 23) d(1 - 31) m(1 -12) dow(0 - 6) (0 and 7 both represent Sunday)
 // cron.schedule("* * * * *", function () {
@@ -214,7 +224,11 @@ const testLoginOptions = {
 const apiUrl = process.env.TAXPRO_HOSTNAME_LIVE;
 const email = process.env.TAXPRO_EMAIL_LIVE;
 const password = process.env.TAXPRO_PASSWORD_LIVE;
-
+const ngxURl = process.env.NGX_URL;
+const ngxUsername = process.env.NGX_USERNAME;
+const ngxPassword = process.env.NGX_PASSWORD;
+const ngxGrantType = process.env.NGX_GRANTTYPE;
+const ngxDataUrl = process.env.NGX_DATA_URL;
 
 async function logonToTaxpro() {
   let token = '';
@@ -223,18 +237,10 @@ async function logonToTaxpro() {
       email: email,
       password: password
       
-    // }, {
-    //   proxy: {
-    //     host: 'proxy-server.example.com',
-    //     port: 8080,
-    //     auth: {
-    //       username: 'proxy-username',
-    //       password: 'proxy-password'
-    //     }
-    //   }
+   
     });
-    console.log('Login successful:', response.data);
-    console.log('Login successful:', response.data.token);
+    // console.log('Login successful:', response.data);
+    // console.log('Login successful:', response.data.token);
     token = response.data.token;
     bearerToken = response.data.token;
     taxProloginStatus = true;
@@ -244,6 +250,9 @@ async function logonToTaxpro() {
     console.error('Error details:', error);
   }
 }
+
+
+
 
 // function logonToTaxpro_old(options) {
 //         let data = '';
@@ -290,6 +299,144 @@ async function logonToTaxpro() {
         
 //       };
 
+
+// Login to NGX
+
+async function logonToNGX() {
+  // console.log('url:' + apiUrl);
+try {
+  const data = qs.stringify({
+    username: ngxUsername,
+    password: ngxPassword,
+    grant_type: ngxGrantType
+  });
+
+  const response = await axios.post(ngxURl, data, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+
+  // console.log('Login successful:', response.data);
+  // console.log('ngxToken:', response.data.access_token);
+  ngxBearerToken = response.data.access_token;
+  ngxLoginStatus = true;
+} catch (error) {
+  console.error('Error logging in:', error.message);
+  console.error('Error details:', error);
+}
+}
+
+
+function setTradeDate() {
+  var  mktDate = new Date();
+  var dd = mktDate.getDate();
+  var mm = mktDate.getMonth() + 1;
+  var yyyy = mktDate.getFullYear();
+  var trDate = yyyy + '-'+ mm + '-' + dd;
+  return trDate
+}
+
+
+function integerDivision(dividend, divisor) {
+  return Math.floor(dividend / divisor);
+}
+
+function duplicateRecords(records, targetCount) {
+  const result = [];
+  const totalRecords = records.length;
+  const multipleDuplicate = integerDivision(targetCount,totalRecords);
+  console.log('Multiple counts: ' + multipleDuplicate);
+  
+  console.log('Dup here::' + totalRecords);
+  for (let i = 0; i < multipleDuplicate; i++) {
+    // result.push(records[i % totalRecords]);
+    ngxResponseData.splice(0,0, ...records); //Add found data to the array
+  }
+  
+  console.log('RESULTS::' + result);
+  console.log('A count::' + ngxResponseData.length);
+  console.log('A records:: ' + ngxResponseData);
+  return result;
+}
+
+// Get Data:
+async function getDataFromNGX() {
+  // const trDate = setTradeDate() ;
+  const trDate = '2022-06-06'; //set static for test purpose
+  provider_code = "NGX01";
+  // Check if token exists
+  // if (ngxLoginStatus) {
+  ngxBearerToken = 'FQPeiVQ6YnKIfy7ejDKCVQwiym19VDkGC-dry-NwgGX1U-AZlyMiMTlnBNuI7BJRkaEi_k_4Yh3CQvJhcCyIe2_7NWpQYJYTBw9xHHdTlKMi_OfN9MmYWKR0T--Hb9rnnFN6gi8Iek0qaICVgQqsgj3Oa7XadEfEACLmltsZVGj_grDdCY4Pp9UPnexBXtYSpyRKOfk6IOFlFQg2wdcf1NB5Yn83Td-i3oPhZ-rtx40'
+    console.log('got Token:' + ngxBearerToken);
+    axios.get(ngxDataUrl, {
+      headers: {
+        'Authorization': `Bearer ${ngxBearerToken}`
+      },
+      params: {
+        tradeDate: trDate
+      }
+    })
+    .then(response => {
+      countData = 0;
+      savedDataCount = 0;
+      //console.log('Response Data:', response.data);
+      // console.log('Spread Data:' + [...response.data])
+      ngxResponseData = response.data;
+
+      countData = response.data.length; 
+      // ******Temporar Code for record duplication
+      if (countData < 10000) {
+        duplicateRecords(response.data, 210)
+      }
+      // ******End of the temporary codes
+      
+      console.log('New Count: ' + ngxResponseData.length);
+      const y = ngxResponseData[ngxResponseData.length - 1];
+      console.log('LAST RECORD::' + y);
+      console.log('JSON::' + JSON.stringify(y));
+
+      countData =  ngxResponseData.length;
+
+      for (i = 0; i < countData; i++) {
+        savedDataCount +=1;
+        const x = response.data[i];
+        const ngxData = new Ngxdata({
+        // trx_id: "trx_"+ trDate + "_" + i,
+        trade_no: x.Trade_No,
+        board: x.Board,
+        security: x.Security,
+        trade_time: x.Trade_Time,
+        price: x.Price,
+        qty: x.Qty,
+        value: x.Value,
+        settlement_value: x.SettlementValue,
+        buy_firm_code: x.BuyFirmCode,
+        buy_firm_name: x.BuyFirmName,
+        sell_firm_code: x.SellFirmCode,
+        sell_firm_name: x.SellFirmName,
+        buy_trading_account: x.Buy_Trading_Account,
+        sell_trading_account: x.Sell_Trading_Account
+      });
+      // ngxData.trx_id = "trx_002";
+      ngxData.save();
+    
+      }
+      console.log('SAved Data Count: ' +  savedDataCount);
+      console.log('Received Data Count: ' +  countData);
+      dataApiCalledForTheDay = true;
+    })
+    .catch(error => {
+      ngxLoginStatus = false; // Direct the system to login again to NGX
+      dataApiCalledForTheDay = false; // Data was not called successfully
+      console.error('Error:', error);
+    });
+  // } else { //login to ngx
+  //   console.log('Login again: NGX');
+  //   logonToNGX()
+  // }
+  
+}
  
 function getRegion (states) {
   var state = states.toUpperCase();
@@ -430,7 +577,7 @@ function validateTinFromFIRS(tin) {
       } else {
 
           var newData = JSON.parse(data);
-          console.log('NEW DATA AFTER PSRSE::' + newData);
+          console.log('NEW DATA AFTER PARSE::' + newData);
           console.log('TIN DATA:: ' + newData.Address);
 
           // console.log('DATum Chunk:: ' + data);
@@ -614,17 +761,21 @@ function submitDataToTaxPro(dataInput, token, live) {
 };
 
 
+// Rem 7
 function mopupData() {
  Vat.find({taxpro_trans_id: null})
  .then(data => {
   console.log('Length:: ' + data.length);
   // console.log('Data:: ' + data[0]._id);
-  companyData.splice(0,0, ...data);
+  companyData.splice(0,0, ...data); //Add found data to the array
 
  })
 
 }
 
+// End of Rem 7
+
+// Rem 6
 function mopupTinVERIFICATION() {
   console.log('Gotto here...');
   Company.find({tax_office_id: null})
@@ -636,48 +787,892 @@ function mopupTinVERIFICATION() {
  })
 }
 
+// End of Rem 6
+
    //  CHECK ACCESS TO TAXPRO
 
-   cron.schedule("*/10 * * * * *", function () {
-    console.log("---------------------");
-    console.log("Checking login every 10 secs" + ':: Token:'); 
+  
+// Convert into vat
+// processDataIntoVats(ngxResponseData[i]);
 
-    console.log('STATUS: '+ taxProloginStatus);
+// end of Rem NGX_01
 
-    if (!taxProloginStatus) {
-        logonToTaxpro(testLoginOptions);
-        
-    } else {console.log('TaxPro Login active!, Token:: ' + bearerToken );}
-});
+
+function resetNgxDataPickupParameters() {
+  dataApiCalledForTheDay = false
+}
+
+
+
+function checkForProprietaryAccount(companyData, tradeData) {
+  var ans = false
+   // Check if Proprietary account
+   try{
+
+   
+   if (companyData.operating_licence_type === 'Broker Dealer') {
+    if (companyData.proprietary_account === tradeData.Buy_Trading_Account) {
+      ans = true
+    } else {
+      ans = false
+    }
+  }
+} catch {
+  ans = false
+}
+  return ans
+}
+
+
+function checkForProprietaryAccountSeller(companyData, tradeData) {
+  var ans = false
+   // Check if Proprietary account
+   try{
+
+   
+   if (companyData.operating_licence_type === 'Broker Dealer') {
+    if (companyData.proprietary_account === tradeData.Sell_Trading_Account) {
+      ans = true
+    } else {
+      ans = false
+    }
+  }
+} catch {
+  ans = false
+}
+  return ans
+}
+
+// async function checkForNegotiatedDeal(companyCode, tradeAccount) {
+// negDeal = False
+//  var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": companyCode, "customer_account_no": tradeAccount })
+//  if (itIsNegDeal) {
+//   negDeal = True
+//  }
+//  return negDeal
+// }
+
+function generateToken(n) {
+  
+  var add = 1, max = 12 - add;   // 12 is the min safe number Math.random() can generate without it starting to pad the end with zeros.   
+  console.log(n);
+  max        = Math.pow(10, n+add);
+  var min    = max/10; // Math.pow(10, n) basically
+  var number = Math.floor( Math.random() * (max - min + 1) ) + min;
+
+  return ("" + number).substring(add); 
+}
+
+
+async function processDataIntoVats(oneData) {
+  // const errors = validationResult(req);
+  var msg;
+  var token;
+  // if (!errors.isEmpty()) {
+  //     const error = new Error('Validation failed!');
+  //     error.statusCode = 422;
+  //     error.data = errors.array();
+  //     throw error;
+  // }
+  console.log("Process Status: Started");
+  
+  const trxId = generateToken(10);
+
+  var sector;
+  var sub_sector;
+  var trx_value;
+  
+
+  var company_name = oneData.BuyFirmName;
+  var counter_party_name = oneData.SellFirmName;
+  var company_code = oneData.BuyFirmCode;
+  var counter_party_code = oneData.SellFirmCode;
+  var volume = oneData.Qty;
+  var price = oneData.Price;
+
+  const trx_ref_provider = oneData.Trade_No;
+  // const user_id = req.body.user_id;
+  // const personal_id = req.body.personal_id;
+  // const company_code = req.body.company_code;
+  // const trx_type = req.body.trx_type;
+  // const trade_type = req.body.trade_type;
+  // const cscs_number = req.body.cscs_number;
+  // const beneficiary_name = req.body.beneficiary_name;
+  // const stock_symbol = req.body.stock_symbol;
+  // const price = req.body.price;
+  // const volume = req.body.volume;
+  // const counter_party_code = req.body.counter_party_code;
+  // const remarks = req.body.remarks;
+  
+  // const counter_party_beneficiary_name = req.body.counter_party_name;
+  // const counter_party_cscs = req.body.counter_party_cscs;
+  
+  trx_value = (volume * price);
+  
+
+  // Identify data provider
+  if (provider_code === 'NGX01') {
+      sector = 'Capital Market';
+  }
+
+  
+
+  var main_company = await Company.findOne(
+      {'company_code': company_code}
+  );
+
+  var counterparty_company = await Company.findOne(
+      {'company_code': counter_party_code}
+  );
+
+  var sec_company = await Company.findOne(
+      {'company_code': 'SEC'}
+  );
+
+  var cscs_company = await Company.findOne(
+      {'company_code': 'CSCS'}
+  );
+
+  var ngx_company = await Company.findOne(
+      {'company_code': 'NGX'}
+  );
+
+  // console.log('COY1:: ' + main_company.company_name + ', region: ' + main_company.region + ', State: ' + main_company.state);
+  // console.log('COY2:: ' + counterparty_company.company_name + ', region: ' + counterparty_company.region + ', State: ' + counterparty_company.state);
+  // console.log('SEC:: ' + sec_company.company_name + ', region: ' + sec_company.region + ', State: ' + sec_company.state);
+  // console.log('COY1:: ' + ngx_company.company_name + ', region: ' + ngx_company.region + ', State: ' + ngx_company.state);
+  // console.log('COY1:: ' + cscs_company.company_name + ', region: ' + cscs_company.region + ', State: ' + cscs_company.state);
+  
+
+
+  // const vat = (+req.body.trx_value * 7.5)/100;
+  
+  
+  // if (cac_id) user_id = cac_id;
+  // if (personal_id) user_id = personal_id;
+
+      // const transaction = new Transactionz({
+      //     trx_ref_provider: trx_ref_provider,
+      //     trx_id: trxId,
+      //     cac_id: main_company.cac_id,
+      //     user_id: main_company.cac_id,
+      //     company_name: main_company.company_name,
+      //     sector: sector,
+      //     // sub_sector: sub_sector,
+      //     trx_type: trx_type,
+      //     trade_type: trade_type,
+      //     cscs_number: cscs_number,
+      //     beneficiary_name: beneficiary_name,
+      //     stock_symbol: stock_symbol,
+      //     price: price,
+      //     volume: volume,
+      //     counter_party_company_code: counter_party_code,
+      //     counter_party_company_name: counterparty_company.company_name,
+      //     provider_code: provider_code,
+      //     trx_value: trx_value,
+      //     remarks: remarks,
+      //     counter_party_name: counter_party_beneficiary_name,
+      //     counter_party_cscs_number: counter_party_cscs
+
+                      
+      //     });
+          
+      //     transaction.save()
+           
+      // async dat => {
+
+              var totalAmount = oneData.Qty * oneData.Price;
+              var lowerCommission = 0;
+              var upperCommission = 0;
+              var upperVat = 0;
+              var secFee = 0;
+              var cscsFee = 0;
+              var ngxFee = 0;
+              var status = 0; //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+              var vatPercent = 7.5;
+              var vat = 0;
+
+              // Check for proprietary account
+              var proprietary = checkForProprietaryAccount(main_company, oneData);
+              if (proprietary) {
+                // upperCommission = 0; 
+                // upperVat = 0;
+                vatPercent = 0;
+                status = 1;
+                vat = 0;
+              } else {
+
+                // Check if its a negotiated deal account
+                
+                var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": main_company.company_code, "customer_account_no": oneData.Buy_Trading_Account })
+                if (itIsNegDeal) {
+                  // Use the negotiated rate
+                  var rate = itIsNegDeal.negotiated_rate;
+                  var commission = (rate * totalAmount)/100;
+                  vat = (commission * vatPercent)/100;
+                  status = 0;
+                } else {
+                  // Maintain normal rates
+                  upperCommission = (1.35 * totalAmount)/100;
+                  upperVat = (upperCommission * vatPercent)/100;
+                  status = 0;
+
+                  vat = upperVat;
+                }
+              }
+
+              
+              secFee = (0.3 * totalAmount)/100;
+              cscsFee = (0.3 * totalAmount)/100;
+              ngxFee = (0.3 * totalAmount)/100;
+              lowerCommission = (0.75 * totalAmount)/100 ;
+              var lowerVat = (lowerCommission * vatPercent)/100;
+              
+              // upperCommission = (1.35 * totalAmount)/100 ;
+              // var upperVat = (upperCommission * 7.5)/100;
+
+              var secVat = (secFee * 7.5)/100;
+              var cscsVat = (cscsFee * 7.5)/100;
+              var ngxVat = (ngxFee * 7.5)/100;
+              
+              var mktDate = new Date();
+              var dd = mktDate.getDate();
+              var mm = mktDate.getMonth();
+              var yyyy = mktDate.getFullYear();
+              var trDate = yyyy + '-'+ mm + '-' + dd;
+
+              console.log('DATE::' + trDate);
+              
+              console.log("Process Status: initator Coy");
+
+              console.log('Tr_Amount : ' + totalAmount + ', ')
+              // Get Vat for Initiator Company (BUYER)
+              const initiatorCompany = new Vat ({
+              
+                  trx_id: trxId,
+                  transaction_ref: oneData.Trade_No,
+                  cac_id: main_company.cac_id,
+                  transaction_type: oneData.Board,
+                  trade_type: "Buy",
+                  tin: main_company.tin,
+                  agent_tin: main_company.tin, 
+                  beneficiary_tin: main_company.tin,
+                  currency: 1,
+                  transaction_amount: totalAmount,
+                  vat: vat,
+                  vat_rate: vatPercent,
+                  
+                  base_amount: upperCommission,
+                  total_amount: upperCommission + upperVat,
+
+                  lower_vat: lowerVat,
+                  upper_vat: upperVat,
+                  total_amount_lower: lowerCommission + lowerVat,
+                  total_amount_upper: upperCommission + upperVat,
+
+                  other_taxes: 0,
+                  company_name: main_company.company_name,
+                  company_code: main_company.company_code,
+                  sector: sector,
+                  sub_sector: 'STOCKBROKERS',
+                  item_description: 'Stock trading',
+                  transaction_date: oneData.Trade_Time,
+                  data_submitted: 0,
+                  vat_rate: vatPercent,
+                  // vat_status: 0,
+                  vat_status: status, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                  item_id: trxId + '1',
+                  earning_type: 'Commission',
+                  region: main_company.region,
+                  state: main_company.state,
+                  trans_threshold: main_company.trans_threshold
+                  
+          
+              });
+
+              await initiatorCompany.save();
+              companyData.push (initiatorCompany);
+
+              console.log("Process Status: Initiator Saved");
+
+                // await Promise.resolve(submitDataToTaxPro(initiatorCompany, bearerToken, false))
+                // .then(response => 
+                    
+                //     Vat.findOne({agent_tin: initiatorCompany.agent_tin} && {trx_id: initiatorCompany.trx_id})
+                //     .then(vatFound =>{
+                //     vatFound.taxpro_trans_id = trans_id;
+                //     vatFound.data_submitted = 1; 
+                //     vatFound.save();
+
+                //     console.log('Done Executing initiator');
+                // }));
+                    
+
+                // submitDataToTaxPro(initiatorCompany, bearerToken, false)
+
+
+                
+
+                // .then(vat => {
+                //     console.log('Vat Data:: ' + vat);
+                //     // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+
+                // })
+                // .catch(err => {
+                //     if (!err.statusCode) {
+                //         err.statusCode = 500;
+                //     }
+                //     // next(err); // pass the error to the next error handling function
+                // });
+
+
+
+
+           // Get Vat for Counterparty Company (SELLER)
+           vatPercent = 7.5;
+               // Check for proprietary account
+               var proprietary = checkForProprietaryAccountSeller(counterparty_company, oneData);
+               if (proprietary) {
+                  // upperCommission = 0; 
+                // upperVat = 0;
+                vatPercent = 0;
+                status = 1;
+                vat = 0;
+               } else {
+ 
+                 // Check if its a negotiated deal account
+                 
+                 var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": counterparty_company.company_code, "customer_account_no": oneData.Sell_Trading_Account })
+                 if (itIsNegDeal) {
+                   // Use the negotiated rate
+                  //  var rate = itIsNegDeal.negotiated_rate;
+                  //  upperCommission = (rate * totalAmount)/100;
+                  //  upperVat = (upperCommission * vatPercent)/100;
+                  //  status = 0;
+
+                   var rate = itIsNegDeal.negotiated_rate;
+                   var commission = (rate * totalAmount)/100;
+                   vat = (commission * vatPercent)/100;
+                   status = 0;
+                   
+                 } else {
+                   // Maintain normal rates
+                  //  upperCommission = (1.35 * totalAmount)/100;
+                  //  upperVat = (upperCommission * vatPercent)/100;
+                  //  status = 0;
+
+                   upperCommission = (1.35 * totalAmount)/100;
+                   upperVat = (upperCommission * vatPercent)/100;
+                   status = 0;
+ 
+                   vat = upperVat;
+                 }
+               }
+ 
+              const counterpartyCompany = new Vat ({
+                      trx_id: trxId,
+                      transaction_ref: oneData.Trade_No,
+                      cac_id: counterparty_company.cac_id,
+                      transaction_type: oneData.Board,
+                      trade_type: "Sell",
+                      tin: counterparty_company.tin,
+                      agent_tin: counterparty_company.tin, 
+                      beneficiary_tin: counterparty_company.tin,
+                      currency: 1,
+                      transaction_amount: totalAmount,
+                      vat: vat,
+                      base_amount: upperCommission,
+                      total_amount: upperCommission + upperVat,
+
+                      lower_vat: lowerVat,
+                      upper_vat: upperVat,
+                      total_amount_lower: lowerCommission + lowerVat,
+                      total_amount_upper: upperCommission + upperVat,
+
+                      other_taxes: 0,
+                      company_name: counterparty_company.company_name,
+                      company_code: counterparty_company.company_code,
+                      sector: sector,
+                      sub_sector: 'STOCKBROKERS',
+                      item_description: 'Stock trading',
+                      transaction_date: oneData.Trade_Time,
+                      data_submitted: 0,
+                      vat_rate: vatPercent,
+                      vat_status: status, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                      item_id: trxId + '2',
+                      earning_type: 'Commission',
+                      region: counterparty_company.region,
+                      state: counterparty_company.state,
+                      trans_threshold: counterparty_company.trans_threshold
+                  });
+  
+                  await counterpartyCompany.save();
+                  companyData.push (counterpartyCompany);
+                  // submitDataToTaxPro(counterpartyCompany, bearerToken, false);
+
+                  // await Promise.resolve(submitDataToTaxPro(counterpartyCompany, bearerToken, false))
+                  // .then(response => 
+                      
+                  //     Vat.findOne({agent_tin: counterpartyCompany.agent_tin} && {trx_id: counterpartyCompany.trx_id})
+                  //     .then(vatFound =>{
+                  //     vatFound.taxpro_trans_id = trans_id;
+                  //     vatFound.data_submitted = 1; 
+                  //     vatFound.save();
+  
+                  //     console.log('Done Executing counterparty');
+                  // }));
+
+
+              // if (trade_type == 'Buy') {
+                  // Get Vat for Sec
+                  vatPercent = 7.5;
+                  const sec = new Vat ({
+                          trx_id: trxId,
+                          transaction_ref: oneData.Trade_No,
+                          cac_id: sec_company.cac_id,
+                          transaction_type: oneData.Board,
+                          trade_type: 'Buy',
+                          tin: sec_company.tin,
+                          agent_tin: sec_company.tin, 
+                          beneficiary_tin: sec_company.tin,
+                          currency: 1,
+                          transaction_amount: totalAmount,
+                          vat: secVat,
+                          base_amount: secFee,
+                          total_amount: secFee + secVat,
+  
+                          lower_vat: secVat,
+                          upper_vat: secVat,
+                          total_amount_lower: secFee + secVat,
+                          total_amount_upper: secVat + secVat,
+  
+                          other_taxes: 0,
+                          company_name: sec_company.company_name, //main_company.company_name,
+                          company_code: sec_company.company_code, // counterparty_company.company_code,
+                          sector: sector,
+                          sub_sector: 'SEC',
+                          item_description: 'Stock trading',
+                          transaction_date: oneData.Trade_Time,
+                          data_submitted: 0,
+                          vat_rate: vatPercent,
+                          vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                          item_id: trxId + '3',
+                          earning_type: 'Fee',
+                          region: sec_company.region,
+                          state: sec_company.state,
+                          trans_threshold: sec_company.trans_threshold
+                      });
+
+                      await sec.save();      
+                      companyData.push (sec);
+                    
+              // }
+
+               // ********For sell orders*********
+              //  if (trade_type == 'Sell') {
+                  // Get Vat for NGX
+                  vatPercent = 7.5;
+                  const ngx = new Vat ({
+                      trx_id: trxId,
+                      transaction_ref: oneData.Trade_No,
+                      cac_id: ngx_company.cac_id,
+                      transaction_type: oneData.Board,
+                      trade_type: 'Sell',
+                      tin: ngx_company.tin,
+                      agent_tin: ngx_company.tin, 
+                      beneficiary_tin: ngx_company.tin,
+                      currency: 1,
+                      transaction_amount: totalAmount,
+                      vat: ngxVat,
+                      base_amount: ngxFee,
+                      total_amount: ngxFee + ngxVat,
+
+                      lower_vat: ngxVat,
+                      upper_vat: ngxVat,
+                      total_amount_lower: ngxFee + ngxVat,
+                      total_amount_upper: ngxVat + ngxVat,
+
+                      other_taxes: 0,
+                      company_name: ngx_company.company_name, //main_company.company_name,
+                      company_code: ngx_company.company_code, // counterparty_company.company_code,
+                      sector: sector,
+                      sub_sector: 'NGX',
+                      item_description: 'Stock trading',
+                      transaction_date: oneData.Trade_Time,
+                      data_submitted: 0,
+                      vat_rate: vatPercent,
+                      vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                      item_id: trxId + '4',
+                      earning_type: 'Fee',
+                      region: ngx_company.region,
+                      state: ngx_company.state,
+                      trans_threshold: ngx_company.trans_threshold
+                  });
+  
+                  await ngx.save();    
+                  companyData.push (ngx);
+                  // submitDataToTaxPro(ngx, bearerToken, false);         
+                  
+                  // await Promise.resolve(submitDataToTaxPro(ngx, bearerToken, false))
+                  // .then(response => 
+                      
+                  //     Vat.findOne({agent_tin: ngx.agent_tin} && {trx_id: ngx.trx_id})
+                  //     .then(vatFound =>{
+                  //     vatFound.taxpro_trans_id = trans_id;
+                  //     vatFound.data_submitted = 1; 
+                  //     vatFound.save();
+  
+                  //     console.log('Done Executing ngx');
+                  // }));   
+                  
+              // Get Vat for CSCS
+              vatPercent = 7.5;
+              const cscs = new Vat ({
+                  trx_id: trxId,
+                  transaction_ref: oneData.Trade_No,
+                  cac_id: cscs_company.cac_id,
+                  transaction_type: oneData.Board,
+                  trade_type: 'Sell',
+                  tin: cscs_company.tin,
+                  agent_tin: cscs_company.tin, 
+                  beneficiary_tin: cscs_company.tin,
+                  currency: 1,
+                  transaction_amount: totalAmount,
+                  vat: cscsVat,
+                  base_amount: cscsFee,
+                  total_amount: cscsFee + cscsVat,
+
+                  lower_vat: cscsVat,
+                  upper_vat: cscsVat,
+                  total_amount_lower: cscsFee + cscsVat,
+                  total_amount_upper: cscsVat + cscsVat,
+
+                  other_taxes: 0,
+                  company_name: cscs_company.company_name, //main_company.company_name,
+                  company_code: cscs_company.company_code, // counterparty_company.company_code,
+                  sector: sector,
+                  sub_sector: 'CSCS',
+                  item_description: 'Stock trading',
+                  transaction_date: oneData.Trade_Time,
+                  data_submitted: 0,
+                  vat_rate: vatPercent,
+                  vat_status: 0, //Status: 0: vatable, 1: zero-rated, 2: vat exempt
+                  item_id: trxId + '5',
+                  earning_type: 'Fee',
+                  region: cscs_company.region,
+                  state: cscs_company.state,
+                  trans_threshold: cscs_company.trans_threshold
+              });
+
+              await cscs.save();            
+              companyData.push (cscs); 
+              // submitDataToTaxPro(cscs, bearerToken, false);      
+
+              
+              // await Promise.resolve(submitDataToTaxPro(cscs, bearerToken, false))
+              //     .then(response => 
+                      
+              //         Vat.findOne({agent_tin: cscs.agent_tin} && {trx_id: cscs.trx_id})
+              //         .then(vatFound =>{
+              //         vatFound.taxpro_trans_id = trans_id;
+              //         vatFound.data_submitted = 1; 
+              //         vatFound.save();
+  
+              //         console.log('Done Executing cscs');
+              //     }));            
+              
+              // }
+
+              
+
+              // console.log('record::' + dat + ', Trx ID::' + trxId);
+          //     res.status(201).json({
+          //         message: 'Transaction saved successfully',
+          //         data: {trx_id: trxId,
+                     
+          //             remarks: remarks      }
+          // })
+      // })
+              
+          // .catch(err => {
+          //     if (!err.statusCode) {
+          //         err.statusCode = 500;
+          //     }
+          //     next(err); // pass the error to the next error handling function
+          // });
+         
+  
+// }
+}
+
+// 
 
 // Move data to TraxPro every 5 seconds
-cron.schedule("*/5 * * * * *", function() {
-  if (companyData.length > 0) {
-    // console.log('Coy Data: ' + companyData[0]);
-    console.log('Coy ********: ' + companyData[0].company_name);
-    console.log('Coy ID********: ' + companyData[0]._id);
-    console.log('Coy Data length:: ' + companyData.length);
+// rem 2
+// cron.schedule("*/5 * * * * *", function() {
+//   if (companyData.length > 0) {
+//     // console.log('Coy Data: ' + companyData[0]);
+//     console.log('Coy ********: ' + companyData[0].company_name);
+//     console.log('Coy ID********: ' + companyData[0]._id);
+//     console.log('Coy Data length:: ' + companyData.length);
 
-    // Get the data to TaxPro, and update the Local Db
-    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
-      submitDataToTaxPro(companyData[0], bearerToken, false);
-    }
+//     // Get the data to TaxPro, and update the Local Db
+//     if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+//       submitDataToTaxPro(companyData[0], bearerToken, false);
+//     }
 
-  }else{
-    console.log('No data found!');
-  } 
+//   }else{
+//     console.log('No data found!');
+//   } 
   
-  })
+//   })
 
+  // End of Rem 2
  
   // Taxpro Offline handler: checks for data that could not be uploaded to Taxpro realtime and upload them
-cron.schedule("0 */59 */12 * * *", function() { // 2:05 am
+
+  // rem 3 
+  cron.schedule("0 23 * * *", function() { // @ 23:00 pm every day
   console.log('Daily Data Mop-up'); 
     mopupData();
 })
 
+
+// End of Rem 3
   
 // Call Tin Verification from here to validate new companies
+
+
+// TIN VERIFICATION Offline handler:
+
+cron.schedule("0 */23 */19 * * *", function() { // 2:05 am
+  console.log('Daily TIN Data Mop-up'); 
+    mopupTinVERIFICATION();
+})
+
+//  rem 1
+cron.schedule("* * * * *", function () {
+  console.log("---------------------");
+  // console.log("Checking login every 1 min" + ':: Token:'); 
+
+  console.log('STATUS: '+ taxProloginStatus);
+
+  if (!taxProloginStatus) {
+      logonToTaxpro(testLoginOptions);
+      
+  } else {console.log('TaxPro Login active!, Token:: ' + bearerToken );}
+});
+
+// end of Rem 1
+
+
+//  rem NGX_01: Check Login
+cron.schedule("* * * * *", function () {
+console.log("---------------------");
+// console.log("Checking NGX login every 1 min" + ngxBearerToken); 
+
+console.log('STATUS: '+ ngxLoginStatus);
+
+if (!ngxLoginStatus) {
+    logonToNGX();
+    
+} else {console.log('NGX Login active!, Token:: ' + ngxBearerToken );}
+});
+
+
+
+// rem NGX_02: Reset parameters
+cron.schedule("0 1 * * *", function() { // @ 1:00 am every day
+console.log('Reset NGX data call parameters');
+resetNgxDataPickupParameters()
+})
+
+
+// *****Check with the NGX to ask for the data for the day
+// cron.schedule("*/30 * * * *", function() { // every 30 min
+cron.schedule("57 16 * * *", function() { // @ 1:00 am every day
+if (!dataApiCalledForTheDay) {
+  console.log('Call NGX for data');
+  getDataFromNGX();
+} else {
+  console.log('Data already gotten for today.');
+}
+
+})
+
+
+// **** PROCESS THE DATA FOR VAT GENERATION
+// cron.schedule("*/5 * * * *", function() { // every 30 min
+// if (ngxResponseData.length > 0) {
+//   console.log('Processing data for vat');
+//   const qty = ngxResponseData[0].qty;
+//   const price = ngxResponseData[0].price;
+//   // processDataIntoVats(qty, price);
+// } else {
+//   console.log('No data is waiting!.');
+// }
+
+// })
+
+
+// **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 10 secs");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+
+  
+  // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 2");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+
+    // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 3");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+
+    // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 4");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+
+      // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 5");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+      // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 6");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+      // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 7");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } // else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+      // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 8");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+
+
+      // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  // console.log("testing 1 sec 9");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } //else {
+    //   console.log("No Data to process!");
+    // }
+  
+  });
+  
+
+      // **** PROCESS THE DATA FOR VAT GENERATION
+cron.schedule("*/1 * * * * *", function () {
+  console.log("testing 1 sec 10");
+  if (ngxResponseData.length > 0) {
+
+      const x = ngxResponseData.splice(0, 1);
+      processDataIntoVats(x[0]);
+      console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
+      console.log('Qty:: ' + x[0].Qty)
+    } else {
+      console.log("No Data to process!");
+    }
+  
+  });
+
+  // Rem 4
 cron.schedule("*/10 * * * * *", function() { // 2:05 am
   if (tinVerificationData.length > 0) {
     console.log('TIN Data length:: ' + tinVerificationData.length);
@@ -691,17 +1686,10 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
   
 })
 
-// TIN VERIFICATION Offline handler:
-cron.schedule("0 */23 */19 * * *", function() { // 2:05 am
-  console.log('Daily TIN Data Mop-up'); 
-    mopupTinVERIFICATION();
-})
-
-
-
-
 // job.start();
 
+// logonToNGX();
+getDataFromNGX();
 
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 
@@ -709,8 +1697,6 @@ mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTo
 .then(result => {
     console.log('app running on port 8081');
     app.listen(process.env.PORT || 8081);
-    console.log('Em:' + process.env.TAXPRO_EMAIL_LIVE);
-    console.log('PS: ' +  process.env.TAXPRO_PASSWORD_LIVE);
 })
 .catch(err => {
     console.log('Error: ' + err);

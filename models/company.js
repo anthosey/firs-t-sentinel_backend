@@ -111,6 +111,12 @@ const companySchema = new mongoose.Schema({
    },
     tin_verified: {
         type: Number
+    },
+    operating_licence_type: {
+        type: String
+    },
+    proprietary_account: {
+        type: String
     }
 
     

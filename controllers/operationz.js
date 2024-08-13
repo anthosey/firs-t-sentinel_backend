@@ -7,6 +7,7 @@ const Transactionz = require('../models/transactionz');
 const Tlogs = require('../models/tlogs');
 const Vat = require('../models/vat');
 
+
 var https = require('https');
 var http = require('http');
 // const cron = require("node-cron"); // Cron jobs
@@ -516,7 +517,7 @@ exports.addTransaction = async (req, res, next) => {
                             state: sec_company.state,
                             trans_threshold: sec_company.trans_threshold
                         });
-        
+        21
                         await sec.save();      
                         companyData.push (sec);
                       

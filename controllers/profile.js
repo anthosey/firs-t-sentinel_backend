@@ -5,6 +5,7 @@ const Company = require('../models/company');
 const User = require('../models/user');
 const Individual = require('../models/personal');
 const Transactionz = require('../models/transactionz');
+const NegotiatedDeal = require('../models/negotiated_deal');
 
 exports.getCompanies = (req, res, next) => { 
     // console.log('Filter:: ' + tempFilter);
@@ -92,7 +93,9 @@ exports.addCompany = (req, res, next) => {
     const taxpayer_address = req.body.taxpayer_address;
     const tax_office_id = req.body.tax_office_id;
     const tax_office_address = req.body.tax_office_address;
-    
+    const operating_licence_type = req.body.operating_licence_type;
+    const proprietary_account = req.body.proprietary_account;
+
             const company = new Company({
                 cac_id: cac_id,
                 company_name: company_name,
@@ -115,7 +118,9 @@ exports.addCompany = (req, res, next) => {
                 taxpayer_name: taxpayer_name,
                 taxpayer_address: taxpayer_address,
                 tax_office_id: tax_office_id,
-                tax_office_address: tax_office_address
+                tax_office_address: tax_office_address,
+                operating_licence_type: operating_licence_type,
+                proprietary_account: proprietary_account
                 
             });
             
@@ -206,6 +211,46 @@ exports.addCompany = (req, res, next) => {
         
 }
 
+
+exports.addNegotiatedDeal = (req, res, next) => {
+    console.log('We GOT hia::');
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed! this error');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+    const company_code = req.body.company_code;
+    const company_name = req.body.company_name;    
+    const customer_account_no = req.body.customer_account_no;
+    const negotiated_rate = req.body.negotiated_rate;
+    
+    NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no})
+    .then(acctFound =>{
+       if(!acctFound) {
+
+        const negotiatedDeal = new NegotiatedDeal({
+                
+            company_code: company_code,
+            company_name: company_name,
+            customer_account_no: customer_account_no,
+            negotiated_rate: negotiated_rate
+        });
+        
+        negotiatedDeal.save()
+        .then(data => {
+            res.status(201).json({message: 'Data submitted successfully'});
+        })
+       } else {
+        res.status(202).json({message: 'Negotiated rate for this customer already exists in your profile'});
+       }    
+               
+})
+}
 
 exports.updateCompany = (req, res, next) => {
     

@@ -5,6 +5,7 @@ const profileController = require('../controllers/profile');
 // const Client = require('../models/client');
 const Company = require('../models/company');
 const Personal = require('../models/personal');
+const NegotiatedDeal = require('../models/negotiated_deal');
 
 
 // const isAuth = require('../middleware/isAuth');
@@ -164,6 +165,33 @@ router.post('/forcedeletecompany', [
 
 ], profileController.deleteCompanyWithTransactions);
 
+
+// NEGOTIATED DEALS REGISTER
+router.post('/addnegotiateddeal', [
+    body('company_code')
+    .trim()
+        .not()
+        .isEmpty()
+        .withMessage('company code can not be empty'),
+
+        body('company_name')
+        .trim()
+            .not()
+            .isEmpty()
+            .withMessage('Company name can not be empty'),
+
+            body('customer_account_no')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Provide the customers account number'),
+
+            body('negotiated_rate')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Negotiated rate is compulsory')
+], profileController.addNegotiatedDeal);
 
 
 // ****PERSONAL RECORDS*******

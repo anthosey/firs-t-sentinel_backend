@@ -3,3 +3,8 @@ node_modules
 env1.env
 envVar.env
 testing.txt
+test-env.js
+test-server.js
+test-server2.js
+test-server3.js
+test-server4.js
