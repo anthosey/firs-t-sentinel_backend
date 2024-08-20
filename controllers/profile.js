@@ -221,6 +221,7 @@ exports.addCompanyWithImagefile = (req, res, next) => {
     var msg;
     var token;
     if (!errors.isEmpty()) {
+        console.log(errors);
         const error = new Error('Validation failed! this error');
         error.statusCode = 422;
         error.data = errors.array();
@@ -256,7 +257,7 @@ exports.addCompanyWithImagefile = (req, res, next) => {
 
      // Validate picture
      if (!req.file) {
-        const error = new Error('No image provided.');
+        const error = new Error('No image provided too 4.');
         error.statusCode = 422;
         throw error;
     }

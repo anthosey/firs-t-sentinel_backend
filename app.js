@@ -54,42 +54,55 @@ global.dataApiCalledForTheDay = false;
 global.provider_code = '';
 let ext;
 // This is for image upload capabilities using multer middleware
-const fileStorage = multer.diskStorage({
+// const fileStorage = multer.diskStorage({
     
-  destination: (req, file, cb) => {
-      cb(null, 'images');
+//   destination: (req, file, cb) => {
+//       cb(null, 'images');
+//   },
+
+//   filename: (req, file, cb) => {
+//       if (file.mimetype === 'image/png') {
+//           ext = '.png';
+//       }
+
+//       if (file.mimetype === 'image/jpg') {
+//           ext = '.jpg';
+//       }
+
+//       if (file.mimetype === 'image/jpeg') {
+//           ext = '.jpeg';
+//       }
+
+//     //   cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname + ext);
+//       cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname);
+//       // cb(null, file.originalname + ext);
+//   }
+// });
+
+// const fileFilter = (req, file, cb) => {
+//   if (
+//       file.mimetype === 'image/png' ||
+//       file.mimetype === 'image/jpg' ||
+//       file.mimetype === 'image/jpeg'
+//   ) {
+//       cb(null, true);
+//   } else {
+//       cb(null, false);
+//   }
+// }
+
+
+// Set up Multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, 'uploads/');
   },
-
-  filename: (req, file, cb) => {
-      if (file.mimetype === 'image/png') {
-          ext = '.png';
-      }
-
-      if (file.mimetype === 'image/jpg') {
-          ext = '.jpg';
-      }
-
-      if (file.mimetype === 'image/jpeg') {
-          ext = '.jpeg';
-      }
-
-    //   cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname + ext);
-      cb(null, new Date().toISOString().replace(/:/g, '-') + '_' + file.originalname);
-      // cb(null, file.originalname + ext);
+  filename: function (req, file, cb) {
+      cb(null, Date.now() + path.extname(file.originalname)); // Appending extension
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  if (
-      file.mimetype === 'image/png' ||
-      file.mimetype === 'image/jpg' ||
-      file.mimetype === 'image/jpeg'
-  ) {
-      cb(null, true);
-  } else {
-      cb(null, false);
-  }
-}
+const upload = multer({ storage: storage });
 
 const sessionConfig = {
     secret: process.env.SESSION_SECRET,
@@ -108,7 +121,8 @@ const sessionConfig = {
   }
   
   app.use(session(sessionConfig));
-  app.use('/images', express.static(path.join(__dirname, 'images')));
+  // app.use('/images', express.static(path.join(__dirname, 'images')));
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
   
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -119,33 +133,18 @@ const sessionConfig = {
     next();
 });
 
-// app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(bodyParser.json()); // application/json
-app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('image'));
-
-// For Express versionn above 4.16, bodyParser has been included
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-
-
-// parse application/x-www-form-urlencoded
-// app.use(bodyParser.urlencoded({ extended: false }))
-
-// parse application/json
-// app.use(bodyParser.json())
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-
-
-
 app.use(defaultRoutes);
 app.use('/user', userRoutes);
 app.use('/profile', profileRoutes);
 app.use('/operationz', operationzRoutes);
+
+const uploadRoutes = require('./routes/imgcoydata');
+app.use('/imgcompany', uploadRoutes(upload));
 
 app.use((error, req, res, next) => {
     console.log('Error: ' + error.message);
@@ -239,8 +238,6 @@ async function logonToTaxpro() {
       
    
     });
-    // console.log('Login successful:', response.data);
-    // console.log('Login successful:', response.data.token);
     token = response.data.token;
     bearerToken = response.data.token;
     taxProloginStatus = true;
@@ -1489,8 +1486,8 @@ resetNgxDataPickupParameters()
 
 
 // *****Check with the NGX to ask for the data for the day
-// cron.schedule("*/30 * * * *", function() { // every 30 min
-cron.schedule("57 16 * * *", function() { // @ 1:00 am every day
+// cron.schedule("*/30 * * * *", function() { 
+cron.schedule("57 16 * * *", function() { // @ 4:57Pm every day
 if (!dataApiCalledForTheDay) {
   console.log('Call NGX for data');
   getDataFromNGX();
@@ -1502,17 +1499,17 @@ if (!dataApiCalledForTheDay) {
 
 
 // **** PROCESS THE DATA FOR VAT GENERATION
-// cron.schedule("*/5 * * * *", function() { // every 30 min
-// if (ngxResponseData.length > 0) {
-//   console.log('Processing data for vat');
-//   const qty = ngxResponseData[0].qty;
-//   const price = ngxResponseData[0].price;
-//   // processDataIntoVats(qty, price);
-// } else {
-//   console.log('No data is waiting!.');
-// }
+cron.schedule("*/5 * * * *", function() { // every 30 min
+if (ngxResponseData.length > 0) {
+  console.log('Processing data for vat');
+  const qty = ngxResponseData[0].qty;
+  const price = ngxResponseData[0].price;
+  // processDataIntoVats(qty, price);
+} else {
+  console.log('No data is waiting!.');
+}
 
-// })
+})
 
 
 // **** PROCESS THE DATA FOR VAT GENERATION

@@ -346,6 +346,7 @@ exports.userLogin = (req, res, next) => {
     const mobile = req.body.username;
     const password = req.body.password
     let loadedUser;
+    console.log('user: ' + email + ', Pass: ' + password);
     User.findOne({email: email})
     .then(user => {
         if (!user) {

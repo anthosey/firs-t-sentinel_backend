@@ -6491,6 +6491,3 @@ console.log('MM: ' + mm + ', YYYY: ' + year + ', TIN: ' + tin);
         console.log('Unable to login to TaxPro');
     }
 }
-
-
-
