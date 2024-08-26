@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const multer = require('multer');
 const defaultRoutes = require('./routes/default');
 const userRoutes = require('./routes/user');
 const profileRoutes = require('./routes/profile');
@@ -11,16 +10,20 @@ const Vat = require ('./models/vat')
 const Company = require('./models/company');
 const Ngxdata = require('./models/ngxdata');
 const NegotiatedDeal = require('./models/negotiated_deal');
+
 var http = require('http');
 var https = require('https');
-// require("dotenv").config();
-// require('dotenv').config();
 const path = require('path');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const qs = require('qs');
 
 const dns = require('dns');
+
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const aws = require('aws-sdk');
 
 // Set DNS servers
 dns.setServers(['8.8.8.8', '8.8.4.4']); // Google's public DNS servers
@@ -92,17 +95,40 @@ let ext;
 // }
 
 
-// Set up Multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-      cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-      cb(null, Date.now() + path.extname(file.originalname)); // Appending extension
+//******  Set up Multer for file uploads Local disk
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//       cb(null, 'uploads/');
+//   },
+//   filename: function (req, file, cb) {
+//       cb(null, Date.now() + path.extname(file.originalname)); // Appending extension
+//   }
+// });
+// const upload = multer({ storage: storage });
+
+//*******End of Local disk file upload
+
+// Configure the S3 client
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   }
 });
 
-const upload = multer({ storage: storage });
+// Set up Multer-S3 for file uploads
+const upload = multer({
+  storage: multerS3({
+      s3: s3,
+      bucket: process.env.AWS_S3_BUCKET_NAME, // Set your S3 bucket name
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      // acl: 'public-read', // File access level (optional)
+      key: function (req, file, cb) {
+          cb(null, Date.now().toString() + path.extname(file.originalname)); // Appending extension
+      }
+  })
+});
 
 const sessionConfig = {
     secret: process.env.SESSION_SECRET,
@@ -121,7 +147,6 @@ const sessionConfig = {
   }
   
   app.use(session(sessionConfig));
-  // app.use('/images', express.static(path.join(__dirname, 'images')));
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
   
   app.use((req, res, next) => {
@@ -230,6 +255,7 @@ const ngxGrantType = process.env.NGX_GRANTTYPE;
 const ngxDataUrl = process.env.NGX_DATA_URL;
 
 async function logonToTaxpro() {
+  console.log('Im here now');
   let token = '';
   try {
     const response = await axios.post(apiUrl, {
@@ -359,12 +385,12 @@ function duplicateRecords(records, targetCount) {
 
 // Get Data:
 async function getDataFromNGX() {
-  // const trDate = setTradeDate() ;
+  // const trDate = setTradeDate() ; // For real
   const trDate = '2022-06-06'; //set static for test purpose
   provider_code = "NGX01";
   // Check if token exists
   // if (ngxLoginStatus) {
-  ngxBearerToken = 'FQPeiVQ6YnKIfy7ejDKCVQwiym19VDkGC-dry-NwgGX1U-AZlyMiMTlnBNuI7BJRkaEi_k_4Yh3CQvJhcCyIe2_7NWpQYJYTBw9xHHdTlKMi_OfN9MmYWKR0T--Hb9rnnFN6gi8Iek0qaICVgQqsgj3Oa7XadEfEACLmltsZVGj_grDdCY4Pp9UPnexBXtYSpyRKOfk6IOFlFQg2wdcf1NB5Yn83Td-i3oPhZ-rtx40'
+  ngxBearerToken = 'kHks0dW2f_TXt5yXmEw3gFhIZSuGKceJKk9wZ-Ld0DlEWR7D4Fbpzzv7cMecmAK3jHGIMIIQDra8fcrg70G5AQ3Epd5rBEiYT8Bk08-cZNJ_TIf4fwfsZHBHGXjaJ0kFnv4SJRjrRy8ojVdkJp802quIyrqUHwEGNzKoxyRQsbX-7wOuW_Wtu7SiSFPzQ0nRWdX1wvjxBpGHkdB4CTM7G9CM5Ja7pF5sMqB20eevSXI'
     console.log('got Token:' + ngxBearerToken);
     axios.get(ngxDataUrl, {
       headers: {
@@ -647,12 +673,19 @@ function validateTinFromFIRS(tin) {
 };
 
 
-function submitDataToTaxPro(dataInput, token, live) {
+function submitDataToTaxPro_old(dataInput, token, live) {
   let data = '';
   let dataOptions;
   const dataIn = JSON.stringify({
-      agent_tin: dataInput.agent_tin,
-      beneficiary_tin: dataInput.beneficiary_tin,
+
+    //**** Remove the comment here before going live
+      // agent_tin: dataInput.agent_tin,
+      // beneficiary_tin: dataInput.beneficiary_tin,
+// ***These are for testing purpose only
+
+      agent_tin: '00000000-0000',
+      beneficiary_tin: '00000000-0000',
+
       currency: dataInput.currency,
       trans_date: dataInput.transaction_date,
       // trans_date: '2023-08-10',
@@ -668,10 +701,10 @@ function submitDataToTaxPro(dataInput, token, live) {
     });
       
     console.log('DATAIN:: ' + dataIn);
-  if (live) { // Data Options for Live Environment
+  // if (live) { // Data Options for Live Environment
       dataOptions = {
           hostname: process.env.TAXPRO_HOSTNAME,
-          path: '/vat-aggr/transaction',
+          // path: '/vat-aggr/transaction',
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -680,20 +713,20 @@ function submitDataToTaxPro(dataInput, token, live) {
       },
       };
 
-  } else{ // Data Options for Test Environment
-   dataOptions = {
-      hostname: process.env.TAXPRO_HOSTNAME,
-      path: '/vat-aggr/transaction',
-      method: 'POST',
-      port: process.env.TAXPRO_PORT,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-        'Content-Length': Buffer.byteLength(dataIn),
-  },
-  };
+  // } else{ // Data Options for Test Environment
+  //  dataOptions = {
+  //     hostname: process.env.TAXPRO_HOSTNAME,
+  //     path: '/vat-aggr/transaction',
+  //     method: 'POST',
+  //     port: process.env.TAXPRO_PORT,
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Authorization': 'Bearer ' + token,
+  //       'Content-Length': Buffer.byteLength(dataIn),
+  // },
+  // };
 
-  }
+  // }
    
   
   const request = http.request(dataOptions, (response) => {
@@ -757,20 +790,88 @@ function submitDataToTaxPro(dataInput, token, live) {
   
 };
 
+async function submitDataToTaxPro(dataInput, token) {
+  hostUrl = process.env.TAXPRO_HOSTNAME;
+  // console.log('-->>' + dataInput);
 
-// Rem 7
-function mopupData() {
- Vat.find({taxpro_trans_id: null})
- .then(data => {
-  console.log('Length:: ' + data.length);
-  // console.log('Data:: ' + data[0]._id);
-  companyData.splice(0,0, ...data); //Add found data to the array
 
- })
+  const dataIn = {
 
+    //**** Remove the comment here before going live
+      // agent_tin: dataInput.agent_tin,
+      // beneficiary_tin: dataInput.beneficiary_tin,
+// ***These are for testing purpose only
+
+      agent_tin: '00000000-0000',
+      beneficiary_tin: '00000000-0000',
+
+      currency: dataInput.currency,
+      trans_date: dataInput.transaction_date,
+      // trans_date: '2023-08-10',
+      base_amount: dataInput.base_amount,
+      vat_calculated: dataInput.vat,
+      total_amount: dataInput.total_amount,
+      other_taxes: dataInput.other_taxes,
+      vat_rate: dataInput.vat_rate,
+      vat_status: dataInput.vat_status,
+      item_description: dataInput.item_description,
+      vendor_transaction_id: dataInput.item_id,
+      integrator_id: 27
+    };
+
+    console.log('token Call: ' + token);
+    // const newToken = '4901816|igqEL7uzX684moDpf8V5Vj4hCeoTLiqo9Kn2xmbx'
+    // axios.post(hostUrl, {headers: {
+    //     'Authorization': `Bearer ${token}`,
+    //     'Content-Type': 'application/json' // Set the content type to JSON
+    //   }},
+    //   dataIn)
+
+      const headers = {
+        'Authorization': `Bearer ${token}`, // Replace with your access token
+        'Content-Type': 'application/json' // Set the content type to JSON
+      };
+
+      axios.post(hostUrl, dataIn, { headers })
+
+    .then(response => {
+      
+      console.log('Trans id b4:: ' +  response.data.trans_id);
+      const trans_id = response.data.trans_id;
+          console.log('Trans id:: '+ trans_id);
+
+          // Update record in as sent in the local db
+          
+          Vat.findOne({item_id: dataInput.item_id})
+          // Vat.findOne({_id: dataInput._id})
+              .then(vatFound =>{
+                console.log('Trans id2:: '+ trans_id);
+                  vatFound.taxpro_trans_id = trans_id;
+                  vatFound.data_submitted = 1; 
+                  return vatFound.save();
+              })
+              .then(vat => {
+                  console.log('Vat Data:: ' + vat);
+                  companyData.splice(0,1); // Start from the first, remove 1 element
+                  // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+
+              })
+              .catch(err => {
+                  if (!err.statusCode) {
+                      err.statusCode = 500;
+                  }
+                  // next(err); // pass the error to the next error handling function
+              });
+
+          // return trans_id;
+          console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+    
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
 }
 
-// End of Rem 7
 
 // Rem 6
 function mopupTinVERIFICATION() {
@@ -1402,38 +1503,54 @@ async function processDataIntoVats(oneData) {
 // }
 }
 
-// 
+ 
+
+// Rem 7
+function mopupData() {
+  Vat.find({taxpro_trans_id: null})
+  .then(data => {
+   console.log('Length:: ' + data.length);
+   // console.log('Data:: ' + data[0]._id);
+   companyData.splice(0,0, ...data); //Add found data to the array
+ 
+  })
+ 
+ }
+ // End of Rem 7
+ 
 
 // Move data to TraxPro every 5 seconds
 // rem 2
-// cron.schedule("*/5 * * * * *", function() {
-//   if (companyData.length > 0) {
-//     // console.log('Coy Data: ' + companyData[0]);
-//     console.log('Coy ********: ' + companyData[0].company_name);
-//     console.log('Coy ID********: ' + companyData[0]._id);
-//     console.log('Coy Data length:: ' + companyData.length);
-
-//     // Get the data to TaxPro, and update the Local Db
-//     if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
-//       submitDataToTaxPro(companyData[0], bearerToken, false);
-//     }
-
-//   }else{
-//     console.log('No data found!');
-//   } 
+cron.schedule("*/5 * * * * *", function() {
   
-//   })
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
 
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
   // End of Rem 2
- 
-  // Taxpro Offline handler: checks for data that could not be uploaded to Taxpro realtime and upload them
+
+// Taxpro Offline handler: checks for data that could not be uploaded to Taxpro realtime and upload them
 
   // rem 3 
-  cron.schedule("0 23 * * *", function() { // @ 23:00 pm every day
+  // cron.schedule("0 23 * * *", function() { // @ 23:00 pm every day
+  // ***** = mn hr day mn day of the week. * means 'every' i.e * in the position of day means everyday 
+  cron.schedule("51 19 * * *", function() { // @ 23:00 pm every day
   console.log('Daily Data Mop-up'); 
     mopupData();
 })
-
 
 // End of Rem 3
   
@@ -1498,18 +1615,18 @@ if (!dataApiCalledForTheDay) {
 })
 
 
-// **** PROCESS THE DATA FOR VAT GENERATION
-cron.schedule("*/5 * * * *", function() { // every 30 min
-if (ngxResponseData.length > 0) {
-  console.log('Processing data for vat');
-  const qty = ngxResponseData[0].qty;
-  const price = ngxResponseData[0].price;
-  // processDataIntoVats(qty, price);
-} else {
-  console.log('No data is waiting!.');
-}
+// // **** PROCESS THE DATA FOR VAT GENERATION
+// cron.schedule("*/5 * * * *", function() { // every 30 min
+// if (ngxResponseData.length > 0) {
+//   console.log('Processing data for vat');
+//   const qty = ngxResponseData[0].qty;
+//   const price = ngxResponseData[0].price;
+//   // processDataIntoVats(qty, price);
+// } else {
+//   console.log('No data is waiting!.');
+// }
 
-})
+// })
 
 
 // **** PROCESS THE DATA FOR VAT GENERATION
@@ -1686,7 +1803,7 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
 // job.start();
 
 // logonToNGX();
-getDataFromNGX();
+getDataFromNGX();  //******To be removed when going live
 
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 
@@ -1694,6 +1811,7 @@ mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTo
 .then(result => {
     console.log('app running on port 8081');
     app.listen(process.env.PORT || 8081);
+    logonToTaxpro();
 })
 .catch(err => {
     console.log('Error: ' + err);
