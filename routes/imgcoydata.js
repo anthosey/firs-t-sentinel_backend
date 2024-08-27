@@ -26,7 +26,95 @@ function generateToken(n) {
 
 module.exports = (upload) => {
     // Create the upload endpoint
-    router.post('/addcompany', upload.single('image_url'), (req, res, next) => {
+    router.post('/updatecompany', upload.single('image_url'), (req, res, next) => {
+
+    
+    // const errors = validationResult(req);
+    // var msg;
+    // var token;
+    // if (!errors.isEmpty()) {
+    //     const error = new Error('Validation failed!');
+    //     error.statusCode = 422;
+    //     error.data = errors.array();
+    //     throw error;
+    // }
+
+    var imageUrl = null
+     // Validate picture
+     if (req.file) {
+        imageUrl = req.file.location;    
+    }
+
+    
+    // End picture validation
+    console.log('img url:: ' +  imageUrl)
+
+
+    // token = generateToken(6);
+    const cac_id = req.body.cac_id;
+    const company_name = req.body.company_name;
+    const company_address = req.body.company_address;
+    const tin = req.body.tin;
+    const sector = req.body.sector;
+    const company_head = req.body.company_head;
+    const email = req.body.email;
+    const phone = req.body.phone;
+    const mobile = req.body.mobile;
+    
+    
+    const incorporation_date = req.body.incorporation_date;
+    const established_date = req.body.established_date;
+    const brief_history = req.body.brief_history;
+    const extra_note = req.body.extra_note;
+
+    const company_code = req.body.company_code;
+    const postal_address = req.body.postal_address;
+    const corporate_website = req.body.corporate_website;
+
+    
+    Company.findOne({cac_id: cac_id})
+    .then(coyFound =>{
+        coyFound.cac_id = cac_id;
+        
+        coyFound.company_name = company_name;
+        coyFound.company_address = company_address;
+        coyFound.tin = tin;
+        coyFound.sector = sector;
+        coyFound.company_head = company_head;
+        coyFound.email = email;
+        coyFound.phone = phone;
+        coyFound.mobile = mobile;
+        if(imageUrl) {
+            coyFound.image_url= imageUrl;
+        }
+        coyFound.incorporation_date = incorporation_date;
+        coyFound.established_date = established_date;
+        coyFound.brief_history = brief_history;
+        coyFound.extra_note = extra_note;
+
+        coyFound.company_code = company_code;
+        coyFound.postal_address = postal_address;
+        coyFound.corporate_website = corporate_website;
+
+
+
+        return coyFound.save();
+    })
+    .then(coy => {
+        res.status(201).json({message: 'Company updated successfully', data: coy});
+
+    })
+    .catch(err => {
+        console.log('The Error:: ' + err);
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    });
+
+})
+
+router.post('/addcompany', upload.single('image_url'), (req, res, next) => {
 
     const cac_id = req.body.cac_id;
     const company_name = req.body.company_name;
@@ -178,100 +266,5 @@ console.log('img url:: ' +  imageUrl)
        
     });
 
-    return router;
-};
-
-
-module.exports = (upload) => {
-    // Create the upload endpoint
-    router.post('/updatecompany', upload.single('image_url'), (req, res, next) => {
-
-    
-    // const errors = validationResult(req);
-    // var msg;
-    // var token;
-    // if (!errors.isEmpty()) {
-    //     const error = new Error('Validation failed!');
-    //     error.statusCode = 422;
-    //     error.data = errors.array();
-    //     throw error;
-    // }
-
-    var imageUrl = null
-     // Validate picture
-     if (req.file) {
-        imageUrl = req.file.location;    
-    }
-
-    
-    
-
-    // End picture validation
-    console.log('img url:: ' +  imageUrl)
-
-
-    // token = generateToken(6);
-    const cac_id = req.body.cac_id;
-    const company_name = req.body.company_name;
-    const company_address = req.body.company_address;
-    const tin = req.body.tin;
-    const sector = req.body.sector;
-    const company_head = req.body.company_head;
-    const email = req.body.email;
-    const phone = req.body.phone;
-    const mobile = req.body.mobile;
-    
-    
-    const incorporation_date = req.body.incorporation_date;
-    const established_date = req.body.established_date;
-    const brief_history = req.body.brief_history;
-    const extra_note = req.body.extra_note;
-
-    const company_code = req.body.company_code;
-    const postal_address = req.body.postal_address;
-    const corporate_website = req.body.corporate_website;
-
-    
-    Company.findOne({cac_id: cac_id})
-    .then(coyFound =>{
-        coyFound.cac_id = cac_id;
-        
-        coyFound.company_name = company_name;
-        coyFound.company_address = company_address;
-        coyFound.tin = tin;
-        coyFound.sector = sector;
-        coyFound.company_head = company_head;
-        coyFound.email = email;
-        coyFound.phone = phone;
-        coyFound.mobile = mobile;
-        if(imageUrl) {
-            coyFound.image_url= imageUrl;
-        }
-        coyFound.incorporation_date = incorporation_date;
-        coyFound.established_date = established_date;
-        coyFound.brief_history = brief_history;
-        coyFound.extra_note = extra_note;
-
-        coyFound.company_code = company_code;
-        coyFound.postal_address = postal_address;
-        coyFound.corporate_website = corporate_website;
-
-
-
-        return coyFound.save();
-    })
-    .then(coy => {
-        res.status(201).json({message: 'Company updated successfully', data: coy});
-
-    })
-    .catch(err => {
-        console.log('The Error:: ' + err);
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err); // pass the error to the next error handling function
-    });
-
-})
 return router;
 }
