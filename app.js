@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', true); //True ensures that all queries must not allow the fields that are not in the schema to run
 const bodyParser = require('body-parser');
 const defaultRoutes = require('./routes/default');
 const userRoutes = require('./routes/user');
@@ -385,12 +386,12 @@ function duplicateRecords(records, targetCount) {
 
 // Get Data:
 async function getDataFromNGX() {
-  // const trDate = setTradeDate() ; // For real
-  const trDate = '2022-06-06'; //set static for test purpose
+  const trDate = setTradeDate() ; // For real
+  // const trDate = '2022-06-06'; //set static for test purpose
   provider_code = "NGX01";
   // Check if token exists
-  // if (ngxLoginStatus) {
-  ngxBearerToken = 'kHks0dW2f_TXt5yXmEw3gFhIZSuGKceJKk9wZ-Ld0DlEWR7D4Fbpzzv7cMecmAK3jHGIMIIQDra8fcrg70G5AQ3Epd5rBEiYT8Bk08-cZNJ_TIf4fwfsZHBHGXjaJ0kFnv4SJRjrRy8ojVdkJp802quIyrqUHwEGNzKoxyRQsbX-7wOuW_Wtu7SiSFPzQ0nRWdX1wvjxBpGHkdB4CTM7G9CM5Ja7pF5sMqB20eevSXI'
+  if (ngxLoginStatus) {
+  // ngxBearerToken = 'e3pBb4WIth5JmYDQBlxIFbNxt0L4kZ60VlpG-O1IO-ByLv8AWWG-p5_CeWU0o60URaP-ltk_kI9Ctk-Bckl4CRGSZzCVYcUmRa173ilx4UtEze2_IMa9zaqMVV7uAsJn80I9b6w1K8UzSTP-EGr-vP-btjn8lQadbvE4S489doyfy9VlhP3ffzCoLZZJit1oAYOJ17X4dYEG3R9UivZTVi31zkDVYT-JqtqYOy541upgJb4LrwANnZYeivxL4iLu'
     console.log('got Token:' + ngxBearerToken);
     axios.get(ngxDataUrl, {
       headers: {
@@ -410,7 +411,7 @@ async function getDataFromNGX() {
       countData = response.data.length; 
       // ******Temporar Code for record duplication
       if (countData < 10000) {
-        duplicateRecords(response.data, 210)
+        duplicateRecords(response.data, 110)
       }
       // ******End of the temporary codes
       
@@ -454,10 +455,10 @@ async function getDataFromNGX() {
       dataApiCalledForTheDay = false; // Data was not called successfully
       console.error('Error:', error);
     });
-  // } else { //login to ngx
-  //   console.log('Login again: NGX');
-  //   logonToNGX()
-  // }
+  } else { //login to ngx
+    console.log('Login again: NGX');
+    logonToNGX()
+  }
   
 }
  
@@ -1520,7 +1521,7 @@ function mopupData() {
  
 
 // Move data to TraxPro every 5 seconds
-// rem 2
+// instance 1
 cron.schedule("*/5 * * * * *", function() {
   
   if (companyData.length > 0) {
@@ -1540,14 +1541,203 @@ cron.schedule("*/5 * * * * *", function() {
   } 
   
   })
-  // End of Rem 2
+
+  // instance 2
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 3
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 4
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 5
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 6
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 7
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 8
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 9
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+
+  // instance 10
+cron.schedule("*/5 * * * * *", function() {
+  
+  if (companyData.length > 0) {
+    console.log('Total Data waiting to go to TaxPro: ' + companyData.length)
+    // console.log('Coy Data: ' + companyData[0]);
+    console.log('Coy ********: ' + companyData[0].company_name);
+    console.log('Coy ID********: ' + companyData[0]._id);
+    console.log('Coy Data length:: ' + companyData.length);
+
+    // Get the data to TaxPro, and update the Local Db
+    if (!bearerToken) { taxProloginStatus;} else {  // Check Taxpro Login Status
+      submitDataToTaxPro(companyData[0], bearerToken);
+    }
+
+  }else{
+    console.log('No data found!');
+  } 
+  
+  })
+  // End of Move data to TaxPro
 
 // Taxpro Offline handler: checks for data that could not be uploaded to Taxpro realtime and upload them
 
   // rem 3 
   // cron.schedule("0 23 * * *", function() { // @ 23:00 pm every day
   // ***** = mn hr day mn day of the week. * means 'every' i.e * in the position of day means everyday 
-  cron.schedule("51 19 * * *", function() { // @ 23:00 pm every day
+  cron.schedule("3 2 * * *", function() { // @ 23:00 pm every day
   console.log('Daily Data Mop-up'); 
     mopupData();
 })
@@ -1558,8 +1748,7 @@ cron.schedule("*/5 * * * * *", function() {
 
 
 // TIN VERIFICATION Offline handler:
-
-cron.schedule("0 */23 */19 * * *", function() { // 2:05 am
+cron.schedule("5 2 * * *", function() { // 2:05 am
   console.log('Daily TIN Data Mop-up'); 
     mopupTinVERIFICATION();
 })
@@ -1603,8 +1792,7 @@ resetNgxDataPickupParameters()
 
 
 // *****Check with the NGX to ask for the data for the day
-// cron.schedule("*/30 * * * *", function() { 
-cron.schedule("57 16 * * *", function() { // @ 4:57Pm every day
+cron.schedule("57 16 * * *", function() { // @ 4:57Pm (57 16)every day
 if (!dataApiCalledForTheDay) {
   console.log('Call NGX for data');
   getDataFromNGX();
@@ -1803,7 +1991,7 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
 // job.start();
 
 // logonToNGX();
-getDataFromNGX();  //******To be removed when going live
+// getDataFromNGX();  //******To be removed when going live
 
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 

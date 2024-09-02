@@ -417,6 +417,27 @@ exports.addNegotiatedDeal = (req, res, next) => {
                
 })
 }
+        
+exports.getNegotiatedDealsByOwner = (req, res, next) => {
+    const coyCode = req.params.company_code;
+    // console.log('U ID::' + userId);
+    NegotiatedDeal.find({company_code: coyCode}, 'company_code company_name customer_account_no negotiated_rate')
+    .then(trxs => {
+        if (trxs) {
+            res.status(201).json({'message': 'Success', 'data': trxs });
+        } else {
+            res.status(201).json({'message':'No data found' });
+        }
+      
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })
+    
+}
 
 exports.updateCompany = (req, res, next) => {
     
