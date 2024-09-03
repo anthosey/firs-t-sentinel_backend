@@ -7,7 +7,7 @@ const Company = require('../models/company');
 const Personal = require('../models/personal');
 const NegotiatedDeal = require('../models/negotiated_deal');
 
-
+const isAuth = require('../middleware/isAuth');
 // const isAuth = require('../middleware/isAuth');
 
 // router.get('/drivers', isAuth, userController.getDrivers);
@@ -225,7 +225,7 @@ router.post('/forcedeletecompany', [
 
 
 // NEGOTIATED DEALS REGISTER
-router.post('/addnegotiateddeal', [
+router.post('/addnegotiateddeal', isAuth, [
     body('company_code')
     .trim()
         .not()
@@ -251,6 +251,14 @@ router.post('/addnegotiateddeal', [
                 .withMessage('Negotiated rate is compulsory')
 ], profileController.addNegotiatedDeal);
 
+router.post('/deletedeal', isAuth, [
+    body('customer_account_no')
+        .trim()
+        .not()
+        .isEmpty()
+        .withMessage('Customer account number is required')
+
+], profileController.deleteDeal);
 
 // ****PERSONAL RECORDS*******
 router.post('/addindividual', [

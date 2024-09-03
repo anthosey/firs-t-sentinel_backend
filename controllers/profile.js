@@ -600,6 +600,40 @@ exports.deleteCompany = (req, res, next) => {
     
 }
 
+exports.deleteDeal = (req, res, next) => {
+console.log('YEs Deal!!');
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed!');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+
+    const customer_account = req.body.customer_account_no;
+    console.log('Customer Account: ' + customer_account);
+    NegotiatedDeal.findOneAndDelete({customer_account_no: customer_account})
+        .then(found => {
+        res.status(200).json({message: 'Deal deleted successfully!'});
+        
+        // Document action
+
+        })
+        
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); // pass the error to the next error handling function
+    })
+    
+}
+
+
+
 
 exports.deleteCompanyWithTransactions = (req, res, next) => {
 
