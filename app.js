@@ -386,12 +386,12 @@ function duplicateRecords(records, targetCount) {
 
 // Get Data:
 async function getDataFromNGX() {
-  const trDate = setTradeDate() ; // For real
-  // const trDate = '2022-06-06'; //set static for test purpose
+  // const trDate = setTradeDate() ; // For real
+  const trDate = '2022-06-06'; //set static for test purpose
   provider_code = "NGX01";
   // Check if token exists
-  if (ngxLoginStatus) {
-  // ngxBearerToken = 'e3pBb4WIth5JmYDQBlxIFbNxt0L4kZ60VlpG-O1IO-ByLv8AWWG-p5_CeWU0o60URaP-ltk_kI9Ctk-Bckl4CRGSZzCVYcUmRa173ilx4UtEze2_IMa9zaqMVV7uAsJn80I9b6w1K8UzSTP-EGr-vP-btjn8lQadbvE4S489doyfy9VlhP3ffzCoLZZJit1oAYOJ17X4dYEG3R9UivZTVi31zkDVYT-JqtqYOy541upgJb4LrwANnZYeivxL4iLu'
+  // if (ngxLoginStatus) {
+  ngxBearerToken = '3n-mwD99coKi44n6ZRBluhztoNzG7ijXMghu__fdvnbJY5Z576BazjIxrHOGvXG9VeAvMY3hu8SbnUVnj3BIXTG9m5kpeeEpMkkS2kncmZ_Iv5BSCPA73e_NiNgS2_kKYjS-t4FPf213lXUy_fu40NiOpYQ8NMkXm7Gp2XIUlXT58d-IKQm42s6koFpJh7ROzhURu-02J1N66PUEVbrKJ4Cr1ziyuWc7PyBu2P1dfivh1jf2UKU3BxY0COUwz9Df'
     console.log('got Token:' + ngxBearerToken);
     axios.get(ngxDataUrl, {
       headers: {
@@ -410,9 +410,9 @@ async function getDataFromNGX() {
 
       countData = response.data.length; 
       // ******Temporar Code for record duplication
-      if (countData < 10000) {
-        duplicateRecords(response.data, 110)
-      }
+      // if (countData < 10000) {
+      //   duplicateRecords(response.data, 110)
+      // }
       // ******End of the temporary codes
       
       console.log('New Count: ' + ngxResponseData.length);
@@ -455,10 +455,10 @@ async function getDataFromNGX() {
       dataApiCalledForTheDay = false; // Data was not called successfully
       console.error('Error:', error);
     });
-  } else { //login to ngx
-    console.log('Login again: NGX');
-    logonToNGX()
-  }
+  // } else { //login to ngx
+  //   console.log('Login again: NGX');
+  //   logonToNGX()
+  // }
   
 }
  
@@ -1737,7 +1737,7 @@ cron.schedule("*/5 * * * * *", function() {
   // rem 3 
   // cron.schedule("0 23 * * *", function() { // @ 23:00 pm every day
   // ***** = mn hr day mn day of the week. * means 'every' i.e * in the position of day means everyday 
-  cron.schedule("3 2 * * *", function() { // @ 23:00 pm every day
+  cron.schedule("44 14 * * *", function() { // @ 23:00 pm every day
   console.log('Daily Data Mop-up'); 
     mopupData();
 })
@@ -1991,7 +1991,7 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
 // job.start();
 
 // logonToNGX();
-// getDataFromNGX();  //******To be removed when going live
+getDataFromNGX();  //******To be removed when going live
 
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 

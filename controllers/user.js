@@ -344,7 +344,9 @@ exports.userLogin = (req, res, next) => {
     console.log('Processing starts..');
     const email = req.body.username;
     const mobile = req.body.username;
-    const password = req.body.password
+    const password = req.body.password;
+    const test = req.params.test;
+    console.log('Test::' + test);
     let loadedUser;
     console.log('user: ' + email + ', Pass: ' + password);
     User.findOne({email: email})
@@ -402,9 +404,13 @@ exports.userLogin = (req, res, next) => {
                 
                 await tlogs.save();
                 var tin ='';
+                var coyCode = '';
+                var coyName = '';
                 if (loadedUser.usertype == 'company') {
                     const coy = await Company.findOne({email: email});
                     tin = coy.tin;
+                    coyCode = coy.company_code;
+                    coyName = coy.company_name;
                 }
                 
                 console.log('Log  created successfully!');
@@ -427,7 +433,9 @@ exports.userLogin = (req, res, next) => {
                                         mobile: loadedUser.mobile,
                                         firstname: loadedUser.firstname,
                                         userType: loadedUser.usertype,
-                                        tin: tin
+                                        tin: tin,
+                                        companyname: coyName,
+                                        companycode: coyCode
                                         // contactAddress: loadedUser.contactAddress,
                                      });
         })
