@@ -394,6 +394,7 @@ exports.addNegotiatedDeal = (req, res, next) => {
     const company_name = req.body.company_name;    
     const customer_account_no = req.body.customer_account_no;
     const negotiated_rate = req.body.negotiated_rate;
+
     
     NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no})
     .then(acctFound =>{
@@ -417,11 +418,63 @@ exports.addNegotiatedDeal = (req, res, next) => {
                
 })
 }
+ 
+exports.addNegotiatedDealBroad = (req, res, next) => {
+    console.log('We GOT hia::');
+    const errors = validationResult(req);
+    var msg;
+    var token;
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed! this error');
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+    }
+
+    const company_code = req.body.company_code;
+    const company_name = req.body.company_name;    
+    const customer_account_no = req.body.customer_account_no;
+    const negotiated_rate = req.body.negotiated_rate;
+    const trDay = req.body.trday;
+    const trMonth = req.body.trmonth;
+    const trYear = req.body.tryear;
+    const stock_symbol = req.body.stock_symbol;
+    var dealType = req.body.deal_type;
+    
+    dealType = dealType.toUpperCase();
+    
+    NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no, deal_type: 'ACCOUNT BOUND'})
+    .then(acctFound =>{
+       if(!acctFound) {
+
+        const negotiatedDeal = new NegotiatedDeal({
+                
+            company_code: company_code,
+            company_name: company_name,
+            customer_account_no: customer_account_no,
+            negotiated_rate: negotiated_rate,
+            trade_day: trDay,
+            trade_month: trMonth,
+            trade_year: trYear,
+            stock_symbol: stock_symbol,
+            deal_type: dealType,
+            active: 1
+        });
         
+        negotiatedDeal.save()
+        .then(data => {
+            res.status(201).json({message: 'Data submitted successfully'});
+        })
+       } else {
+        res.status(202).json({message: 'Negotiated rate for this customer already exists as account based in your profile'});
+       }    
+               
+})
+}
 exports.getNegotiatedDealsByOwner = (req, res, next) => {
     const coyCode = req.params.company_code;
     // console.log('U ID::' + userId);
-    NegotiatedDeal.find({company_code: coyCode}, 'company_code company_name customer_account_no negotiated_rate')
+    NegotiatedDeal.find({company_code: coyCode, active: 1}, 'company_code company_name customer_account_no negotiated_rate trade_day trade_month trade_year stock_symbol deal_type')
     .then(trxs => {
         if (trxs) {
             res.status(201).json({'message': 'Success', 'data': trxs });

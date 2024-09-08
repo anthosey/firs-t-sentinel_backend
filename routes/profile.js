@@ -251,6 +251,34 @@ router.post('/addnegotiateddeal', isAuth, [
                 .withMessage('Negotiated rate is compulsory')
 ], profileController.addNegotiatedDeal);
 
+
+router.post('/addnegotiateddealbroad', isAuth, [
+    body('company_code')
+    .trim()
+        .not()
+        .isEmpty()
+        .withMessage('company code can not be empty'),
+
+        body('company_name')
+        .trim()
+            .not()
+            .isEmpty()
+            .withMessage('Company name can not be empty'),
+
+            body('customer_account_no')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Provide the customers account number'),
+
+            body('negotiated_rate')
+                .trim()
+                .not()
+                .isEmpty()
+                .withMessage('Negotiated rate is compulsory')
+], profileController.addNegotiatedDealBroad);
+
+
 router.post('/deletedeal', isAuth, [
     body('customer_account_no')
         .trim()

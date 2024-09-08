@@ -12,6 +12,24 @@ const negotiated_dealSchema = new mongoose.Schema({
     },
     negotiated_rate: {
         type: Number
+    },
+    trade_day: {
+        type: Number
+    },
+    trade_month: {
+        type: Number
+    },
+    trade_year: {
+        type: Number
+    },
+    stock_symbol: {
+        type: String
+    },
+    deal_type: {
+        type: String
+    },
+    active: {
+        type: Number
     }
     
 }, { timestamps: true }
