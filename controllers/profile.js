@@ -442,8 +442,9 @@ exports.addNegotiatedDealBroad = (req, res, next) => {
     var dealType = req.body.deal_type;
     
     dealType = dealType.toUpperCase();
+    console.log('DEAL Type::' + dealType);
     
-    NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no, deal_type: 'ACCOUNT BOUND'})
+    NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no, deal_type: dealType})
     .then(acctFound =>{
        if(!acctFound) {
 
