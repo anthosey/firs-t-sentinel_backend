@@ -406,11 +406,13 @@ exports.userLogin = (req, res, next) => {
                 var tin ='';
                 var coyCode = '';
                 var coyName = '';
+                var imageUrl = '';
                 if (loadedUser.usertype == 'company') {
                     const coy = await Company.findOne({email: email});
                     tin = coy.tin;
                     coyCode = coy.company_code;
                     coyName = coy.company_name;
+                    imageUrl = coy.image_url;
                 }
                 
                 console.log('Log  created successfully!');
@@ -435,7 +437,8 @@ exports.userLogin = (req, res, next) => {
                                         userType: loadedUser.usertype,
                                         tin: tin,
                                         companyname: coyName,
-                                        companycode: coyCode
+                                        companycode: coyCode,
+                                        imageLink: imageUrl
                                         // contactAddress: loadedUser.contactAddress,
                                      });
         })
