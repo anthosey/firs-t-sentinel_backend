@@ -419,7 +419,26 @@ exports.addNegotiatedDeal = (req, res, next) => {
 })
 }
  
-exports.addNegotiatedDealBroad = (req, res, next) => {
+function getDateValidated(dd, mm, yy) {
+    var now = new Date();
+    const dayOfMonth = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    var resp = 'Not good';
+    console.log('Now: ' + dayOfMonth + '/' + month + '/' + year);
+    console.log('tR_Date : ' + dd + '/' + mm + '/' + yy);
+    if (dd >= dayOfMonth && mm >= month && yy >= year) {
+        console.log('All conditions are met.')
+        resp = 'All good';
+    } else {
+        console.log('One or more conditions are NOT met.');
+        resp = 'Not good';
+    } 
+    // resp  = resp + 'Now: ' + dayOfMonth + '/' + month + '/' + year;
+    return resp;
+}
+
+exports.addNegotiatedDealBroad = async (req, res, next) => {
     console.log('We GOT hia::');
     const errors = validationResult(req);
     var msg;
@@ -443,35 +462,191 @@ exports.addNegotiatedDealBroad = (req, res, next) => {
     
     dealType = dealType.toUpperCase();
     console.log('DEAL Type::' + dealType);
-    
-    NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no, deal_type: dealType})
-    .then(acctFound =>{
-       if(!acctFound) {
 
-        const negotiatedDeal = new NegotiatedDeal({
-                
-            company_code: company_code,
-            company_name: company_name,
-            customer_account_no: customer_account_no,
-            negotiated_rate: negotiated_rate,
-            trade_day: trDay,
-            trade_month: trMonth,
-            trade_year: trYear,
-            stock_symbol: stock_symbol,
-            deal_type: dealType,
-            active: 1
-        });
+
+
+    if (!company_code) { res.status(202).json({message: 'Please Provide the Comapany Code'});
+        return;
+    }
+
+    
+    if (!company_name) { res.status(202).json({message: 'Please Provide the Comapany Name'});
+        return;
+    }
+
+    if (!dealType) { res.status(202).json({message: 'Please select a deal type'});
+    return;
+    }
+
+    if (!negotiated_rate) { res.status(202).json({message: 'Please provide a rate for this deal'});
+    return;
+    }
+    
+
+    // Check The type of Deal
+    if (dealType == 'ACCOUNT BOUND') {
+       if (!customer_account_no) {console.log('Please Provide Customer Account Number')
+        res.status(202).json({message: 'Please Provide Customer Account Number'});
+        return;
+       }
+    } else if (dealType == 'STOCK BOUND')  {
+
+        if (!stock_symbol) {console.log('Please Provide the Stock Symbol for this deal')
+            res.status(202).json({message: 'Please Provide the Stock Symbol for this deal'});
+            return;
+           } 
+
+        if (!customer_account_no) {console.log('Please Provide the beneficiary account for this deal')
+            res.status(202).json({message: 'Please Provide the beneficiary account for this deal'});
+            return;
+           } 
+           
+        if (!trDay || !trMonth || !trYear) {
+            res.status(202).json({message: 'Please Provide a date to execute this deal'});
+            return;
+        } else {
+            const resp = getDateValidated(trDay, trMonth, trYear);
+            if (resp == 'Not good') {
+                res.status(202).json({message: 'Invalid Date'});
+                return;
+            }
+    
+        }
+
+    }
+
+//     // Check duplicate for account-bound deals
+//     NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no, deal_type: 'ACCOUNT-BOUND'})
+//     .then(acctFound =>{
+//        if(acctFound) {
+//         res.status(202).json({message: 'Negotiated rate for this customer already exists as account based in your profile'});
+//         return;
+
         
-        negotiatedDeal.save()
-        .then(data => {
-            res.status(201).json({message: 'Data submitted successfully'});
-        })
-       } else {
-        res.status(202).json({message: 'Negotiated rate for this customer already exists as account based in your profile'});
-       }    
-               
-})
+//        } else {
+//         // Check Duplicate of Stock-Bound
+//         NegotiatedDeal.findOne({company_code: company_code, deal_type: 'STOCK BOUND', customer_account_no: customer_account_no, stock_symbol: stock_symbol})
+//         .then (stockFound =>{
+//              if (stockFound) {
+//                 res.status(202).json({message: 'Negotiated rate on ' +  stock_symbol + ' has been set for this customer'});
+//             return
+//        } else{ // Check duplicate for company based
+//         NegotiatedDeal.findOne({company_code: company_code, deal_type: 'COMPANY BOUND'})
+//         .then (companyFound => {
+//             if (companyFound){
+//             res.status(202).json({message: 'General commission rate for this company has been set already.'});
+//             return;
+//             }
+//         })
+//        }
+//     })
+
+//       // Submit new Data
+//       const negotiatedDeal = new NegotiatedDeal({
+                
+//         company_code: company_code,
+//         company_name: company_name,
+//         customer_account_no: customer_account_no,
+//         negotiated_rate: negotiated_rate,
+//         trade_day: trDay,
+//         trade_month: trMonth,
+//         trade_year: trYear,
+//         stock_symbol: stock_symbol,
+//         deal_type: dealType,
+//         active: 1
+//     });
+    
+//     negotiatedDeal.save()
+//     .then(data => {
+//         res.status(201).json({message: 'Data submitted successfully'});
+//     })
+                
+// } 
+//     })
+try {
+    if (dealType == 'ACCOUNT BOUND') {
+        console.log('Deal Typ2::' + dealType);
+    // Check for account-bound deal
+    let acctFound = await NegotiatedDeal.findOne({
+        company_code: company_code,
+        customer_account_no: customer_account_no,
+        deal_type: 'ACCOUNT BOUND'
+      });
+  
+      if (acctFound) {
+        return res.status(202).json({
+          message: 'Negotiated rate for this customer already exists as account based in your profile'
+        });
+      }
+    } 
+    
+    if (dealType == 'STOCK BOUND') {
+
+        console.log('Deal Typ2::' + dealType);
+    // Check for stock-bound deal
+      let stockFound = await NegotiatedDeal.findOne({
+        company_code: company_code,
+        deal_type: 'STOCK BOUND',
+        customer_account_no: customer_account_no,
+        stock_symbol: stock_symbol,
+        trade_day: trDay,
+        trade_month: trMonth,
+        trade_year: trYear
+      });
+  
+      if (stockFound) {
+        return res.status(202).json({
+          message: 'Negotiated rate on ' + stock_symbol + ' has been set for this customer'
+        });
+      }
+    } 
+    
+    if (dealType == 'COMPANY BOUND') {
+        console.log('Deal Typ2::' + dealType);
+    // Check for company-bound deal
+      let companyFound = await NegotiatedDeal.findOne({
+        company_code: company_code,
+        deal_type: 'COMPANY BOUND'
+      });
+  
+      if (companyFound) {
+        return res.status(202).json({
+          message: 'General commission rate for this company has been set already.'
+        });
+      }
+    } 
+
+      // Submit new data
+      const negotiatedDeal = new NegotiatedDeal({
+        company_code: company_code,
+        company_name: company_name,
+        customer_account_no: customer_account_no,
+        negotiated_rate: negotiated_rate,
+        trade_day: trDay,
+        trade_month: trMonth,
+        trade_year: trYear,
+        stock_symbol: stock_symbol,
+        deal_type: dealType,
+        active: 1
+      });
+  
+      await negotiatedDeal.save();
+  
+      return res.status(201).json({
+        message: 'Data submitted successfully'
+      });
+      
+    // console.log('Data Processed!..');
+  
+    } catch (error) {
+      // Handle any errors that occurred during database operations
+      console.error(error);
+      return res.status(500).json({
+        message: 'An error occurred while processing your request'
+      });
+    }
 }
+
 exports.getNegotiatedDealsByOwner = (req, res, next) => {
     const coyCode = req.params.company_code;
     // console.log('U ID::' + userId);
