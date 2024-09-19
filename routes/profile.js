@@ -333,6 +333,6 @@ router.post('/deleteindividual', [
 
 router.get('/individuals', profileController.getIndividuals);
 router.get('/oneindividual/:email', profileController.getOneIndividual);
-router.get('/negotiateddealsbyowner/:company_code', profileController.getNegotiatedDealsByOwner);
+router.get('/negotiateddealsbyowner/:company_code',isAuth, profileController.getNegotiatedDealsByOwner);
 
 module.exports = router;

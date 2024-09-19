@@ -653,9 +653,9 @@ exports.getNegotiatedDealsByOwner = (req, res, next) => {
     NegotiatedDeal.find({company_code: coyCode, active: 1}, 'company_code company_name customer_account_no negotiated_rate trade_day trade_month trade_year stock_symbol deal_type')
     .then(trxs => {
         if (trxs) {
-            res.status(201).json({'message': 'Success', 'data': trxs });
+            res.status(200).json({'message': 'Success', 'data': trxs });
         } else {
-            res.status(201).json({'message':'No data found' });
+            res.status(200).json({'message':'No data found' });
         }
       
     })
