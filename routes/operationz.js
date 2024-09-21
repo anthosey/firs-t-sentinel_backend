@@ -16,6 +16,8 @@ router.get('/transaction/:trx_id', operationzController.getOneTransaction);
 
 router.get('/transactionsbyowner/:user_id', operationzController.getAllTransactionsByOwner);
 
+router.get('/transactionsbyownerwith2dates/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getAllTransactionsByOwnerWith2Dates);
+
 router.get('/ownerbytransaction/:trx_id', operationzController.getOwnerByTransaction);
 
 // router.get('/countrycode/:code', userController.getCountryCodes);

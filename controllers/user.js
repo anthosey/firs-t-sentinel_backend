@@ -407,12 +407,14 @@ exports.userLogin = (req, res, next) => {
                 var coyCode = '';
                 var coyName = '';
                 var imageUrl = '';
+                var cac_id ="";
                 if (loadedUser.usertype == 'company') {
                     const coy = await Company.findOne({email: email});
                     tin = coy.tin;
                     coyCode = coy.company_code;
                     coyName = coy.company_name;
                     imageUrl = coy.image_url;
+                    cac_id = coy.cac_id;
                 }
                 
                 console.log('Log  created successfully!');
@@ -438,7 +440,8 @@ exports.userLogin = (req, res, next) => {
                                         tin: tin,
                                         companyname: coyName,
                                         companycode: coyCode,
-                                        imageLink: imageUrl
+                                        imageLink: imageUrl,
+                                        cac_id: cac_id
                                         // contactAddress: loadedUser.contactAddress,
                                      });
         })

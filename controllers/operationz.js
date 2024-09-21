@@ -163,6 +163,55 @@ exports.getAllTransactionsByOwner = (req, res, next) => {
     
 }
 
+exports.getAllTransactionsByOwnerWith2Dates = (req, res, next) => { 
+    var dd1 = req.params.dd1;
+    var mm1 = req.params.mm1;
+    var yyyy1 = req.params.yyyy1;
+
+    var dd2 = req.params.dd2;
+    var mm2 = req.params.mm2;
+    var yyyy2 = req.params.yyyy2;
+    // const today = new Date();
+       
+    var page = +req.params.pagenumber;
+    var limit = +req.params.limit;
+    if (!page || isNaN(page)) page = 1;
+    if (!limit || isNaN(limit)) limit = 5;
+
+    var firstDate = new Date(Date.UTC(yyyy1, mm1, dd1, 00, 00, 00));
+    var lastDate = new Date(Date.UTC(yyyy2, mm2, dd2, 00, 00, 00));
+    firstDate.setHours(01,00);
+    lastDate.setHours(23,59);
+
+    
+        Vat.find({'createdAt': {
+            $gte: firstDate, $lte: lastDate }},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id createdAt')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort('-createdAt')
+        .then(async trxs => {
+
+            const count = await Vat.count({'createdAt': {
+                $gte: firstDate, $lte: lastDate }});
+            
+            if(trxs) {
+                console.log('Count:' + count);
+            }
+
+            var allPages = 0;
+            if (count) allPages = Math.ceil(count/limit);
+
+            res.status(200).json({message: 'success', data: trxs, currentPage: page, totalPages: allPages});
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); // pass the error to the next error handling function
+        })    
+  
+}
+
 exports.getOwnerByTransaction = (req, res, next) => {
     const trxId = req.params.trx_id;
     // const userId = req.params.user_id;
