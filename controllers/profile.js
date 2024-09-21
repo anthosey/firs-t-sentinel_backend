@@ -484,12 +484,12 @@ exports.addNegotiatedDealBroad = async (req, res, next) => {
     
 
     // Check The type of Deal
-    if (dealType == 'ACCOUNT BOUND') {
+    if (dealType == 'ACCOUNT BOUND' || dealType == 'ACCOUNT_BOUND') {
        if (!customer_account_no) {console.log('Please Provide Customer Account Number')
         res.status(202).json({message: 'Please Provide Customer Account Number'});
         return;
        }
-    } else if (dealType == 'STOCK BOUND')  {
+    } else if (dealType == 'STOCK BOUND' || dealType == 'STOCK_BOUND')  {
 
         if (!stock_symbol) {console.log('Please Provide the Stock Symbol for this deal')
             res.status(202).json({message: 'Please Provide the Stock Symbol for this deal'});
@@ -564,13 +564,13 @@ exports.addNegotiatedDealBroad = async (req, res, next) => {
 // } 
 //     })
 try {
-    if (dealType == 'ACCOUNT BOUND') {
+    if (dealType == 'ACCOUNT BOUND' || dealType == 'ACCOUNT_BOUND') {
         console.log('Deal Typ2::' + dealType);
     // Check for account-bound deal
     let acctFound = await NegotiatedDeal.findOne({
         company_code: company_code,
         customer_account_no: customer_account_no,
-        deal_type: 'ACCOUNT BOUND'
+        deal_type: 'ACCOUNT_BOUND'
       });
   
       if (acctFound) {
@@ -580,13 +580,13 @@ try {
       }
     } 
     
-    if (dealType == 'STOCK BOUND') {
+    if (dealType == 'STOCK BOUND' || dealType == 'STOCK_BOUND') {
 
         console.log('Deal Typ2::' + dealType);
     // Check for stock-bound deal
       let stockFound = await NegotiatedDeal.findOne({
         company_code: company_code,
-        deal_type: 'STOCK BOUND',
+        deal_type: 'STOCK_BOUND',
         customer_account_no: customer_account_no,
         stock_symbol: stock_symbol,
         trade_day: trDay,
@@ -601,12 +601,12 @@ try {
       }
     } 
     
-    if (dealType == 'COMPANY BOUND') {
+    if (dealType == 'COMPANY BOUND' || dealType == 'COMPANY_BOUND') {
         console.log('Deal Typ2::' + dealType);
     // Check for company-bound deal
       let companyFound = await NegotiatedDeal.findOne({
         company_code: company_code,
-        deal_type: 'COMPANY BOUND'
+        deal_type: 'COMPANY_BOUND'
       });
   
       if (companyFound) {

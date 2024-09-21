@@ -391,7 +391,7 @@ async function getDataFromNGX() {
   provider_code = "NGX01";
   // Check if token exists
   // if (ngxLoginStatus) {
-  ngxBearerToken = '3n-mwD99coKi44n6ZRBluhztoNzG7ijXMghu__fdvnbJY5Z576BazjIxrHOGvXG9VeAvMY3hu8SbnUVnj3BIXTG9m5kpeeEpMkkS2kncmZ_Iv5BSCPA73e_NiNgS2_kKYjS-t4FPf213lXUy_fu40NiOpYQ8NMkXm7Gp2XIUlXT58d-IKQm42s6koFpJh7ROzhURu-02J1N66PUEVbrKJ4Cr1ziyuWc7PyBu2P1dfivh1jf2UKU3BxY0COUwz9Df'
+  ngxBearerToken = 'OL6bu5genqoxePAc8uq8KRJgYY96Ty4UK9sSHP0QnPC-asilKB_dJhKID8_kqO2eMC-GSyy2H7c_XqWAGnhnN35WR5e38C132yv09fEAVOzONCzwrsK5aJ1u_YC7ziqO8MFz-wAOFe7G4N8hZYLeN7RJOBI3Hzz4LQ3aR1ZAcPo9zwGzNz1HSdX2luhW2zPsBlz-Lq7Me9r1t6X0svdEOAqg4SzSGOviSgcAr0sJtx0'
     console.log('got Token:' + ngxBearerToken);
     axios.get(ngxDataUrl, {
       headers: {
@@ -988,7 +988,7 @@ async function processDataIntoVats(oneData) {
   var counter_party_code = oneData.SellFirmCode;
   var volume = oneData.Qty;
   var price = oneData.Price;
-
+  var stock = oneData.security;
   const trx_ref_provider = oneData.Trade_No;
   // const user_id = req.body.user_id;
   // const personal_id = req.body.personal_id;
@@ -1036,49 +1036,6 @@ async function processDataIntoVats(oneData) {
       {'company_code': 'NGX'}
   );
 
-  // console.log('COY1:: ' + main_company.company_name + ', region: ' + main_company.region + ', State: ' + main_company.state);
-  // console.log('COY2:: ' + counterparty_company.company_name + ', region: ' + counterparty_company.region + ', State: ' + counterparty_company.state);
-  // console.log('SEC:: ' + sec_company.company_name + ', region: ' + sec_company.region + ', State: ' + sec_company.state);
-  // console.log('COY1:: ' + ngx_company.company_name + ', region: ' + ngx_company.region + ', State: ' + ngx_company.state);
-  // console.log('COY1:: ' + cscs_company.company_name + ', region: ' + cscs_company.region + ', State: ' + cscs_company.state);
-  
-
-
-  // const vat = (+req.body.trx_value * 7.5)/100;
-  
-  
-  // if (cac_id) user_id = cac_id;
-  // if (personal_id) user_id = personal_id;
-
-      // const transaction = new Transactionz({
-      //     trx_ref_provider: trx_ref_provider,
-      //     trx_id: trxId,
-      //     cac_id: main_company.cac_id,
-      //     user_id: main_company.cac_id,
-      //     company_name: main_company.company_name,
-      //     sector: sector,
-      //     // sub_sector: sub_sector,
-      //     trx_type: trx_type,
-      //     trade_type: trade_type,
-      //     cscs_number: cscs_number,
-      //     beneficiary_name: beneficiary_name,
-      //     stock_symbol: stock_symbol,
-      //     price: price,
-      //     volume: volume,
-      //     counter_party_company_code: counter_party_code,
-      //     counter_party_company_name: counterparty_company.company_name,
-      //     provider_code: provider_code,
-      //     trx_value: trx_value,
-      //     remarks: remarks,
-      //     counter_party_name: counter_party_beneficiary_name,
-      //     counter_party_cscs_number: counter_party_cscs
-
-                      
-      //     });
-          
-      //     transaction.save()
-           
-      // async dat => {
 
               var totalAmount = oneData.Qty * oneData.Price;
               var lowerCommission = 0;
@@ -1101,9 +1058,9 @@ async function processDataIntoVats(oneData) {
                 vat = 0;
               } else {
 
-                // Check if its a negotiated deal account
-                
-                var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": main_company.company_code, "customer_account_no": oneData.Buy_Trading_Account })
+                // CHECK FOR NEGOTIATED DEAL
+                // - Stock-Bound
+                var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": main_company.company_code, "customer_account_no": oneData.Buy_Trading_Account, "deal_type": "STOCK_BOUND", "stock_symbol": stock, "active": 1 })
                 if (itIsNegDeal) {
                   // Use the negotiated rate
                   var rate = itIsNegDeal.negotiated_rate;
@@ -1111,12 +1068,35 @@ async function processDataIntoVats(oneData) {
                   vat = (commission * vatPercent)/100;
                   status = 0;
                 } else {
-                  // Maintain normal rates
-                  upperCommission = (1.35 * totalAmount)/100;
-                  upperVat = (upperCommission * vatPercent)/100;
-                  status = 0;
 
-                  vat = upperVat;
+                    // - Account Bound
+                    var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": main_company.company_code, "customer_account_no": oneData.Buy_Trading_Account, "deal_type": "ACCOUNT_BOUND", "active": 1 })
+                    if (itIsNegDeal) {
+                      // Use the negotiated rate
+                      var rate = itIsNegDeal.negotiated_rate;
+                      var commission = (rate * totalAmount)/100;
+                      vat = (commission * vatPercent)/100;
+                      status = 0;
+                    } else {
+                        // - Company Bound
+                        var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": main_company.company_code, "customer_account_no": oneData.Buy_Trading_Account, "deal_type": "COMPANY_BOUND", "active": 1 })
+                        if (itIsNegDeal) {
+                         // Use the negotiated rate
+                         var rate = itIsNegDeal.negotiated_rate;
+                         var commission = (rate * totalAmount)/100;
+                         vat = (commission * vatPercent)/100;
+                         status = 0;
+                      } else {
+                              // Maintain normal rates
+                              upperCommission = (1.35 * totalAmount)/100;
+                              upperVat = (upperCommission * vatPercent)/100;
+                              status = 0;
+
+                              vat = upperVat;
+                      }
+                    } 
+
+                  
                 }
               }
 
@@ -1238,35 +1218,49 @@ async function processDataIntoVats(oneData) {
                 status = 1;
                 vat = 0;
                } else {
- 
-                 // Check if its a negotiated deal account
-                 
-                 var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": counterparty_company.company_code, "customer_account_no": oneData.Sell_Trading_Account })
-                 if (itIsNegDeal) {
-                   // Use the negotiated rate
-                  //  var rate = itIsNegDeal.negotiated_rate;
-                  //  upperCommission = (rate * totalAmount)/100;
-                  //  upperVat = (upperCommission * vatPercent)/100;
-                  //  status = 0;
 
-                   var rate = itIsNegDeal.negotiated_rate;
-                   var commission = (rate * totalAmount)/100;
-                   vat = (commission * vatPercent)/100;
-                   status = 0;
-                   
-                 } else {
-                   // Maintain normal rates
-                  //  upperCommission = (1.35 * totalAmount)/100;
-                  //  upperVat = (upperCommission * vatPercent)/100;
-                  //  status = 0;
-
-                   upperCommission = (1.35 * totalAmount)/100;
-                   upperVat = (upperCommission * vatPercent)/100;
-                   status = 0;
- 
-                   vat = upperVat;
-                 }
-               }
+                  // CHECK FOR NEGOTIATED DEAL
+                  // - Stock-Bound
+                  var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": counterparty_company.company_code, "customer_account_no": oneData.Sell_Trading_Account, "deal_type": "STOCK_BOUND", "stock_symbol": stock, "active": 1 })
+                  if (itIsNegDeal) {
+                    // Use the negotiated rate
+                    var rate = itIsNegDeal.negotiated_rate;
+                    var commission = (rate * totalAmount)/100;
+                    vat = (commission * vatPercent)/100;
+                    status = 0;
+                  } else {
+  
+                      // - Account Bound
+                      var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": counterparty_company.company_code, "customer_account_no": oneData.Sell_Trading_Account, "deal_type": "ACCOUNT_BOUND", "active": 1 })
+                      if (itIsNegDeal) {
+                        // Use the negotiated rate
+                        var rate = itIsNegDeal.negotiated_rate;
+                        var commission = (rate * totalAmount)/100;
+                        vat = (commission * vatPercent)/100;
+                        status = 0;
+                      } else {
+                          // - Company Bound
+                          var itIsNegDeal = await NegotiatedDeal.findOne({"company_code": counterparty_company.company_code, "customer_account_no": oneData.Sell_Trading_Account, "deal_type": "COMPANY_BOUND", "active": 1 })
+                          if (itIsNegDeal) {
+                           // Use the negotiated rate
+                           var rate = itIsNegDeal.negotiated_rate;
+                           var commission = (rate * totalAmount)/100;
+                           vat = (commission * vatPercent)/100;
+                           status = 0;
+                        } else {
+                                // Maintain normal rates
+                                upperCommission = (1.35 * totalAmount)/100;
+                                upperVat = (upperCommission * vatPercent)/100;
+                                status = 0;
+  
+                                vat = upperVat;
+                        }
+                      } 
+  
+                    
+                  }
+                }
+  
  
               const counterpartyCompany = new Vat ({
                       trx_id: trxId,
