@@ -7,6 +7,9 @@ const Individual = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 const NegotiatedDeal = require('../models/negotiated_deal');
 
+const mongoose = require('mongoose');
+const { ObjectId } = mongoose.Types;
+
 exports.getCompanies = (req, res, next) => { 
     // console.log('Filter:: ' + tempFilter);
         Company.find()
@@ -834,17 +837,20 @@ console.log('YEs Deal!!');
     const errors = validationResult(req);
     var msg;
     var token;
-    if (!errors.isEmpty()) {
-        const error = new Error('Validation failed!');
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
-    }
-
-
-    const customer_account = req.body.customer_account_no;
-    console.log('Customer Account: ' + customer_account);
-    NegotiatedDeal.findOneAndDelete({customer_account_no: customer_account})
+    // if (!errors.isEmpty()) {
+    //     const error = new Error('Validation failed!');
+    //     error.statusCode = 422;
+    //     error.data = errors.array();
+    //     throw error;
+    // }
+    
+    const id = req.body.id;
+    console.log('ID received:' + id) ;
+    // const doc = await NegotiatedDeal.findById(ObjectId(id));
+    // const customer_account = req.body.customer_account_no;
+    
+    // NegotiatedDeal.findOneAndDelete({customer_account_no: customer_account})
+    NegotiatedDeal.findByIdAndDelete(ObjectId(id))
         .then(found => {
         res.status(200).json({message: 'Deal deleted successfully!'});
         

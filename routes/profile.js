@@ -255,14 +255,7 @@ router.post('/addnegotiateddeal', isAuth, [
 router.post('/addnegotiateddealbroad', isAuth, profileController.addNegotiatedDealBroad);
 
 
-router.post('/deletedeal', isAuth, [
-    body('customer_account_no')
-        .trim()
-        .not()
-        .isEmpty()
-        .withMessage('Customer account number is required')
-
-], profileController.deleteDeal);
+router.post('/deletedeal', isAuth, profileController.deleteDeal);
 
 // ****PERSONAL RECORDS*******
 router.post('/addindividual', [
