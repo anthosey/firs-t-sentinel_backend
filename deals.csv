@@ -1,0 +1,4 @@
+"""deal_type""",customer_account_no,"""negotiated_rate""","""stock_symbol""","""trade_day""","""trade_month""","""trade_year"""
+stock bound,20202010,0.5,Oando,25,9,2024
+company bound,,2.5,,,,
+account bound,20202010,0.85,,,,

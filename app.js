@@ -276,54 +276,6 @@ async function logonToTaxpro() {
 }
 
 
-
-
-// function logonToTaxpro_old(options) {
-//         let data = '';
-//         let token = '';
-
-//         const request = http.request(options, (response) => {
-//           response.setEncoding('utf8');
-      
-//           response.on('data', (chunk) => {
-//             data += chunk;
-//           });
-      
-//           response.on('end', () => {
-//             // console.log(data);
-//             try {
-//               newData = JSON.parse(data);
-//               bearerToken = newData.token;
-//               taxProloginStatus = true;
-//               console.log('Login to TaxPro successful!');
-//             }
-
-//             catch {
-//               taxProloginStatus = false;
-//               console.log('Unable to login to Taxpro');
-//             }
-
-//             finally {
-
-//             }
-            
-//           });
-//         });
-    
-    
-//         request.on('error', (error) => {
-//           console.error(error);
-//         });
-      
-//         // Write data to the request body
-//         request.write(testLoginData);
-      
-//         request.end();
-    
-        
-//       };
-
-
 // Login to NGX
 
 async function logonToNGX() {
@@ -674,122 +626,122 @@ function validateTinFromFIRS(tin) {
 };
 
 
-function submitDataToTaxPro_old(dataInput, token, live) {
-  let data = '';
-  let dataOptions;
-  const dataIn = JSON.stringify({
+// function submitDataToTaxPro_old(dataInput, token, live) {
+//   let data = '';
+//   let dataOptions;
+//   const dataIn = JSON.stringify({
 
-    //**** Remove the comment here before going live
-      // agent_tin: dataInput.agent_tin,
-      // beneficiary_tin: dataInput.beneficiary_tin,
-// ***These are for testing purpose only
+//     //**** Remove the comment here before going live
+//       // agent_tin: dataInput.agent_tin,
+//       // beneficiary_tin: dataInput.beneficiary_tin,
+// // ***These are for testing purpose only
 
-      agent_tin: '00000000-0000',
-      beneficiary_tin: '00000000-0000',
+//       agent_tin: '00000000-0000',
+//       beneficiary_tin: '00000000-0000',
 
-      currency: dataInput.currency,
-      trans_date: dataInput.transaction_date,
-      // trans_date: '2023-08-10',
-      base_amount: dataInput.base_amount,
-      vat_calculated: dataInput.vat,
-      total_amount: dataInput.total_amount,
-      other_taxes: dataInput.other_taxes,
-      vat_rate: dataInput.vat_rate,
-      vat_status: dataInput.vat_status,
-      item_description: dataInput.item_description,
-      vendor_transaction_id: dataInput.item_id,
-      integrator_id: 27
-    });
+//       currency: dataInput.currency,
+//       trans_date: dataInput.transaction_date,
+//       // trans_date: '2023-08-10',
+//       base_amount: dataInput.base_amount,
+//       vat_calculated: dataInput.vat,
+//       total_amount: dataInput.total_amount,
+//       other_taxes: dataInput.other_taxes,
+//       vat_rate: dataInput.vat_rate,
+//       vat_status: dataInput.vat_status,
+//       item_description: dataInput.item_description,
+//       vendor_transaction_id: dataInput.item_id,
+//       integrator_id: 27
+//     });
       
-    console.log('DATAIN:: ' + dataIn);
-  // if (live) { // Data Options for Live Environment
-      dataOptions = {
-          hostname: process.env.TAXPRO_HOSTNAME,
-          // path: '/vat-aggr/transaction',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-            'Content-Length': Buffer.byteLength(dataIn),
-      },
-      };
+//     console.log('DATAIN:: ' + dataIn);
+//   // if (live) { // Data Options for Live Environment
+//       dataOptions = {
+//           hostname: process.env.TAXPRO_HOSTNAME,
+//           // path: '/vat-aggr/transaction',
+//           method: 'POST',
+//           headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': 'Bearer ' + token,
+//             'Content-Length': Buffer.byteLength(dataIn),
+//       },
+//       };
 
-  // } else{ // Data Options for Test Environment
-  //  dataOptions = {
-  //     hostname: process.env.TAXPRO_HOSTNAME,
-  //     path: '/vat-aggr/transaction',
-  //     method: 'POST',
-  //     port: process.env.TAXPRO_PORT,
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': 'Bearer ' + token,
-  //       'Content-Length': Buffer.byteLength(dataIn),
-  // },
-  // };
+//   // } else{ // Data Options for Test Environment
+//   //  dataOptions = {
+//   //     hostname: process.env.TAXPRO_HOSTNAME,
+//   //     path: '/vat-aggr/transaction',
+//   //     method: 'POST',
+//   //     port: process.env.TAXPRO_PORT,
+//   //     headers: {
+//   //       'Content-Type': 'application/json',
+//   //       'Authorization': 'Bearer ' + token,
+//   //       'Content-Length': Buffer.byteLength(dataIn),
+//   // },
+//   // };
 
-  // }
+//   // }
    
   
-  const request = http.request(dataOptions, (response) => {
-    response.setEncoding('utf8');
+//   const request = http.request(dataOptions, (response) => {
+//     response.setEncoding('utf8');
 
-    response.on('data', (chunk) => {
-      data += chunk;
-    });
+//     response.on('data', (chunk) => {
+//       data += chunk;
+//     });
 
-    response.on('end', () => {
-      console.log('Returned Data:: ' + data);
+//     response.on('end', () => {
+//       console.log('Returned Data:: ' + data);
 
-      if (data === 'error msg') {
-          // Ask the Login process to reinitiate login
-          taxProloginStatus = false;
-      } else {
+//       if (data === 'error msg') {
+//           // Ask the Login process to reinitiate login
+//           taxProloginStatus = false;
+//       } else {
 
-          var newData = JSON.parse(data);
-          trans_id = newData.trans_id;
+//           var newData = JSON.parse(data);
+//           trans_id = newData.trans_id;
 
-          // Update record in as sent in the local db
+//           // Update record in as sent in the local db
           
-          Vat.findOne({item_id: dataInput.item_id})
-          // Vat.findOne({_id: dataInput._id})
-              .then(vatFound =>{
-                  vatFound.taxpro_trans_id = trans_id;
-                  vatFound.data_submitted = 1; 
-                  return vatFound.save();
-              })
-              .then(vat => {
-                  console.log('Vat Data:: ' + vat);
-                  companyData.splice(0,1); // Start from the first, remove 1 element
-                  // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
+//           Vat.findOne({item_id: dataInput.item_id})
+//           // Vat.findOne({_id: dataInput._id})
+//               .then(vatFound =>{
+//                   vatFound.taxpro_trans_id = trans_id;
+//                   vatFound.data_submitted = 1; 
+//                   return vatFound.save();
+//               })
+//               .then(vat => {
+//                   console.log('Vat Data:: ' + vat);
+//                   companyData.splice(0,1); // Start from the first, remove 1 element
+//                   // res.status(201).json({message: 'Data Transmitted successfully', data: vat});
 
-              })
-              .catch(err => {
-                  if (!err.statusCode) {
-                      err.statusCode = 500;
-                  }
-                  // next(err); // pass the error to the next error handling function
-              });
+//               })
+//               .catch(err => {
+//                   if (!err.statusCode) {
+//                       err.statusCode = 500;
+//                   }
+//                   // next(err); // pass the error to the next error handling function
+//               });
 
-          return trans_id;
-          console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
-      }
+//           return trans_id;
+//           console.log('Data submitted to TaxPro successfully! TRANS_ID:: ' + trans_id);
+//       }
       
-    });
-  });
+//     });
+//   });
 
 
-  request.on('error', (error) => {
-    console.error(error);
-    taxProloginStatus = false;
-  });
+//   request.on('error', (error) => {
+//     console.error(error);
+//     taxProloginStatus = false;
+//   });
 
-  // Write data to the request body
-  request.write(dataIn);
+//   // Write data to the request body
+//   request.write(dataIn);
 
-  request.end();
+//   request.end();
 
   
-};
+// };
 
 async function submitDataToTaxPro(dataInput, token) {
   hostUrl = process.env.TAXPRO_HOSTNAME;

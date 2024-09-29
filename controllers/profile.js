@@ -9,6 +9,8 @@ const NegotiatedDeal = require('../models/negotiated_deal');
 
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
+const fs = require('fs');
+
 
 exports.getCompanies = (req, res, next) => { 
     // console.log('Filter:: ' + tempFilter);
@@ -171,10 +173,6 @@ exports.addCompany = (req, res, next) => {
         
        
                 // Create a signup profile for the company
-
-
-
-
                 console.log('record::' + record);
                 tinVerificationData.push(company); //send data to the central waiting pool
                 res.status(201).json({
@@ -446,6 +444,9 @@ exports.addNegotiatedDealBroad = async (req, res, next) => {
     const errors = validationResult(req);
     var msg;
     var token;
+    // parseCSV('');
+    // return;
+    
     if (!errors.isEmpty()) {
         const error = new Error('Validation failed! this error');
         error.statusCode = 422;
@@ -518,54 +519,7 @@ exports.addNegotiatedDealBroad = async (req, res, next) => {
 
     }
 
-//     // Check duplicate for account-bound deals
-//     NegotiatedDeal.findOne({company_code: company_code, customer_account_no: customer_account_no, deal_type: 'ACCOUNT-BOUND'})
-//     .then(acctFound =>{
-//        if(acctFound) {
-//         res.status(202).json({message: 'Negotiated rate for this customer already exists as account based in your profile'});
-//         return;
 
-        
-//        } else {
-//         // Check Duplicate of Stock-Bound
-//         NegotiatedDeal.findOne({company_code: company_code, deal_type: 'STOCK BOUND', customer_account_no: customer_account_no, stock_symbol: stock_symbol})
-//         .then (stockFound =>{
-//              if (stockFound) {
-//                 res.status(202).json({message: 'Negotiated rate on ' +  stock_symbol + ' has been set for this customer'});
-//             return
-//        } else{ // Check duplicate for company based
-//         NegotiatedDeal.findOne({company_code: company_code, deal_type: 'COMPANY BOUND'})
-//         .then (companyFound => {
-//             if (companyFound){
-//             res.status(202).json({message: 'General commission rate for this company has been set already.'});
-//             return;
-//             }
-//         })
-//        }
-//     })
-
-//       // Submit new Data
-//       const negotiatedDeal = new NegotiatedDeal({
-                
-//         company_code: company_code,
-//         company_name: company_name,
-//         customer_account_no: customer_account_no,
-//         negotiated_rate: negotiated_rate,
-//         trade_day: trDay,
-//         trade_month: trMonth,
-//         trade_year: trYear,
-//         stock_symbol: stock_symbol,
-//         deal_type: dealType,
-//         active: 1
-//     });
-    
-//     negotiatedDeal.save()
-//     .then(data => {
-//         res.status(201).json({message: 'Data submitted successfully'});
-//     })
-                
-// } 
-//     })
 try {
     if (dealType == 'ACCOUNT BOUND' || dealType == 'ACCOUNT_BOUND') {
         console.log('Deal Typ2::' + dealType);

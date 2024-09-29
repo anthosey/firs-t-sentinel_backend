@@ -129,7 +129,6 @@ router.post('/addcompanywithimage', [
 ], profileController.addCompanyWithImagefile);
 
 
-
 router.post('/updatecompany', [
                 body('cac_id')
                 .trim()
