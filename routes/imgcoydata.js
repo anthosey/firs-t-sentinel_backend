@@ -146,7 +146,7 @@ async function processCsvDataForSubmission(dat, company_code){
         });
         
         if (acctFound) {
-            return {title: "Error", message: 'Negotiated rate for this customer already exists as account based in your profile'};
+            return {title: "Error", message: 'Negotiated rate for this customer: ' + customer_account_no + ' already exists as account bound in your profile'};
             // return res.status(202).json({
             // message: 'Negotiated rate for this customer already exists as account based in your profile'
             // });
@@ -168,7 +168,7 @@ async function processCsvDataForSubmission(dat, company_code){
         });
         
         if (stockFound) {
-            return {title: "Error", message: 'Negotiated rate on ' + stock_symbol + ' has been set for this customer'};
+            return {title: "Error", message: 'Negotiated rate on ' + stock_symbol + ' has been set for this customer: ' + customer_account_no};
             // return res.status(202).json({
             // message: 'Negotiated rate on ' + stock_symbol + ' has been set for this customer'
             // });
@@ -290,8 +290,6 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
      if (req.file) {
         csvUrl = req.file.location;    
     }
-
-
   
         // Create an empty array to hold the CSV data
         const results = [];
@@ -316,6 +314,12 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
                     j = 0;
                     for (let i = 0; i < results.length; i++){
                         // Submit new data
+                        let stockSymbol = results[i].stock_symbol.toUpperCase();
+                        let dealType = results[i].deal_type.toUpperCase();
+                        if (dealType == "COMPANY BOUND") dealType = "COMPANY_BOUND";
+                        if (dealType == "ACCOUNT BOUND") dealType = "ACCOUNT_BOUND";
+                        if (dealType == "STOCK BOUND") dealType = "STOCK_BOUND";
+
                         const negotiatedDeal = new NegotiatedDeal({
                             company_code: company_code,
                             company_name: company_name,
@@ -324,8 +328,8 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
                             trade_day: results[i].trDay,
                             trade_month: results[i].trMonth,
                             trade_year: results[i].trYear,
-                            stock_symbol: results[i].stock_symbol,
-                            deal_type: results[i].dealType,
+                            stock_symbol: stockSymbol,
+                            deal_type: dealType,
                             active: 1
                         });
                     
@@ -337,15 +341,13 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
                     return res.status(201).json({message: 'Csv file processed successfully. Data count: ' + j});
                 } else {
                     // 
-                    return res.status(421).json({message: resp.message});
+                    return res.status(202).json({message: resp.message});  
                 }
-                
-
-                // Now you can manipulate or use the data as needed
             });
         })
         .catch((error) => {
         console.error('Error fetching the CSV file:', error);
+        return res.status(501).json({message: "Processing error from the server"});
     });
     
 });

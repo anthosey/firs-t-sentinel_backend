@@ -145,7 +145,7 @@ exports.getAllTransactionsByOwner = (req, res, next) => {
     // const cacId = req.params.cac_id;
     const userId = req.params.user_id;
     // console.log('U ID::' + userId);
-    Vat.find({cac_id: userId}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
+    Vat.find({cac_id: userId}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat lower_vat sector sub_sector data_submitted taxpro_trans_id')
     .then(trxs => {
         if (trxs) {
             res.status(201).json({'message': 'Success', 'data': trxs });
