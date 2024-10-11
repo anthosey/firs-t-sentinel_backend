@@ -343,7 +343,7 @@ async function getDataFromNGX() {
   provider_code = "NGX01";
   // Check if token exists
   // if (ngxLoginStatus) {
-  ngxBearerToken = 'OL6bu5genqoxePAc8uq8KRJgYY96Ty4UK9sSHP0QnPC-asilKB_dJhKID8_kqO2eMC-GSyy2H7c_XqWAGnhnN35WR5e38C132yv09fEAVOzONCzwrsK5aJ1u_YC7ziqO8MFz-wAOFe7G4N8hZYLeN7RJOBI3Hzz4LQ3aR1ZAcPo9zwGzNz1HSdX2luhW2zPsBlz-Lq7Me9r1t6X0svdEOAqg4SzSGOviSgcAr0sJtx0'
+  ngxBearerToken = 'MdRJDqXnwKqGLddKWYMOlT9Ht5-wszCMdp7eVFK8D06Z1-pdM2-PoyDlqWGnLCJdcQFtp27ElNa6_QcyHmNYX1ipuRmMU6cUQWv1aO2Fd_v4ZwFjSzTTKid3jvJyWQgvbD0ljik8Kwadmn_8gvppRfIlryuENbQsVZXeIqQwMOcmocLpeAIDtrCtEga1hpHf0_3hdO0rj3Au4bz7fmskk7pc61j09OAa87n9u4F2IsQK3kfZbf6RdN8v8Xxf1biP'
     console.log('got Token:' + ngxBearerToken);
     axios.get(ngxDataUrl, {
       headers: {

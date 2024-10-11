@@ -62,8 +62,9 @@ function validateNumber(num) {
 }
 async function processCsvDataForSubmission(dat, company_code){
     const data = dat;
-    console.log('DAT::' +  data);
+    
     for (let i = 0; i < data.length; i++) {
+     
      
         let dealType = data[i].deal_type;
         let negotiated_rate = data[i].negotiated_rate;
@@ -72,7 +73,11 @@ async function processCsvDataForSubmission(dat, company_code){
         let trDay = data[i].trade_day;
         let trMonth = data[i].trade_month;
         let trYear = data[i].trade_year;
+      
 
+        
+
+        console.log('day:' + trDay + ', Month:' + trMonth + ', Year:' + trYear);
         
         if (!dealType) { 
             return {title: "Error", message: 'Please select a deal type'};
@@ -311,6 +316,7 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
                 console.log('Title::' + resp.title + ', msg:' + resp.message);
 
                 if (resp.title == "Success"){
+                   
                     j = 0;
                     for (let i = 0; i < results.length; i++){
                         // Submit new data
@@ -320,14 +326,16 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
                         if (dealType == "ACCOUNT BOUND") dealType = "ACCOUNT_BOUND";
                         if (dealType == "STOCK BOUND") dealType = "STOCK_BOUND";
 
+                        console.log('B4::day:' + results[i].trade_day + ', Month:' + results[i].trade_month + ', Year:' + results[i].trade_year);
+
                         const negotiatedDeal = new NegotiatedDeal({
                             company_code: company_code,
                             company_name: company_name,
                             customer_account_no: results[i].customer_account_no,
                             negotiated_rate: results[i].negotiated_rate,
-                            trade_day: results[i].trDay,
-                            trade_month: results[i].trMonth,
-                            trade_year: results[i].trYear,
+                            trade_day: results[i].trade_day,
+                            trade_month: results[i].trade_month,
+                            trade_year: results[i].trade_year,
                             stock_symbol: stockSymbol,
                             deal_type: dealType,
                             active: 1
