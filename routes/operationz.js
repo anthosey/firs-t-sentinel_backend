@@ -11,14 +11,14 @@ const Transactionz = require('../models/transactionz');
 const isAuth = require('../middleware/isAuth');
 
 // router.get('/drivers', isAuth, userController.getDrivers);
-router.get('/transactions', operationzController.getTransactionz);
-router.get('/transaction/:trx_id', operationzController.getOneTransaction);
+router.get('/transactions', isAuth, operationzController.getTransactionz);
+router.get('/transaction/:trx_id', isAuth, operationzController.getOneTransaction);
 
-router.get('/transactionsbyowner/:user_id', operationzController.getAllTransactionsByOwner);
+router.get('/transactionsbyowner/:user_id', isAuth,  operationzController.getAllTransactionsByOwner);
 
-router.get('/transactionsbyownerwith2dates/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getAllTransactionsByOwnerWith2Dates);
+router.get('/transactionsbyownerwith2dates/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', isAuth, operationzController.getAllTransactionsByOwnerWith2Dates);
 
-router.get('/ownerbytransaction/:trx_id', operationzController.getOwnerByTransaction);
+router.get('/ownerbytransaction/:trx_id', isAuth, operationzController.getOwnerByTransaction);
 
 // router.get('/countrycode/:code', userController.getCountryCodes);
 router.post('/addtransaction', isAuth, [
@@ -130,94 +130,94 @@ router.get('/vatthisyearbythreshold/:yyyy', isAuth, operationzController.getVatY
 
 
 // *****SECTORS-CAPITAL MARKET, INSURANCE *****
-router.get('/vattodaybysector/:sector', operationzController.getVatTodayBySector);
+router.get('/vattodaybysector/:sector', isAuth, operationzController.getVatTodayBySector);
 
-router.get('/vatweeklybysector/:sector', operationzController.getVatWeeklyBySector);
+router.get('/vatweeklybysector/:sector', isAuth, operationzController.getVatWeeklyBySector);
 
-router.get('/vatmonthlybysector/:sector', operationzController.getVatMonthlyBySector);
+router.get('/vatmonthlybysector/:sector', isAuth, operationzController.getVatMonthlyBySector);
 
-router.get('/vatquarterlybysector/:sector', operationzController.getVatQuarterlyBySector);
+router.get('/vatquarterlybysector/:sector', isAuth, operationzController.getVatQuarterlyBySector);
 
-router.get('/vatyearlybysector/:sector', operationzController.getVatYearlyBySector);
+router.get('/vatyearlybysector/:sector', isAuth, operationzController.getVatYearlyBySector);
 
-router.get('/yearlymarketsegmentbysector/:sector', operationzController.getMarketSegmentYearly);
+router.get('/yearlymarketsegmentbysector/:sector', isAuth, operationzController.getMarketSegmentYearly);
 
-router.get('/monthlyvatsegmentbysector/:yyyy/sector/:sector', operationzController.getVatMonthlyBySectorAllSubsector);
+router.get('/monthlyvatsegmentbysector/:yyyy/sector/:sector', isAuth, operationzController.getVatMonthlyBySectorAllSubsector);
 
 
-router.get('/monthlyvatsegmentbysectorInsurance/:yyyy/sector/:sector', operationzController.getVatMonthlyBySectorInsurance);
+router.get('/monthlyvatsegmentbysectorInsurance/:yyyy/sector/:sector', isAuth, operationzController.getVatMonthlyBySectorInsurance);
 
-router.get('/yearlyvatsegmentbysector/:sector', operationzController.getVatSegmentYearlyBySector);
+router.get('/yearlyvatsegmentbysector/:sector', isAuth, operationzController.getVatSegmentYearlyBySector);
 
-router.get('/sectortransactionwithpages/:pagenumber/limitdata/:limit/sector/:sector', operationzController.getSectorTransactionzWithPages);
+router.get('/sectortransactionwithpages/:pagenumber/limitdata/:limit/sector/:sector', isAuth, operationzController.getSectorTransactionzWithPages);
 
 // ***** SECTORS ENDS ******
 
 
 // ***** SUB-SECTORS ENDS ******
-router.get('/vattodaybysubsector/:subsector', operationzController.getVatTodayBySubSector);
+router.get('/vattodaybysubsector/:subsector', isAuth, operationzController.getVatTodayBySubSector);
 
-router.get('/vatmonthlybysubsector/:subsector', operationzController.getVatMonthlyBySubSector);
+router.get('/vatmonthlybysubsector/:subsector', isAuth, operationzController.getVatMonthlyBySubSector);
 
-router.get('/vatquarterlybysubsector/:subsector', operationzController.getVatQuarterlyBySubSector);
+router.get('/vatquarterlybysubsector/:subsector', isAuth, operationzController.getVatQuarterlyBySubSector);
 
-router.get('/vatyearlybysubsector/:subsector', operationzController.getVatYearlyBySubSector);
+router.get('/vatyearlybysubsector/:subsector', isAuth, operationzController.getVatYearlyBySubSector);
 
-router.get('/vathourbysubsector/:dd/mm/:mm/year/:yyyy/subsector/:subsector', operationzController.getVatHourlyBySubSector);
+router.get('/vathourbysubsector/:dd/mm/:mm/year/:yyyy/subsector/:subsector', isAuth, operationzController.getVatHourlyBySubSector);
 
-router.get('/subsectortransactionwithpages/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getSubSectorTransactionzWithPages);
+router.get('/subsectortransactionwithpages/:pagenumber/limitdata/:limit/subsector/:subsector', isAuth, operationzController.getSubSectorTransactionzWithPages);
 
 
 // 1st, 2nd , 3rd and 4th Qtr summary of reports
-router.get('/vatquarter1234bysector/:sector', operationzController.getVatQuarter1234BySector);
+router.get('/vatquarter1234bysector/:sector', isAuth, operationzController.getVatQuarter1234BySector);
 
 // ***** SUB-SECTORS ENDS ******
 
 // ****** REPORTS *********
-router.get('/numberofvatsalltimes', operationzController.getNumberOfVatsAllTimes);
+router.get('/numberofvatsalltimes', isAuth, operationzController.getNumberOfVatsAllTimes);
 
-router.get('/summaryofalltimes', operationzController.getSummaryOfAllTimes);
+router.get('/summaryofalltimes', isAuth, operationzController.getSummaryOfAllTimes);
 
-router.get('/topperformers/:total/year/:yyyy', operationzController.getTopPerfomersByYear);
+router.get('/topperformers/:total/year/:yyyy', isAuth, operationzController.getTopPerfomersByYear);
 
 // Transaction ID Only
-router.get('/transactionswithtransactionid/:trxid', operationzController.getTransactionsByTrxIdOnly);
+router.get('/transactionswithtransactionid/:trxid', isAuth, operationzController.getTransactionsByTrxIdOnly);
 
 // Sub Sector Only
-router.get('/transactionswithsubsectoronly/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getTransactionsBySubSectorOnly);
+router.get('/transactionswithsubsectoronly/:pagenumber/limitdata/:limit/subsector/:subsector', isAuth, operationzController.getTransactionsBySubSectorOnly);
 
 // Sector Only
-router.get('/transactionswithsectoronly/:pagenumber/limitdata/:limit/sector/:sector', operationzController.getTransactionsBySectorOnly);
+router.get('/transactionswithsectoronly/:pagenumber/limitdata/:limit/sector/:sector', isAuth, operationzController.getTransactionsBySectorOnly);
 
 // Dates Only
-router.get('/transactionswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getTransactionsWith2Dates);
+router.get('/transactionswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', isAuth, operationzController.getTransactionsWith2Dates);
 
 // Dates and sector
-router.get('/transactionswith2datesandsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/sector/:sector', operationzController.getTransactionsWith2DatesandSector);
+router.get('/transactionswith2datesandsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/sector/:sector', isAuth, operationzController.getTransactionsWith2DatesandSector);
 
 // Dates and Subsector
-router.get('/transactionswith2datesandsubsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/subsector/:subsector', operationzController.getTransactionsWith2DatesandSubSector);
+router.get('/transactionswith2datesandsubsector/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/subsector/:subsector', isAuth, operationzController.getTransactionsWith2DatesandSubSector);
 
 // Dates Only
-router.get('/logswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', operationzController.getAuditTrailWith2Dates);
+router.get('/logswith2datesonly/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit', isAuth, operationzController.getAuditTrailWith2Dates);
 
 
 // Dates and region
-router.get('/transactionswith2datesandregion/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/region/:region', operationzController.getTransactionsWith2DatesandRegion);
+router.get('/transactionswith2datesandregion/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/region/:region', isAuth, operationzController.getTransactionsWith2DatesandRegion);
 
 // Dates and State
-router.get('/transactionswith2datesandstate/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/state/:state', operationzController.getTransactionsWith2DatesandState);
+router.get('/transactionswith2datesandstate/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/state/:state', isAuth, operationzController.getTransactionsWith2DatesandState);
 
 // Dates and TIN
-router.get('/transactionswith2datesandtin/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/tin/:tin', operationzController.getTransactionsWith2DatesandTIN);
+router.get('/transactionswith2datesandtin/:dd1/mm1/:mm1/yyyy1/:yyyy1/dd2/:dd2/mm2/:mm2/yyyy2/:yyyy2/page/:pagenumber/limitdata/:limit/tin/:tin', isAuth, operationzController.getTransactionsWith2DatesandTIN);
 // ******REPORTS ENDS *****
 
 // GET DATA FROM TAXPRO
 // router.get('/vathourbysubsector/:dd/mm/:mm/year/:yyyy/subsector/:subsector', operationzController.getVatHourlyBySubSector);
-router.get('/monthlypayment/:mm/yyyy/:yyyy', operationzController.getMonthlyPayment);
+router.get('/monthlypayment/:mm/yyyy/:yyyy', isAuth, operationzController.getMonthlyPayment);
 
-router.get('/vatpaidbytin/:tin/mm/:mm/yyyy/:yyyy', operationzController.getVatPaidByTin);
+router.get('/vatpaidbytin/:tin/mm/:mm/yyyy/:yyyy', isAuth, operationzController.getVatPaidByTin);
 
-router.get('/vatrecordedbytin/:tin/mm/:mm/yyyy/:yyyy', operationzController.getVatRecordedByTin);
+router.get('/vatrecordedbytin/:tin/mm/:mm/yyyy/:yyyy', isAuth, operationzController.getVatRecordedByTin);
 
 module.exports = router;

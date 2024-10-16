@@ -6,6 +6,7 @@ const Personal = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 const Tlogs = require('../models/tlogs');
 const Vat = require('../models/vat');
+const PM = require('../middleware/privilegemanager');
 
 
 var https = require('https');
@@ -108,6 +109,12 @@ function generateToken(n) {
 
 
 exports.getTransactionz= (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactions');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+    
     // console.log('Filter:: ' + tempFilter);
         Vat.find({}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
         .then(trxs => {
@@ -123,6 +130,12 @@ exports.getTransactionz= (req, res, next) => {
 }
 
 exports.getOneTransaction = (req, res, next) => {
+
+    const access = PM.routesmanager(req.user.userType, 'transaction');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     const trxId = req.params.trx_id;
     console.log('trxID:' + trxId);
     Vat.findOne({trx_id: trxId}, 'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
@@ -142,6 +155,11 @@ exports.getOneTransaction = (req, res, next) => {
 
 
 exports.getAllTransactionsByOwner = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'transactionsbyowner');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     // const cacId = req.params.cac_id;
     const userId = req.params.user_id;
     // console.log('U ID::' + userId);
@@ -164,6 +182,11 @@ exports.getAllTransactionsByOwner = (req, res, next) => {
 }
 
 exports.getAllTransactionsByOwnerWith2Dates = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionsbyownerwith2dates');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -213,6 +236,12 @@ exports.getAllTransactionsByOwnerWith2Dates = (req, res, next) => {
 }
 
 exports.getOwnerByTransaction = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'ownerbytransaction');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     const trxId = req.params.trx_id;
     // const userId = req.params.user_id;
     Vat.findOne({trx_id: trxId})
@@ -256,6 +285,12 @@ if (tradeType == 'Sell') return 'Buy';
 }
 
 exports.addTransaction = async (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'addtransaction');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     
     const errors = validationResult(req);
     var msg;
@@ -711,6 +746,12 @@ exports.addTransaction = async (req, res, next) => {
 
 
 exports.getVatHourly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatbyhour');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var dd = +req.params.dd;
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
@@ -1316,6 +1357,12 @@ exports.getVatHourly = (req, res, next) => {
 
 
 exports.getVatToday = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vattoday');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var dd = +req.params.dd;
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
@@ -1403,6 +1450,12 @@ exports.getVatToday = (req, res, next) => {
 
 
 exports.getVatMonthly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatthismonth');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
     
@@ -1610,6 +1663,11 @@ console.log('Month in Fnct: ' + mm);
 }
 
 exports.getVatQuarterly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatthisquarter');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
 
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
@@ -1690,6 +1748,11 @@ exports.getVatQuarterly = (req, res, next) => {
 
 
 exports.getVatYearly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatthisyear');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     // var sector = req.params.sector;
     var yyyy = +req.params.yyyy;
 
@@ -1773,6 +1836,12 @@ exports.getVatYearly = (req, res, next) => {
 
 
 exports.getTrxYearlyAllSectors = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'yearsummaryforallsectors');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var yyyy = +req.params.yyyy;
     
     if (!yyyy) {
@@ -1917,6 +1986,12 @@ function recursionGetByMonth(mm, yyyy) {
 
 
 exports.getTrxMonthlyAllSectors = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'monthsummaryforallsectors');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var yyyy = +req.params.yyyy;
    
     firstDate = new Date(Date.UTC(yyyy, 0, 1, 00, 00, 00));
@@ -2363,7 +2438,11 @@ exports.getTrxMonthlyAllSectors = (req, res, next) => {
 
 
 exports.getVatSegmentYearlyAllSector = (req, res, next) => { 
-  
+  const access = PM.routesmanager(req.user.userType, 'yearlyvatsegmentallsectors');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var yyyy = +req.params.yyyy;
 
     if (!yyyy) {
@@ -2468,6 +2547,12 @@ exports.getVatSegmentYearlyAllSector = (req, res, next) => {
 }
 
 exports.getTransactionzWithPages = async (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'alltransactionwithpages');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var page = +req.params.pagenumber;
     var limit = +req.params.limit;
     if (!page || isNaN(page)) page = 1;
@@ -2504,6 +2589,11 @@ exports.getTransactionzWithPages = async (req, res, next) => {
 
 
 exports.getVatYearlyByRegion = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatthisyearbyregion');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     // var sector = req.params.sector;
     var yyyy = +req.params.yyyy;
 
@@ -2817,6 +2907,12 @@ exports.getVatYearlyByRegion = (req, res, next) => {
 
 
 exports.getVatYearlyByThreshold = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatthisyearbythreshold');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     // var sector = req.params.sector;
     var yyyy = +req.params.yyyy;
 
@@ -3133,6 +3229,11 @@ exports.getVatYearlyByThreshold = (req, res, next) => {
 // ***** SECTOR- CAPITAL MARKET, INSURANCE BEGINS ********
 
 exports.getVatTodayBySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vattodaybysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var sector = req.params.sector;
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -3217,6 +3318,12 @@ function setToMonday( date ) {
 }
 
 exports.getVatWeeklyBySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatweeklybysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var sector = req.params.sector;
     const today = new Date();
    
@@ -3302,6 +3409,12 @@ exports.getVatWeeklyBySector = (req, res, next) => {
 
 
 exports.getVatMonthlyBySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'monthlyvatsegmentbysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     console.log('Got Hiaaa');
     var sector = req.params.sector;
     
@@ -3395,6 +3508,12 @@ exports.getVatMonthlyBySector = (req, res, next) => {
 
 
 exports.getVatQuarterlyBySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatquarterlybysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var sector = req.params.sector;
     
     var today = new Date();
@@ -3470,6 +3589,11 @@ exports.getVatQuarterlyBySector = (req, res, next) => {
 }
 
 exports.getVatYearlyBySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatyearlybysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var sector = req.params.sector;
     
     const today = new Date();
@@ -3556,6 +3680,12 @@ exports.getVatYearlyBySector = (req, res, next) => {
 }
 
 exports.getMarketSegmentYearly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'yearlymarketsegmentbysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     const today = new Date();
     const yyyy = today.getFullYear();
     var mm = today.getMonth();
@@ -3618,6 +3748,12 @@ exports.getMarketSegmentYearly = (req, res, next) => {
             
 // nested functions
 exports.getVatMonthlyBySectorAllSubsector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'monthlyvatsegmentbysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var yyyy = +req.params.yyyy;
     var sector = req.params.sector;
     console.log('Sector: ' + sector + 'Year: ' + yyyy);
@@ -4117,6 +4253,12 @@ return ansObj;
 
 
 exports.getVatMonthlyBySectorInsurance = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'monthlyvatsegmentbysectorInsurance');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var yyyy = +req.params.yyyy;
     var sector = req.params.sector;
     console.log('Sector: ' + sector + 'Year: ' + yyyy);
@@ -4570,6 +4712,11 @@ return ansObj;
 }
 
 exports.getVatSegmentYearlyBySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'yearlyvatsegmentbysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     const today = new Date();
     const yyyy = today.getFullYear();
     var mm = today.getMonth();
@@ -4665,6 +4812,11 @@ exports.getVatSegmentYearlyBySector = (req, res, next) => {
 
 
 exports.getSectorTransactionzWithPages = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'sectortransactionwithpages');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var page = +req.params.pagenumber;
     var limit = +req.params.limit;
     var sector = req.params.sector;
@@ -4706,6 +4858,12 @@ exports.getSectorTransactionzWithPages = (req, res, next) => {
 // *****SUB SECTORS- SEC, NGX, NAICOM etc ******
 
 exports.getVatTodayBySubSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vattodaybysubsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var subsector = req.params.subsector;
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -4782,6 +4940,12 @@ exports.getVatTodayBySubSector = (req, res, next) => {
 }
 
 exports.getVatMonthlyBySubSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatmonthlybysubsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var subsector = req.params.subsector;
     
     const today = new Date();
@@ -4870,6 +5034,12 @@ exports.getVatMonthlyBySubSector = (req, res, next) => {
 }
 
 exports.getVatQuarterlyBySubSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatquarterlybysubsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var subsector = req.params.subsector;
     
     var today = new Date();
@@ -4955,6 +5125,11 @@ exports.getVatQuarterlyBySubSector = (req, res, next) => {
 }
 
 exports.getVatYearlyBySubSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatyearlybysubsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var subsector = req.params.subsector;
     
     const today = new Date();
@@ -5041,6 +5216,11 @@ exports.getVatYearlyBySubSector = (req, res, next) => {
 }
 
 exports.getVatHourlyBySubSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vathourbysubsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd = +req.params.dd;
     var mm = +req.params.mm;
     var yyyy = +req.params.yyyy;
@@ -5660,6 +5840,12 @@ exports.getVatHourlyBySubSector = (req, res, next) => {
 }
 
 exports.getSubSectorTransactionzWithPages = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'subsectortransactionwithpages');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     var page = +req.params.pagenumber;
     var limit = +req.params.limit;
     var subsector = req.params.subsector;
@@ -5699,6 +5885,11 @@ exports.getSubSectorTransactionzWithPages = (req, res, next) => {
 
 // 1st, 2nd , 3rd and 4th Qtr summary of reports
 exports.getVatQuarter1234BySector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatquarter1234bysector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var sector = req.params.sector;
     var today = new Date();
     var yyyy = today.getFullYear();
@@ -5834,6 +6025,11 @@ exports.getVatQuarter1234BySector = (req, res, next) => {
 // ****** REPORTS STARTS *********
 
 exports.getTopPerfomersByYear = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'topperformers');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var total = +req.params.total;
     var yyyy = +req.params.yyyy;
  
@@ -5938,6 +6134,11 @@ exports.getTopPerfomersByYear = (req, res, next) => {
 }
 
 exports.getNumberOfVatsAllTimes = async (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'numberofvatsalltimes');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
             const count = await Vat.count();
 
             res.status(200).json({message: 'success', count: count}); 
@@ -5946,6 +6147,10 @@ exports.getNumberOfVatsAllTimes = async (req, res, next) => {
 
 
 exports.getSummaryOfAllTimes = async (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'summaryofalltimes');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
 
     Vat.aggregate([
 
@@ -5977,6 +6182,11 @@ exports.getSummaryOfAllTimes = async (req, res, next) => {
 
 
 exports.getTransactionsByTrxIdOnly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswithtransactionid');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var trx_id = req.params.trxid;
     
         Vat.find({trx_id: trx_id},'trx_id tin cac_id transaction_type trade_type company_name company_code transaction_amount base_amount vat, lower_vat sector sub_sector data_submitted taxpro_trans_id')
@@ -5995,6 +6205,11 @@ exports.getTransactionsByTrxIdOnly = (req, res, next) => {
 }
 
 exports.getTransactionsBySubSectorOnly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswithsubsectoronly');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var sub_sector = req.params.subsector;
     // const today = new Date();
        
@@ -6031,6 +6246,11 @@ exports.getTransactionsBySubSectorOnly = (req, res, next) => {
 
 
 exports.getTransactionsBySectorOnly = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswithsectoronly');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var sector = req.params.sector;
     // const today = new Date();
        
@@ -6066,7 +6286,12 @@ exports.getTransactionsBySectorOnly = (req, res, next) => {
 }
 
 
-exports.getTransactionsWith2Dates = (req, res, next) => { 
+exports.getTransactionsWith2Dates = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'transactionswith2datesandsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+ 
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6116,6 +6341,11 @@ exports.getTransactionsWith2Dates = (req, res, next) => {
 }
 
 exports.getTransactionsWith2DatesandSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswith2datesandsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6166,6 +6396,11 @@ exports.getTransactionsWith2DatesandSector = (req, res, next) => {
 }
 
 exports.getTransactionsWith2DatesandSubSector = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswith2datesandsubsector');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6217,6 +6452,11 @@ exports.getTransactionsWith2DatesandSubSector = (req, res, next) => {
 
 
 exports.getTransactionsWith2DatesandRegion = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswith2datesandregion');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6267,6 +6507,11 @@ exports.getTransactionsWith2DatesandRegion = (req, res, next) => {
 }
 
 exports.getTransactionsWith2DatesandState = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswith2datesandstate');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6318,6 +6563,11 @@ exports.getTransactionsWith2DatesandState = (req, res, next) => {
 
 
 exports.getTransactionsWith2DatesandTIN = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'transactionswith2datesandtin');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6368,6 +6618,11 @@ exports.getTransactionsWith2DatesandTIN = (req, res, next) => {
 }
 
 exports.getVatRecordedByTin = async (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatrecordedbytin');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     // var dd1 = req.params.dd1;
     var mm = req.params.mm;
     var yyyy = req.params.yyyy;
@@ -6423,6 +6678,11 @@ exports.getVatRecordedByTin = async (req, res, next) => {
 
 }
 exports.getAuditTrailWith2Dates = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'logswith2datesonly');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     var dd1 = req.params.dd1;
     var mm1 = req.params.mm1;
     var yyyy1 = req.params.yyyy1;
@@ -6478,6 +6738,11 @@ exports.getAuditTrailWith2Dates = (req, res, next) => {
 // *******GET DATA FROM TAXPRO******
 
 exports.getMonthlyPayment = async (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'monthlypayment');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     console.log('finding payment...');
     var total = +req.params.mm;
     const dataIn = JSON.stringify({
@@ -6508,6 +6773,11 @@ exports.getMonthlyPayment = async (req, res, next) => {
 }
 
 exports.getVatPaidByTin = async (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'vatpaidbytin');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     console.log('finding payment...');
     var mm = +req.params.mm;
     var tin = req.params.tin;

@@ -423,7 +423,8 @@ exports.userLogin = (req, res, next) => {
             const token = jwt.sign(
                 {
                     email: loadedUser.email,
-                    userId: loadedUser._id.toString()
+                    userId: loadedUser._id.toString(),
+                    userType: loadedUser.usertype
                 }, 
                 process.env.KOKORO_IWOLE,
                 {expiresIn: '1h'}

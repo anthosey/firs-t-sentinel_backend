@@ -16,6 +16,8 @@ const path = require('path');
 
 const valDuplicate = require('../middleware/dupValidate');
 const company = require('../models/company');
+const isAuth = require('../middleware/isAuth');
+const PM = require('../middleware/privilegemanager');
 
 function generateToken(n) {
   
@@ -32,22 +34,29 @@ function generateToken(n) {
     return ("" + number).substring(add); 
 }
 
+
 function getDateValidated(dd, mm, yy) {
     var now = new Date();
     const dayOfMonth = now.getDate();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
     var resp = 'Not good';
-    console.log('Now: ' + dayOfMonth + '/' + month + '/' + year);
-    console.log('tR_Date : ' + dd + '/' + mm + '/' + yy);
+   
     if (dd >= dayOfMonth && mm >= month && yy >= year) {
-        console.log('All conditions are met.')
-        resp = 'All good';
+        if (mm > 12 || mm < 1) {
+            resp = 'Not good';
+        } 
+        else if (dd > 31 || dd < 1) {
+            resp = 'Not good';
+        }
+
+        else if (dd > 29 && mm == 2) {
+                resp = 'Not good';
+        } else resp = 'All good';
     } else {
-        console.log('One or more conditions are NOT met.');
         resp = 'Not good';
     } 
-    // resp  = resp + 'Now: ' + dayOfMonth + '/' + month + '/' + year;
+
     return resp;
 }
 
@@ -278,8 +287,16 @@ router.post('/updatecompany', upload.single('image_url'), (req, res, next) => {
 })
 
 
-router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
+router.post('/uploaddealbycsv', isAuth, upload.single('csv_file'), (req, res, next) => {
+    console.log('LOGGED IN USER::' + req.userId);
+    console.log('USER ITSELF:: ' + JSON.stringify(req.user, null, 2));
+    console.log('USER ITSELF:: ' + req.user.userType);
 
+    const access = PM.routesmanager(req.user.userType, 'uploaddealbycsv');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+ 
     const company_name = req.body.company_name;
     const company_code = req.body.company_code;
     var j = 0;
@@ -307,8 +324,8 @@ router.post('/uploaddealbycsv', upload.single('csv_file'), (req, res, next) => {
             .pipe(csv())
             .on('data', (data) => results.push(data))  // Push each row into the results array
             .on('end', async () => {
-                // Log the processed CSV data
-                console.log(results);
+                
+                // console.log(results);
 
                 // Process the data according to the rules
                 let resp = await processCsvDataForSubmission(results, company_code)

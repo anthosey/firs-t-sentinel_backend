@@ -11,8 +11,8 @@ const isAuth = require('../middleware/isAuth');
 // const isAuth = require('../middleware/isAuth');
 
 // router.get('/drivers', isAuth, userController.getDrivers);
-router.get('/companies', profileController.getCompanies);
-router.get('/onecompany/:cac_id', profileController.getOneCompany);
+router.get('/companies', isAuth, profileController.getCompanies);
+router.get('/onecompany/:cac_id', isAuth, profileController.getOneCompany);
 
 // router.get('/countrycode/:code', userController.getCountryCodes);
 router.post('/addcompany', [
@@ -69,7 +69,7 @@ router.post('/addcompany', [
                 })
         .normalizeEmail()
 
-], profileController.addCompany);
+], isAuth, profileController.addCompany);
 
 
 router.post('/addcompanywithimage', [
@@ -126,7 +126,7 @@ router.post('/addcompanywithimage', [
                 })
         .normalizeEmail()
 
-], profileController.addCompanyWithImagefile);
+], isAuth, profileController.addCompanyWithImagefile);
 
 
 router.post('/updatecompany', [
@@ -166,7 +166,7 @@ router.post('/updatecompany', [
                     .withMessage('Please enter a valid email.')
                     .normalizeEmail()
 
-], profileController.updateCompany);
+], isAuth, profileController.updateCompany);
 
 
 router.post('/updateverifiedtin', [
@@ -202,7 +202,7 @@ router.post('/updateverifiedtin', [
 
     
 
-], profileController.updateTinVerification);
+], isAuth, profileController.updateTinVerification);
 
 router.post('/deletecompany', [
     body('cac_id')
@@ -211,7 +211,7 @@ router.post('/deletecompany', [
         .isEmpty()
         .withMessage('CAC registration ID is required')
 
-], profileController.deleteCompany);
+], isAuth, profileController.deleteCompany);
 
 router.post('/forcedeletecompany', [
     body('cac_id')
@@ -220,7 +220,7 @@ router.post('/forcedeletecompany', [
         .isEmpty()
         .withMessage('CAC registration ID is required')
 
-], profileController.deleteCompanyWithTransactions);
+], isAuth, profileController.deleteCompanyWithTransactions);
 
 
 // NEGOTIATED DEALS REGISTER
@@ -248,7 +248,7 @@ router.post('/addnegotiateddeal', isAuth, [
                 .not()
                 .isEmpty()
                 .withMessage('Negotiated rate is compulsory')
-], profileController.addNegotiatedDeal);
+], isAuth, profileController.addNegotiatedDeal);
 
 
 router.post('/addnegotiateddealbroad', isAuth, profileController.addNegotiatedDealBroad);
@@ -284,7 +284,7 @@ router.post('/addindividual', [
                 })
         .normalizeEmail()
 
-], profileController.addIndividual);
+], isAuth, profileController.addIndividual);
 
 router.post('/updateindividual', [
     body('name')
@@ -312,7 +312,7 @@ router.post('/updateindividual', [
                 })
         .normalizeEmail()
 
-], profileController.updateIndividual);
+], isAuth, profileController.updateIndividual);
 
 router.post('/deleteindividual', [
     body('email')
@@ -321,10 +321,10 @@ router.post('/deleteindividual', [
         .isEmpty()
         .withMessage('Email is required')
 
-], profileController.deleteIndividual);
+], isAuth, profileController.deleteIndividual);
 
-router.get('/individuals', profileController.getIndividuals);
-router.get('/oneindividual/:email', profileController.getOneIndividual);
+router.get('/individuals', isAuth, profileController.getIndividuals);
+router.get('/oneindividual/:email', isAuth, profileController.getOneIndividual);
 router.get('/negotiateddealsbyowner/:company_code',isAuth, profileController.getNegotiatedDealsByOwner);
 
 module.exports = router;

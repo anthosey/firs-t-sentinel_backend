@@ -30,6 +30,7 @@ module.exports = (req, res, next) => {
         throw error;
     }
     
+    req.user = decodedToken;
     req.userId = decodedToken.email; // store userId from a decoded token in the request so, it may be accessible from other places
     next(); //call the next function so that the operation does not get stuck at this middleware
 }

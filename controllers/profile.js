@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Individual = require('../models/personal');
 const Transactionz = require('../models/transactionz');
 const NegotiatedDeal = require('../models/negotiated_deal');
+const PM = require('../middleware/privilegemanager');
 
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
@@ -13,6 +14,11 @@ const fs = require('fs');
 
 
 exports.getCompanies = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'companies');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     // console.log('Filter:: ' + tempFilter);
         Company.find()
         .then(coys => {
@@ -28,6 +34,12 @@ exports.getCompanies = (req, res, next) => {
 }
 
 exports.getOneCompany = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'onecompany');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     const cacId = req.params.cac_id;
     console.log('CAC ID: ' + cacId);
 
@@ -63,6 +75,11 @@ function generateToken(n) {
 
 
 exports.addCompany = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'addCompany');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     console.log('We GOT hia::');
     const errors = validationResult(req);
     var msg;
@@ -212,11 +229,14 @@ exports.addCompany = (req, res, next) => {
         
 }
 
-
-
 // Add Company with image upload
 
 exports.addCompanyWithImagefile = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'addcompanywithimage');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     console.log('We GOT hia::');
     const errors = validationResult(req);
     var msg;
@@ -380,6 +400,12 @@ exports.addCompanyWithImagefile = (req, res, next) => {
 }
 
 exports.addNegotiatedDeal = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'addNegotiatedDeal');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     console.log('We GOT hia::');
     const errors = validationResult(req);
     var msg;
@@ -440,6 +466,12 @@ function getDateValidated(dd, mm, yy) {
 }
 
 exports.addNegotiatedDealBroad = async (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'addnegotiateddealbroad');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     console.log('We GOT hia::');
     const errors = validationResult(req);
     var msg;
@@ -605,6 +637,11 @@ try {
 }
 
 exports.getNegotiatedDealsByOwner = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'negotiateddealsbyowner');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     const coyCode = req.params.company_code;
     // console.log('U ID::' + userId);
     NegotiatedDeal.find({company_code: coyCode, active: 1}, 'company_code company_name customer_account_no negotiated_rate trade_day trade_month trade_year stock_symbol deal_type')
@@ -627,6 +664,11 @@ exports.getNegotiatedDealsByOwner = (req, res, next) => {
 
 exports.updateCompany = (req, res, next) => {
     
+    const access = PM.routesmanager(req.user.userType, 'updateCompany');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     const errors = validationResult(req);
     var msg;
     var token;
@@ -700,6 +742,11 @@ exports.updateCompany = (req, res, next) => {
 
 
 exports.updateTinVerification = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'updateverifiedtin');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     
     const errors = validationResult(req);
     var msg;
@@ -749,6 +796,11 @@ exports.updateTinVerification = (req, res, next) => {
 
 exports.deleteCompany = (req, res, next) => {
 
+    const access = PM.routesmanager(req.user.userType, 'deleteCompany');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     const errors = validationResult(req);
     var msg;
     var token;
@@ -787,6 +839,12 @@ exports.deleteCompany = (req, res, next) => {
 }
 
 exports.deleteDeal = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'deletedeal');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
 console.log('YEs Deal!!');
     const errors = validationResult(req);
     var msg;
@@ -825,6 +883,11 @@ console.log('YEs Deal!!');
 
 
 exports.deleteCompanyWithTransactions = (req, res, next) => {
+const access = PM.routesmanager(req.user.userType, 'forcedeletecompany');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
 
     const errors = validationResult(req);
     var msg;
@@ -863,7 +926,12 @@ exports.deleteCompanyWithTransactions = (req, res, next) => {
 // INDIVIDUAL STARTS HERE
 
 exports.addIndividual = (req, res, next) => {
-    
+    const access = PM.routesmanager(req.user.userType, 'addIndividual');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     const errors = validationResult(req);
     var msg;
     var token;
@@ -935,7 +1003,12 @@ exports.addIndividual = (req, res, next) => {
 
 
 exports.updateIndividual = (req, res, next) => {
-    
+    const access = PM.routesmanager(req.user.userType, 'updateIndividual');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+
     const errors = validationResult(req);
     var msg;
     var token;
@@ -988,6 +1061,11 @@ exports.updateIndividual = (req, res, next) => {
 }
 
 exports.deleteIndividual = (req, res, next) => {
+const access = PM.routesmanager(req.user.userType, 'deleteindividual');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
 
     const errors = validationResult(req);
     var msg;
@@ -1019,6 +1097,11 @@ exports.deleteIndividual = (req, res, next) => {
 }
 
 exports.getIndividuals = (req, res, next) => { 
+    const access = PM.routesmanager(req.user.userType, 'individuals');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
     // console.log('Filter:: ' + tempFilter);
         Individual.find()
         .then(usrs => {
@@ -1034,6 +1117,12 @@ exports.getIndividuals = (req, res, next) => {
 }
 
 exports.getOneIndividual = (req, res, next) => {
+    const access = PM.routesmanager(req.user.userType, 'oneindividual');
+    if (access == 'Disallow') {
+        return res.status(401).json({message: 'Insufficient Privilege'});  
+    }
+
+    
     const email = req.params.email;
     console.log('Email: ' + email);
 
