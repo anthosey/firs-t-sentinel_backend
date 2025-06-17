@@ -11,6 +11,8 @@ const Vat = require ('./models/vat')
 const Company = require('./models/company');
 const Ngxdata = require('./models/ngxdata');
 const NegotiatedDeal = require('./models/negotiated_deal');
+const nodemailer = require('nodemailer');
+
 
 var http = require('http');
 var https = require('https');
@@ -40,6 +42,7 @@ if (result.error) {
 }
 
 // End of testing
+
 
 
 const cron = require("node-cron"); // Cron jobs
@@ -256,7 +259,6 @@ const ngxGrantType = process.env.NGX_GRANTTYPE;
 const ngxDataUrl = process.env.NGX_DATA_URL;
 
 async function logonToTaxpro() {
-  console.log('Im here now');
   let token = '';
   try {
     const response = await axios.post(apiUrl, {
@@ -287,11 +289,16 @@ try {
     grant_type: ngxGrantType
   });
 
+  // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; //THIS CODE MUST BE REMOVED IN PRODUCTION
+  //.. IT BYPASSES THE NEED TO VERIFY NGX's CERTIFICATE BEFORE CONNECTION
+
   const response = await axios.post(ngxURl, data, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   });
+
+
 
   // console.log('Login successful:', response.data);
   // console.log('ngxToken:', response.data.access_token);
@@ -342,9 +349,9 @@ async function getDataFromNGX() {
   const trDate = '2022-06-06'; //set static for test purpose
   provider_code = "NGX01";
   // Check if token exists
-  // if (ngxLoginStatus) {
-  ngxBearerToken = 'MdRJDqXnwKqGLddKWYMOlT9Ht5-wszCMdp7eVFK8D06Z1-pdM2-PoyDlqWGnLCJdcQFtp27ElNa6_QcyHmNYX1ipuRmMU6cUQWv1aO2Fd_v4ZwFjSzTTKid3jvJyWQgvbD0ljik8Kwadmn_8gvppRfIlryuENbQsVZXeIqQwMOcmocLpeAIDtrCtEga1hpHf0_3hdO0rj3Au4bz7fmskk7pc61j09OAa87n9u4F2IsQK3kfZbf6RdN8v8Xxf1biP'
-    console.log('got Token:' + ngxBearerToken);
+  if (ngxLoginStatus) {
+  // ngxBearerToken = 'TEW8KOTaBVf1DIdFtFWS5knGr9pFjrdNi44XTfT5OU4QIKrsZ772rBnQ6z1rj623jch0fOCqgrGqrofNiOtMiEbmLNVyISK8XYFeTYERagwax_rnctqtfJTra6nYB9RqCf0fluYiYfHiXLt9pCZ-kT6SvgX5R1_f2I_yG-XJbMzKLhjqnCdpX5BcH3hCJKeZbNJOO1yMjJkfHqdftaYOB7ycADBEO4VfGlfyeQFt1aF694WRDr6s3JoKwRvbOfDK'
+    // console.log('got Token:' + ngxBearerToken);
     axios.get(ngxDataUrl, {
       headers: {
         'Authorization': `Bearer ${ngxBearerToken}`
@@ -407,10 +414,10 @@ async function getDataFromNGX() {
       dataApiCalledForTheDay = false; // Data was not called successfully
       console.error('Error:', error);
     });
-  // } else { //login to ngx
-  //   console.log('Login again: NGX');
-  //   logonToNGX()
-  // }
+  } else { //login to ngx
+    console.log('Login again: NGX');
+    logonToNGX()
+  }
   
 }
  
@@ -1483,7 +1490,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1504,7 +1511,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1525,7 +1532,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1546,7 +1553,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1567,7 +1574,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1588,7 +1595,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1609,7 +1616,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1630,7 +1637,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1651,7 +1658,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1672,7 +1679,7 @@ cron.schedule("*/5 * * * * *", function() {
     }
 
   }else{
-    console.log('No data found!');
+    // console.log('No data found!');
   } 
   
   })
@@ -1907,7 +1914,7 @@ cron.schedule("*/1 * * * * *", function () {
 
       // **** PROCESS THE DATA FOR VAT GENERATION
 cron.schedule("*/1 * * * * *", function () {
-  console.log("testing 1 sec 10");
+  // console.log("testing 1 sec 10");
   if (ngxResponseData.length > 0) {
 
       const x = ngxResponseData.splice(0, 1);
@@ -1915,7 +1922,7 @@ cron.schedule("*/1 * * * * *", function () {
       console.log('Done!:: ' + ngxResponseData.length + ', ' + x[0]);
       console.log('Qty:: ' + x[0].Qty)
     } else {
-      console.log("No Data to process!");
+      // console.log("No Data to process!");
     }
   
   });
@@ -1934,11 +1941,26 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
   
 })
 
+  // // Send the email
+  //   console.log('Got to mail Sending..');
+                    
+    // transporter.sendMail(mailOptions, (error, info) => {
+    // if (error) {
+    //   console.log('Error! occured! from mail..');
+    //   console.error(error);
+    //     } else {
+    //       console.log('No Error from mail..');
+    //       console.log('Email sent: ' + info.response);
+    //     }
+    // });
+
 // job.start();
 
-// logonToNGX();
-getDataFromNGX();  //******To be removed when going live
+logonToNGX(); //To be activated for live view
+//getDataFromNGX();  //******To be removed when going live
 
+// console.log('Email Account: ' + process.env.EMAIL_ACCOUNT);
+//     console.log('Email Pass: ' + process.env.EMAIL_PASS);
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true, useUnifiedTopology: true })
 
 

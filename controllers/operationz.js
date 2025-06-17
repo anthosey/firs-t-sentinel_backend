@@ -723,7 +723,7 @@ exports.addTransaction = async (req, res, next) => {
                 
                 // console.log('My Token::' + bearerToken);
 
-                console.log('record::' + dat + ', Trx ID::' + trxId);
+                // console.log('record::' + dat + ', Trx ID::' + trxId);
                 res.status(201).json({
                     message: 'Transaction saved successfully',
                     data: {trx_id: trxId,

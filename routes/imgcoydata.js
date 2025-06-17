@@ -18,6 +18,7 @@ const valDuplicate = require('../middleware/dupValidate');
 const company = require('../models/company');
 const isAuth = require('../middleware/isAuth');
 const PM = require('../middleware/privilegemanager');
+const nodemailer = require('nodemailer');
 
 function generateToken(n) {
   
@@ -377,6 +378,135 @@ router.post('/uploaddealbycsv', isAuth, upload.single('csv_file'), (req, res, ne
     
 });
 
+function sendmail(name, sendTo, Subject){
+console.log('Name from email:' + name + ', Email sendTo:' + sendTo + ', subject: ' + Subject );
+const emailBody = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      color: #555555;
+      background-color: #f5f5f5;
+    }
+      .firs{
+      font-size: 24px;
+      color: red;
+      }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 0 5px rgb(0 0 0 / 0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #dddddd;
+    
+    }
+    .header h1, h2 {
+      color: #4caf50;
+      margin-bottom: 10px;
+    }
+    .body {
+      padding: 20px 0;
+    }
+    .body p {
+      font-size: 16px;
+      color:rgb(63, 61, 61);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .cta-button {
+      display: inline-block;
+      padding: 12px 20px;
+      background:rgb(235, 66, 14);
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .cta-button:hover {
+      background:rgba(112, 102, 102, 0.67); ;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      color: #888888;
+      font-size: 14px;
+      border-top: 1px solid #dddddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Welcome, </h1><h2>${name}!</h2
+      <p>We’re delighted to have you on boarded to the FIRS-TSENTINEL Platform.</p>
+    </div>
+
+    <div class="body">
+     <p>This platform helps automate the computations of the VAT components of your trading activities that happens on the platform of the Nigerian Exchange Group (NGX), making data-visibility a possiblity in the capital market.</p>
+      <p>On this platform, you can create your rate settings as may be applicable to your dealings with your various clients.</p>
+      <p>Your username is: ${sendTo}, and password is: 'Password123'.</p>
+      <p>Click the button below to get started or click <a href="https://tsentineltech.com/guide" class="cta-link">here</a> to learn more</p>
+      <br />
+      <a href="https://tsentineltech.com" class="cta-button">Get Started</a>
+    </div>
+
+    
+
+    <div class="footer">
+      <p>TSentinel Team, For:</p>
+      <p class="firs">Federal Inland Revenue Service.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+const transporter = nodemailer.createTransport({ 
+  host: 'smtp.stackmail.com',
+  port: 465,
+  secure: true, // true for port 465
+  auth: {
+    user: process.env.EMAIL_ACCOUNT,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+
+const mailOptions = {
+  from: process.env.EMAIL_ACCOUNT,
+  to: sendTo,
+  subject: Subject, //'FIRS-TSENTINEL ONBOARDING AND LOGIN DETAILS',
+  // text: 'Hello, this is a test email from Node.js!', // plain text
+  // or
+  html: emailBody
+};
+
+transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+        console.log('Error! occured! from mail..');
+        console.error(error);
+            } else {
+            console.log('No Error from mail..');
+            console.log('Email sent: ' + info.response);
+               }
+        });
+
+
+}
+
 router.post('/addcompany', upload.single('image_url'), (req, res, next) => {
 
     const cac_id = req.body.cac_id;
@@ -402,9 +532,11 @@ router.post('/addcompany', upload.single('image_url'), (req, res, next) => {
     const taxpayer_address = req.body.taxpayer_address;
     const tax_office_id = req.body.tax_office_id;
     const tax_office_address = req.body.tax_office_address;
-    const operating_licence_type = req.body.operating_licence_type;
+    const operating_licence_type = req.body.license_type;
     const proprietary_account = req.body.proprietary_account;
 
+
+    console.log('The License TYPE:: ' +  req.body.license_type);
      // Validate picture
      if (!req.file) {
         const error = new Error('No image provided too 4.');
@@ -448,6 +580,8 @@ console.log('img url:: ' +  imageUrl)
             
             company.save()
             
+           
+                    
             .then (record =>{
 
                 // Create login for the company
@@ -487,7 +621,10 @@ console.log('img url:: ' +  imageUrl)
                 
             });
         });
-               
+                // Send email here
+                    console.log('Got to mail Sending..');
+                    sendmail(company_name, email, 'FIRS-TSENTINEL ONBOARDING AND LOGIN DETAILS');
+
                 // Create a signup profile for the company
 
                 console.log('record::' + record);
