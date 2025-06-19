@@ -383,96 +383,261 @@ console.log('Name from email:' + name + ', Email sendTo:' + sendTo + ', subject:
 const emailBody = `
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Welcome</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>TSENTINEL Welcome Email</title>
+  </head>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      color: #555555;
-      background-color: #f5f5f5;
+    #butsection a{
+       background-color: #d9ead3;
+            color: #000000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            border: 1px solid #b6d7a8;
     }
-      .firs{
-      font-size: 24px;
+
+    #butsection a:hover{
       color: red;
-      }
-    .container {
-      width: 100%;
-      max-width: 800px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 0 5px rgb(0 0 0 / 0.1);
-    }
-    .header {
-      text-align: center;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #dddddd;
-    
-    }
-    .header h1, h2 {
-      color: #4caf50;
-      margin-bottom: 10px;
-    }
-    .body {
-      padding: 20px 0;
-    }
-    .body p {
-      font-size: 16px;
-      color:rgb(63, 61, 61);
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-    .cta-button {
-      display: inline-block;
-      padding: 12px 20px;
-      background:rgb(235, 66, 14);
-      color: #ffffff !important;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .cta-button:hover {
-      background:rgba(112, 102, 102, 0.67); ;
-    }
-    .footer {
-      text-align: center;
-      padding-top: 20px;
-      color: #888888;
-      font-size: 14px;
-      border-top: 1px solid #dddddd;
+      
     }
   </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Welcome, </h1><h2>${name}!</h2
-      <p>We’re delighted to have you on boarded to the FIRS-TSENTINEL Platform.</p>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-align: justify;
+    "
+  >
+    <!-- Top Banner -->
+    <div style="background-color: #d9ead3; padding: 100px 10px 0 10px">
+      <div
+        style="
+          max-width: 520px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          padding: 32px 24px 0 24px;
+          border-radius: 12px 12px 0 0;
+        "
+      >
+        <!-- Header -->
+        <h1
+          style="
+            text-align: center;
+            color: #0b2545;
+            font-size: 26px;
+            font-weight: bold;
+            margin: 0 0 8px;
+          "
+        >
+          WELCOME!
+        </h1>
+        <p
+          style="
+            text-align: center;
+            color: #444;
+            font-size: 15px;
+            margin: 0 0 12px;
+          "
+        >
+          ${name}!
+        </p>
+
+        <!-- Underline to mark end of green background -->
+        <hr
+          style="
+            border: none;
+            height: 1px;
+            background-color: #cccccc;
+            margin: 0;
+          "
+        />
+      </div>
     </div>
 
-    <div class="body">
-     <p>This platform helps automate the computations of the VAT components of your trading activities that happens on the platform of the Nigerian Exchange Group (NGX), making data-visibility a possiblity in the capital market.</p>
-      <p>On this platform, you can create your rate settings as may be applicable to your dealings with your various clients.</p>
-      <p>Your username is: ${sendTo}, and password is: 'Password123'.</p>
-      <p>Click the button below to get started or click <a href="https://tsentineltech.com/guide" class="cta-link">here</a> to learn more</p>
-      <br />
-      <a href="https://tsentineltech.com" class="cta-button">Get Started</a>
-    </div>
+    <!-- Main Content Card -->
+    <div
+      style="
+        max-width: 520px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      "
+    >
+      <!-- Welcome Paragraphs -->
+      <p
+        style="
+          font-size: 15px;
+          color: #000000;
+          line-height: 1.7;
+          margin: 24px 0 16px;
+        "
+      >
+        <strong
+          >We are delighted to have you onboarded to the FIRS-TSENTINEL Platform
+          😊.</strong
+        >
+      </p>
 
-    
+      <p
+        style="
+          font-size: 15px;
+          color: #000000;
+          line-height: 1.7;
+          margin-bottom: 16px;
+        "
+      >
+        This platform helps automate the computations of the VAT components of
+        your trading activities that happens on the platform of the Nigerian
+        Exchange Group (NGX), making data visibility a possibility in the
+        capital market.
+      </p>
 
-    <div class="footer">
-      <p>TSentinel Team, For:</p>
-      <p class="firs">Federal Inland Revenue Service.</p>
+      <p
+        style="
+          font-size: 15px;
+          color: #000000;
+          line-height: 1.7;
+          margin-bottom: 16px;
+        "
+      >
+        Use the below details to access the platform and create your rate
+        settings as may be applicable to your dealings with your various
+        clients.
+      </p>
+
+      <!-- Credentials Block -->
+      <div
+        style="
+          background-color: #f4f4f4;
+          padding: 16px;
+          border-radius: 6px;
+          font-family: monospace;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #333;
+          margin-bottom: 32px;
+        "
+      >
+        <div>
+          <strong>Username:</strong>
+          <a href="mailto:seye@photizotechnologies.com" style="color: #0b57d0"
+            >${sendTo}</a
+          >
+        </div>
+        <div><strong>Password:</strong> Password123</div>
+      </div>
+
+      <!-- Instructions -->
+      <p
+        style="
+          font-size: 16px;
+          font-weight: bold;
+          color: #000000;
+          margin: 0 0 12px;
+        "
+      >
+        In order to complete onboarding setup, do the following;
+      </p>
+
+      <ul
+        style="
+          font-size: 15px;
+          color: #666666;
+          padding-left: 20px;
+          line-height: 1.7;
+          margin: 0 0 24px;
+        "
+      >
+        <li style="margin-bottom: 10px">
+          <a
+            href="https://tsentineltech.com"
+            style="color: #444444; text-decoration: underline; font-weight: 600"
+          >
+            Login
+          </a>
+          <span style="color: #444444; text-decoration: none; font-weight: 600"
+            >to your Dashboard</span
+          >
+          using the credentials above.
+        </li>
+        <li>
+          <span style="color: #444444; text-decoration: none; font-weight: 600">
+            Change your password
+          </span>
+          — this can be found at the top-right corner of your Dashboard.
+        </li>
+      </ul>
+
+      <!-- Highlight CTA Block -->
+      <div
+        style="
+          background-color: #f2f2f2;
+          padding: 16px 20px;
+          border-radius: 15px;
+          margin: 24px 0;
+        "
+      >
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #333">
+          Alternatively, click on the button below to get started or click
+          <a
+            href="https://tsentineltech.com/guide" target="blank"
+            style="color: #444444; font-weight: 600; text-decoration: underline"
+          >
+            here
+          </a>
+          to learn more.
+        </p>
+      </div>
+
+      <!-- CTA Button -->
+      <div id="butsection" style="text-align: center; margin-bottom: 32px">
+        <a href="htts://tsentineltech.com" target="blank">
+          Get Started
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <p style="font-size: 15px; color: #000000; margin: 0 0 8px">
+        Kind Regards,
+      </p>
+      <p
+        style="
+          font-size: 15px;
+          font-weight: bold;
+          color: #000000;
+          margin: 0 0 4px;
+        "
+      >
+        The T-Sentinel Team
+      </p>
+      <p style="font-size: 14px; color: #333333; margin: 0 0 24px">
+        For: Federal Inland Revenue Service (FIRS)
+      </p>
+
+      <!-- Disclaimer -->
+      <p
+        style="
+          margin-top: 24px;
+          text-align: center;
+          font-size: 14px;
+          color: #7baac9;
+          line-height: 1.6;
+        "
+      >
+        You received this email because you just signed up for a new account.<br />
+        If you did not signup for a new account, please ignore.
+      </p>
     </div>
-  </div>
-</body>
-</html>`;
+  </body>
+</html>
+`;
 
 const transporter = nodemailer.createTransport({ 
   host: 'smtp.stackmail.com',
@@ -549,7 +714,7 @@ router.post('/addcompany', upload.single('image_url'), (req, res, next) => {
 
     // End picture validation
 console.log('img url:: ' +  imageUrl)
-
+try{
     const company = new Company({
                 cac_id: cac_id,
                 company_name: company_name,
@@ -663,6 +828,13 @@ console.log('img url:: ' +  imageUrl)
                 // next(err); // pass the error to the next error handling function
                 return res.status(408).json({"error": "Dulicate errors"  });
             });
+        } catch {
+                 if (!err.statusCode) {
+                    err.statusCode = 406;
+                }
+                // next(err); // pass the error to the next error handling function
+                return res.status(406).json({"error": "Dulicate errors"  });
+            }
        
     });
 
