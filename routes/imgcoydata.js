@@ -714,7 +714,7 @@ router.post('/addcompany', upload.single('image_url'), (req, res, next) => {
 
     // End picture validation
 console.log('img url:: ' +  imageUrl)
-try{
+
     const company = new Company({
                 cac_id: cac_id,
                 company_name: company_name,
@@ -828,13 +828,6 @@ try{
                 // next(err); // pass the error to the next error handling function
                 return res.status(408).json({"error": "Dulicate errors"  });
             });
-        } catch {
-                 if (!err.statusCode) {
-                    err.statusCode = 406;
-                }
-                // next(err); // pass the error to the next error handling function
-                return res.status(406).json({"error": "Dulicate errors"  });
-            }
        
     });
 
