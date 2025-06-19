@@ -603,6 +603,21 @@ const emailBody = `
         </a>
       </div>
 
+
+      <div
+        style="
+          background-color: #f2f2f2;
+          padding: 16px 20px;
+          border-radius: 15px;
+          margin: 24px 0;
+        "
+      >
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #333">
+          Please contact support at: 0808-167-8204 or supoort@tsentineltech.com
+        </p>
+      </div>
+
+
       <!-- Footer -->
       <p style="font-size: 15px; color: #000000; margin: 0 0 8px">
         Kind Regards,
