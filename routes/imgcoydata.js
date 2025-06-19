@@ -598,7 +598,7 @@ const emailBody = `
 
       <!-- CTA Button -->
       <div id="butsection" style="text-align: center; margin-bottom: 32px">
-        <a href="htts://tsentineltech.com">
+        <a href="https://tsentineltech.com">
           Get Started
         </a>
       </div>
