@@ -613,7 +613,7 @@ const emailBody = `
         "
       >
         <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #333">
-          Please contact support at: 0808-167-8204 or support@tsentineltech.com
+          For further enquiries please contact support at: 0808-167-8204 or support@tsentineltech.com
         </p>
       </div>
 
