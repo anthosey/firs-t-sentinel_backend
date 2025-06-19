@@ -654,15 +654,31 @@ const emailBody = `
 </html>
 `;
 
-const transporter = nodemailer.createTransport({ 
-  host: 'smtp.stackmail.com',
-  port: 465,
-  secure: true, // true for port 465
+
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.office365.com',
+  port: 587,
+  secure: false, // use STARTTLS, not SSL
   auth: {
     user: process.env.EMAIL_ACCOUNT,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    ciphers: 'SSLv3',
+  },
 });
+
+
+// const transporter = nodemailer.createTransport({ 
+//   host: 'smtp.stackmail.com',
+//   port: 465,
+//   secure: true, // true for port 465
+//   auth: {
+//     user: process.env.EMAIL_ACCOUNT,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
 
 const mailOptions = {
