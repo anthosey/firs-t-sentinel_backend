@@ -527,9 +527,8 @@ const emailBody = `
       >
         <div>
           <strong>Username:</strong>
-          <a href="mailto:seye@photizotechnologies.com" style="color: #0b57d0"
-            >${sendTo}</a
-          >
+          ${sendTo}
+          
         </div>
         <div><strong>Password:</strong> Password123</div>
       </div>

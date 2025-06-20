@@ -1942,17 +1942,40 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
 })
 
   // // Send the email
-  //   console.log('Got to mail Sending..');
+  // const transporter = nodemailer.createTransport({
+  //   host: 'smtp.office365.com',
+  //   port: 587,
+  //   secure: false, // use STARTTLS, not SSL
+  //   auth: {
+  //     user: process.env.EMAIL_ACCOUNT,
+  //     pass: process.env.EMAIL_PASS,
+  //   },
+  //   tls: {
+  //     ciphers: 'SSLv3',
+  //   },
+  // });
+  
+  
+  // const mailOptions = {
+  //   from: process.env.EMAIL_ACCOUNT,
+  //   to: 'udokambanefo@gmail.com',
+  //   subject: 'FIRS-TSENTINEL ONBOARDING AND LOGIN DETAILS',
+  //   text: 'Hello, this is a test email from Node.js!', // plain text
+  //   // or
+  //   // html: emailBody
+  // };
+
+  // //   console.log('Got to mail Sending..');
                     
-    // transporter.sendMail(mailOptions, (error, info) => {
-    // if (error) {
-    //   console.log('Error! occured! from mail..');
-    //   console.error(error);
-    //     } else {
-    //       console.log('No Error from mail..');
-    //       console.log('Email sent: ' + info.response);
-    //     }
-    // });
+  //   transporter.sendMail(mailOptions, (error, info) => {
+  //   if (error) {
+  //     console.log('Error! occured! from mail..');
+  //     console.error(error);
+  //       } else {
+  //         console.log('No Error from mail..');
+  //         console.log('Email sent: ' + info.response);
+  //       }
+  //   });
 
 // job.start();
 
