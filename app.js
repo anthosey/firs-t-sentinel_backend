@@ -297,11 +297,6 @@ try {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   });
-
-
-
-  // console.log('Login successful:', response.data);
-  // console.log('ngxToken:', response.data.access_token);
   ngxBearerToken = response.data.access_token;
   ngxLoginStatus = true;
 } catch (error) {
@@ -571,7 +566,7 @@ function validateTinFromFIRS(tin) {
           state = myString.at(myString.length - 1);
           console.log('STATE:: ' + state);
 
-          console.log('Offic Name::' + newData.TaxOfficeName);
+          console.log('Office Name::' + newData.TaxOfficeName);
 
           // Get Region
           region = getRegion(state);
@@ -1722,18 +1717,19 @@ cron.schedule("* * * * *", function () {
 // end of Rem 1
 
 
-//  rem NGX_01: Check Login
-cron.schedule("* * * * *", function () {
-console.log("---------------------");
-// console.log("Checking NGX login every 1 min" + ngxBearerToken); 
+// ****RELEASE THIS SECTION FOR PRODUCTION****
+// //  rem NGX_01: Check Login  
+// cron.schedule("* * * * *", function () {
+// console.log("---------------------");
+// // console.log("Checking NGX login every 1 min" + ngxBearerToken); 
 
-console.log('STATUS: '+ ngxLoginStatus);
+// console.log('STATUS: '+ ngxLoginStatus);
 
-if (!ngxLoginStatus) {
-    logonToNGX();
+// if (!ngxLoginStatus) {
+//     logonToNGX();
     
-} else {console.log('NGX Login active!, Token:: ' + ngxBearerToken );}
-});
+// } else {console.log('NGX Login active!, Token:: ' + ngxBearerToken );}
+// });
 
 
 
@@ -1744,16 +1740,17 @@ resetNgxDataPickupParameters()
 })
 
 
-// *****Check with the NGX to ask for the data for the day
-cron.schedule("57 16 * * *", function() { // @ 4:57Pm (57 16)every day
-if (!dataApiCalledForTheDay) {
-  console.log('Call NGX for data');
-  getDataFromNGX();
-} else {
-  console.log('Data already gotten for today.');
-}
+// ****RELEASE THIS SECTION FOR PRODUCTION****
+// // *****Check with the NGX to ask for the data for the day
+// cron.schedule("57 16 * * *", function() { // @ 4:57Pm (57 16)every day
+// if (!dataApiCalledForTheDay) {
+//   console.log('Call NGX for data');
+//   getDataFromNGX();
+// } else {
+//   console.log('Data already gotten for today.');
+// }
 
-})
+// })
 
 
 // // **** PROCESS THE DATA FOR VAT GENERATION
@@ -1979,7 +1976,7 @@ cron.schedule("*/10 * * * * *", function() { // 2:05 am
 
 // job.start();
 
-logonToNGX(); //To be activated for live view
+// logonToNGX(); //To be activated for live view
 //getDataFromNGX();  //******To be removed when going live
 
 // console.log('Email Account: ' + process.env.EMAIL_ACCOUNT);
